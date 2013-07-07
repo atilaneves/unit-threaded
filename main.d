@@ -3,7 +3,10 @@ import std.stdio;
 
 class Foo: TestCase {
     override void test() {
-        print(5, 3);
+        assertTrue(5 == 3);
+        assertFalse(5 == 5);
+        assertEquals(5, 5);
+        assertEquals(5, 3);
     }
 }
 
