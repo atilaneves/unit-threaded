@@ -1,4 +1,4 @@
-import TestCase;
+import testcase;
 import std.stdio;
 
 class Foo: TestCase {
