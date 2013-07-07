@@ -11,5 +11,6 @@ class Foo: TestCase {
 void main() {
     writeln("Testing Unit Threaded code...");
     auto foo = new Foo;
-    foo.run();
+    auto result = foo.run();
+    write(result.output);
 }

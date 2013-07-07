@@ -1,13 +1,30 @@
 import std.stdio;
-import Testable;
+import std.conv;
 
-class TestCase: Testable {
+struct TestResult {
+    immutable bool success;
+    immutable string output;
+}
+
+
+class TestCase {
+    final TestResult run() {
+        setup();
+        test();
+        shutdown();
+        return TestResult(!_failed, _output);
+    }
     void setup() { }
     void shutdown() { }
     abstract void test();
     void print(T)(T value, T expected, uint line = __LINE__, string file = __FILE__) {
-        writeln("    ", file, ":", line, " - Value ", value, " is not the expected ", expected);
+        _output ~= "    " ~ file ~ ":" ~ to!string(line) ~ " - Value " ~ to!string(value) ~
+            " is not the expected " ~ to!string(expected) ~ "\n";
     }
+
+  private:
+    bool _failed;
+    string _output;
 }
 
 unittest {
