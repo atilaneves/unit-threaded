@@ -28,9 +28,14 @@ protected:
         if(condition) fail(condition, false, line, file);
     }
 
-    void assertEquals(T)(T value, T expected, uint line = __LINE__, string file = __FILE__) {
+    void assertEqual(T)(T value, T expected, uint line = __LINE__, string file = __FILE__) {
         if(value != expected) fail(value, expected, line, file);
     }
+
+    void assertNotEqual(T)(T value, T expected, uint line = __LINE__, string file = __FILE__) {
+        if(value == expected) fail(value, expected, line, file);
+    }
+
 
 private:
     bool _failed;

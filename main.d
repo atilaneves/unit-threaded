@@ -5,8 +5,9 @@ class Foo: TestCase {
     override void test() {
         assertTrue(5 == 3);
         assertFalse(5 == 5);
-        assertEquals(5, 5);
-        assertEquals(5, 3);
+        assertEqual(5, 5);
+        assertNotEqual(5, 3);
+        assertEqual(5, 3);
     }
 }
 
