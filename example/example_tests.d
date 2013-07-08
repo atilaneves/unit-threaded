@@ -15,3 +15,6 @@ class RightTest: TestCase {
         assertTrue(true);
     }
 }
+
+private void testFoo() {}
+private void someFun() {}

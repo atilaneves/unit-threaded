@@ -28,7 +28,7 @@ string[] getTestFunctions(alias mod)() {
 }
 
 string[] getTestables(alias mod)() {
-    return getTestFunctions!mod ~ getTestClassNames!mod;
+    return getTestClassNames!mod ~ getTestFunctions!mod;
 }
 
 private void testFoo() {}
