@@ -8,6 +8,9 @@ struct TestResult {
 
 
 class TestCase {
+    string getPath() {
+        return "TestCase"; //DELETE
+    }
     final TestResult run() {
         setup();
         test();
