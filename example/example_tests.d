@@ -18,3 +18,7 @@ class RightTest: TestCase {
 
 private void testFoo() {}
 private void someFun() {}
+
+unittest {
+    assert(false, "unittest block that always fails");
+}
