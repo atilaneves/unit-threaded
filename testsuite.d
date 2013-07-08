@@ -1,3 +1,5 @@
+#! /usr/bin/rdmd -unittest
+
 import testcase;
 import std.stdio;
 
