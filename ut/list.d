@@ -1,7 +1,5 @@
 module ut.list;
 
-import std.stdio;
-import std.conv;
 import std.traits;
 
 string[] getTestClassNames(alias mod)() {

@@ -1,8 +1,6 @@
 module ut.testsuite;
 
 import ut.testcase;
-
-import std.stdio;
 import std.datetime;
 
 struct TestSuite {
@@ -11,13 +9,14 @@ struct TestSuite {
     }
 
     double run() {
+        import std.stdio;
         _stopWatch.start();
         foreach(TestCase test; _tests) {
             immutable result = test.run();
             if(!result.success) {
                 addFailure(test.getPath());
             }
-            write(test.getPath() ~ ":\n" ~ result.output ~ "\n");
+            writeln(test.getPath() ~ ":\n" ~ result.output);
         }
 
         foreach(const ref string failure; _failures) {

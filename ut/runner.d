@@ -2,7 +2,6 @@ module ut.runner;
 
 import ut.factory;
 import ut.testsuite;
-import ut.list;
 
 import std.stdio;
 

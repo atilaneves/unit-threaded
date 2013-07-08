@@ -1,8 +1,5 @@
 module ut.testcase;
 
-import std.stdio;
-import std.conv;
-
 
 struct TestResult {
     immutable bool success;
@@ -57,6 +54,7 @@ private:
     }
 
     void output(T)(T value, T expected, uint line = __LINE__, string file = __FILE__) {
+        import std.conv;
         _output ~= "    " ~ file ~ ":" ~ to!string(line) ~ " - Value " ~ to!string(value) ~
             " is not the expected " ~ to!string(expected) ~ "\n";
     }
