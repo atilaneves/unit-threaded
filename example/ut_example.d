@@ -1,5 +1,7 @@
-import testsuite;
-import testcase;
+#!/usr/bin/rdmd
+
+import ut.testcase;
+import ut.testsuite;
 import std.stdio;
 import std.conv;
 
@@ -46,8 +48,8 @@ void main() {
     writeln(suite.getNumTestsRun(), " test(s) run, ",
             suite.getNumFailures(), " failed.\n");
 
-    writeln("Test classes: ", getTestClassNames!testcase());
-    listTestClasses!testcase();
+    writeln("Test classes: ", getTestClassNames!(ut.testcase)());
+    listTestClasses!(ut.testcase)();
 
 
     // // MoudleInfo is a magical thing in object.d,

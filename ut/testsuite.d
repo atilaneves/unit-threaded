@@ -1,6 +1,6 @@
-#!/usr/bin/rdmd -unittest
+module ut.testsuite;
 
-import testcase;
+import ut.testcase;
 import std.stdio;
 
 struct TestSuite {

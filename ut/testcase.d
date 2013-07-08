@@ -1,3 +1,5 @@
+module ut.testcase;
+
 import std.stdio;
 import std.conv;
 
