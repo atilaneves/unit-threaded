@@ -14,7 +14,7 @@ struct TestSuite {
             if(!result.success) {
                 addFailure(test.getPath());
             }
-            write(result.output);
+            write(test.getPath() ~ ":\n" ~ result.output);
         }
 
         foreach(const ref string failure; _failures) {
