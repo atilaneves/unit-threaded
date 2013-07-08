@@ -1,7 +1,9 @@
 module ut.testsuite;
 
 import ut.testcase;
+
 import std.stdio;
+import std.datetime;
 
 struct TestSuite {
     this(TestCase[] tests) {
@@ -9,6 +11,7 @@ struct TestSuite {
     }
 
     double run() {
+        _stopWatch.start();
         foreach(TestCase test; _tests) {
             immutable result = test.run();
             if(!result.success) {
@@ -21,7 +24,8 @@ struct TestSuite {
             writeln("Test ", failure, " failed.");
         }
 
-        return 0; //TODO: return elapsed time
+        _stopWatch.stop();
+        return _stopWatch.peek().seconds();
     }
 
     void addFailure(string testPath) {
@@ -39,4 +43,5 @@ struct TestSuite {
 private:
     TestCase[] _tests;
     string[] _failures;
+    StopWatch _stopWatch;
 }

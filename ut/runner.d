@@ -12,7 +12,7 @@ void runTests(MODULES...)() {
     auto suite = TestSuite(createTests!MODULES());
     immutable elapsed = suite.run();
 
-    writeln("Time taken: ", elapsed, " seconds");
+    writefln("Time taken: %.3f seconds", elapsed);
     writeln(suite.getNumTestsRun(), " test(s) run, ",
             suite.getNumFailures(), " failed.\n");
 }
