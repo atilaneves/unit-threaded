@@ -11,7 +11,7 @@ struct TestResult {
 
 class TestCase {
     string getPath() {
-        return "TestCase"; //DELETE
+        return this.classinfo.name;
     }
     final TestResult run() {
         setup();

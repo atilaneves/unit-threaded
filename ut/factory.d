@@ -15,7 +15,7 @@ TestCase[] createTests(alias mod)() {
     //     testCaseNames ~= getTestClassNames!mod();
     // }
     static testCaseNames = getTestClassNames!mod();
-    writeln("tests: ", testCaseNames);
+    writeln("tests: ", testCaseNames, "\n");
     TestCase[] tests;
     foreach(name; testCaseNames) {
         immutable fullName = fullyQualifiedName!mod ~ "." ~ name;

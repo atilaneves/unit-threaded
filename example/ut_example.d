@@ -10,7 +10,7 @@ import example_tests;
 
 
 void main() {
-    writeln("Testing Unit Threaded code...");
+    writeln("Testing Unit Threaded code...\n");
 
     auto suite = TestSuite(createTests!(example_tests)());
     immutable elapsed = suite.run();
