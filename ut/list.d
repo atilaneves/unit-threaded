@@ -9,7 +9,7 @@ string[] getTestClassNames(alias mod)() {
     string[] classes = [];
     foreach(klass; __traits(allMembers, mod)) {
         static if(__traits(compiles, mixin(klass)) && __traits(hasMember, mixin(klass), "test")) {
-            classes ~= klass;
+            classes ~= fullyQualifiedName!mod ~ "." ~ klass;
         }
     }
 

@@ -3,6 +3,7 @@ module ut.testcase;
 import std.stdio;
 import std.conv;
 
+
 struct TestResult {
     immutable bool success;
     immutable string output;

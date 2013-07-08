@@ -7,12 +7,13 @@ import ut.factory;
 import std.stdio;
 import std.conv;
 import example_tests;
+import more_example_tests;
 
 
 void main() {
     writeln("Testing Unit Threaded code...\n");
 
-    auto suite = TestSuite(createTests!(example_tests)());
+    auto suite = TestSuite(createTests!(example_tests, more_example_tests)());
     immutable elapsed = suite.run();
 
     writeln("Time taken: ", elapsed, " seconds");
