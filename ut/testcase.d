@@ -26,20 +26,24 @@ class TestCase {
 
 protected:
 
-    void assertTrue(bool condition, uint line = __LINE__, string file = __FILE__) {
+    bool assertTrue(bool condition, uint line = __LINE__, string file = __FILE__) {
         if(!condition) fail(condition, true, line, file);
+        return !_failed;
     }
 
-    void assertFalse(bool condition, uint line = __LINE__, string file = __FILE__) {
+    bool assertFalse(bool condition, uint line = __LINE__, string file = __FILE__) {
         if(condition) fail(condition, false, line, file);
+        return !_failed;
     }
 
-    void assertEqual(T)(T value, T expected, uint line = __LINE__, string file = __FILE__) {
+    bool assertEqual(T)(T value, T expected, uint line = __LINE__, string file = __FILE__) {
         if(value != expected) fail(value, expected, line, file);
+        return !_failed;
     }
 
-    void assertNotEqual(T)(T value, T expected, uint line = __LINE__, string file = __FILE__) {
+    bool assertNotEqual(T)(T value, T expected, uint line = __LINE__, string file = __FILE__) {
         if(value == expected) fail(value, expected, line, file);
+        return !_failed;
     }
 
 
@@ -59,4 +63,20 @@ private:
 }
 
 unittest {
+    class Test: TestCase {
+        override void test() {
+            assert(assertTrue(true));
+            assert(assertFalse(false));
+            assert(assertEqual(1, 1));
+            assert(assertEqual("foo", "foo"));
+            assert(assertEqual(true, true));
+            assert(assertEqual(false, false));
+            assert(assertEqual(1.0, 1.0));
+            assert(assertNotEqual(1, 2));
+            assert(assertNotEqual(true, false));
+            assert(assertNotEqual(1.0, 2.0));
+        }
+    }
+    auto test = new Test;
+    test.test();
 }

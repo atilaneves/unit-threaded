@@ -1,4 +1,4 @@
-#!/usr/bin/rdmd -Iut
+#!/usr/bin/rdmd -unittest
 
 import ut.runner;
 import example_tests;
