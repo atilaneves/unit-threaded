@@ -21,7 +21,4 @@ void main() {
     writeln("Time taken: ", elapsed, " seconds");
     writeln(suite.getNumTestsRun(), " test(s) run, ",
             suite.getNumFailures(), " failed.\n");
-    auto foo = new Foo;
-    auto result = foo.run();
-    write(result.output);
 }

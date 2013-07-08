@@ -12,10 +12,7 @@ struct TestSuite {
         foreach(TestCase test; _tests) {
             immutable result = test.run();
             if(!result.success) {
-                writeln("Adding failure");
                 addFailure(test.getPath());
-            } else {
-                writeln("Test passed!");
             }
             write(result.output);
         }
