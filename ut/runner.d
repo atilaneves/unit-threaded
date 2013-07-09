@@ -13,8 +13,8 @@ bool runTests(MODULES...)() {
     immutable elapsed = suite.run();
 
     writefln("Time taken: %.3f seconds", elapsed);
-    writeln(suite.getNumTestsRun(), " test(s) run, ",
-            suite.getNumFailures(), " failed.\n");
+    writeln(suite.numTestsRun, " test(s) run, ",
+            suite.numFailures, " failed.\n");
 
     if(!suite.passed) {
         writelnRed("\nUnit tests failed!\n");
