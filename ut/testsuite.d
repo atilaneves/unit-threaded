@@ -39,6 +39,10 @@ struct TestSuite {
         return _failures.length;
     }
 
+    @property bool passed() {
+        return getNumFailures() == 0;
+    }
+
 private:
     TestCase[] _tests;
     string[] _failures;

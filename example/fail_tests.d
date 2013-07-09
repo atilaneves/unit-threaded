@@ -10,6 +10,12 @@ class WrongTest: TestCase {
     }
 }
 
+class OtherWrongTest: TestCase {
+    override void test() {
+        assertTrue(false);
+    }
+}
+
 class RightTest: TestCase {
     override void test() {
         assertTrue(true);
