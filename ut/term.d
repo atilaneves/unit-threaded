@@ -28,8 +28,8 @@ version(Posix) {
                "}";
     }
 
-    mixin(getWriteFunc("Red"));
-    mixin(getWriteFunc("Green"));
+    mixin(getWriteFunc("Red")); //writelnRed
+    mixin(getWriteFunc("Green")); //writelnGreen
 
 } else {
     void writelnRed(string str)  { writeln(str); }
