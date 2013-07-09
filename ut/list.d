@@ -1,6 +1,8 @@
 module ut.list;
 
+import ut.asserts;
 import std.traits;
+import std.uni;
 
 string[] getTestClassNames(alias mod)() {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
@@ -19,7 +21,9 @@ string[] getTestFunctions(alias mod)() {
     string[] functions = [];
     foreach(moduleMember; __traits(allMembers, mod)) {
         static immutable prefix = "test";
-        static if(moduleMember.length >= prefix.length && moduleMember[0 .. prefix.length] == "test") {
+        static immutable minSize = prefix.length + 1;
+        static if(moduleMember.length >= minSize && moduleMember[0 .. prefix.length] == "test" &&
+                  isUpper(moduleMember[prefix.length])) {
             functions ~= fullyQualifiedName!mod ~ "." ~ moduleMember;
         }
     }
@@ -31,16 +35,10 @@ string[] getTestables(alias mod)() {
     return getTestClassNames!mod ~ getTestFunctions!mod;
 }
 
-private void testFoo() {}
-private void testBar() {}
-private void someFun() {}
-private class FooTest { void test() { } }
-private class Bar { }
 
 unittest {
-    import std.conv;
-    const actualFuncs = getTestFunctions!(mixin(__MODULE__))();
-    const expectedFuncs = [ "ut.list.testFoo", "ut.list.testBar" ];
-    assert(actualFuncs == expectedFuncs, "Expected " ~ to!string(expectedFuncs) ~
-           ", got: " ~ to!string(actualFuncs));
+    import ut.tests.module_with_tests; //defines tests and non-tests
+    const expectedFuncs = [ "ut.tests.module_with_tests.testFoo", "ut.tests.module_with_tests.testBar" ];
+    const actualFuncs = getTestFunctions!(ut.tests.module_with_tests)();
+    assertEqual(actualFuncs, expectedFuncs);
 }
