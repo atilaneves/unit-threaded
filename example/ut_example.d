@@ -12,10 +12,3 @@ void main() {
     writeln("Running unit-threaded examples...\n");
     runTests!(example_tests, more_example_tests)();
 }
-
-unittest {
-    import std.conv;
-    assert(getTestables!example_tests() == [ "example_tests.WrongTest", "example_tests.RightTest",
-                                             "example_tests.testFoo" ],
-           "Got " ~ to!string(getTestables!example_tests()));
-}

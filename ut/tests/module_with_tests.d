@@ -10,9 +10,9 @@ private void testosterone() {}
 private void tes() {}
 
 //test classes
-private class FooTest { void test() { } }
-private class BarTest { void test() { } }
+class FooTest { void test() { } }
+class BarTest { void test() { } }
 
 //non-test classes
-private class NotATest { void tes() { } }
-private class AlsoNotATest { void testosterone() { } }
+class NotATest { void tes() { } }
+class AlsoNotATest { void testosterone() { } }
