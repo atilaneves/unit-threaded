@@ -2,6 +2,7 @@ module ut.runner;
 
 import ut.factory;
 import ut.testsuite;
+import ut.term;
 
 import std.stdio;
 
@@ -16,10 +17,10 @@ bool runTests(MODULES...)() {
             suite.getNumFailures(), " failed.\n");
 
     if(!suite.passed) {
-        writeln("Unit tests failed!\n");
+        writelnRed("\nUnit tests failed!\n");
         return false; //oops
     }
 
-    writeln("\nOK!\n");
+    writelnGreen("\nOK!\n");
     return true;
 }
