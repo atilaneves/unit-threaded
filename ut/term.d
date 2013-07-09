@@ -13,35 +13,25 @@ version(Posix) {
                       "Cancel": "\033[0;;m" ];
     }
 
-    private void escCode(string code) {
-        write(code);
-        stdout.flush();
-    }
-
-    private string getEscFunc(string colour) {
-        return q{void esc} ~ colour ~ "() {\n" ~
-               `    if(_useEscCodes) escCode(_escCodes["` ~ colour ~ `"]);` ~
-               "\n}";
+    private void escCode(string colour) {
+        if(_useEscCodes) {
+            write(_escCodes[colour]);
+            stdout.flush();
+        }
     }
 
     private string getWriteFunc(string colour) {
-        return q{void writeln} ~ colour ~ "(string str) {" ~
-                   "esc" ~ colour ~ "();" ~ //e.g. escRed();
+        return q{void writeln} ~ colour ~ "(string str) {" ~ //e.g. void writelnRed(string str) {
+                   `escCode("` ~ colour ~ `");` ~ //e.g. escCode("Red");
                    "writeln(str);" ~
-                   "escCancel();" ~
+                   `escCode("Cancel");` ~
                "}";
     }
 
-    private string getEscAndWrite(string colour) {
-        return getEscFunc(colour) ~ getWriteFunc(colour);
-    }
-
-    mixin(getEscFunc("Cancel"));
-    mixin(getEscAndWrite("Red"));
-    mixin(getEscAndWrite("Green"));
+    mixin(getWriteFunc("Red"));
+    mixin(getWriteFunc("Green"));
 
 } else {
-    void escGreen()  { }
-    void escRed()    { }
-    void escCancel() { }
+    void writelnRed(string str)  { writeln(str); }
+    void writelnGreen(string st) { writeln(str); }
 }
