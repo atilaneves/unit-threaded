@@ -31,16 +31,16 @@ struct TestSuite {
         _failures ~= testPath;
     }
 
-    ulong getNumTestsRun() {
+    @property ulong numTestsRun() {
         return _tests.length;
     }
 
-    ulong getNumFailures() {
+    @property ulong numFailures() {
         return _failures.length;
     }
 
     @property bool passed() {
-        return getNumFailures() == 0;
+        return numFailures() == 0;
     }
 
 private:
