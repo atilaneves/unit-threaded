@@ -21,9 +21,9 @@ version(Posix) {
     }
 
     private string getWriteFunc(string colour) {
-        return q{void writeln} ~ colour ~ "(string str) {" ~ //e.g. void writelnRed(string str) {
+        return q{void writeln} ~ colour ~ "(T...)(T elts) {" ~ //e.g. void writelnRed(T...)(T elts) {
                    `escCode("` ~ colour ~ `");` ~ //e.g. escCode("Red");
-                   "writeln(str);" ~
+                   "writeln(elts);" ~
                    `escCode("Cancel");` ~
                "}";
     }

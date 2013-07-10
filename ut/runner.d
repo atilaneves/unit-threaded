@@ -12,15 +12,15 @@ bool runTests(MODULES...)() {
     auto suite = TestSuite(createTests!MODULES());
     immutable elapsed = suite.run();
 
-    writefln("Time taken: %.3f seconds", elapsed);
+    writefln("\nTime taken: %.3f seconds", elapsed);
     writeln(suite.numTestsRun, " test(s) run, ",
             suite.numFailures, " failed.\n");
 
     if(!suite.passed) {
-        writelnRed("\nUnit tests failed!\n");
+        writelnRed("Unit tests failed!\n\n");
         return false; //oops
     }
 
-    writelnGreen("\nOK!\n");
+    writelnGreen("OK!\n\n");
     return true;
 }
