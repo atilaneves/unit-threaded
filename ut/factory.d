@@ -21,7 +21,7 @@ TestCase[] createTests(MODULES...)() if(MODULES.length > 0) {
     foreach(i, func; getAllTests!(q{getTestFunctions}, MODULES)()) {
         import std.conv;
         auto test = new FunctionTestCase(func);
-        assert(test !is null, "Could not create FunctionTestCase object");
+        assert(test !is null, "Could not create FunctionTestCase object for function " ~ func.name);
         tests ~= test;
     }
 
