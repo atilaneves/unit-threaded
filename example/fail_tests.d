@@ -23,8 +23,8 @@ class RightTest: TestCase {
     }
 }
 
-private void testFoo() {}
-private void someFun() {}
+void testFoo() {}
+void someFun() {}
 
 unittest {
     //TODO: reenable

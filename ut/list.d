@@ -5,7 +5,7 @@ import std.uni;
 
 string[] getTestClassNames(alias mod)() {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
-    string[] classes = [];
+    string[] classes;
     foreach(klass; __traits(allMembers, mod)) {
         static if(__traits(compiles, mixin(klass)) && __traits(hasMember, mixin(klass), "test")) {
             classes ~= fullyQualifiedName!mod ~ "." ~ klass;
@@ -17,7 +17,7 @@ string[] getTestClassNames(alias mod)() {
 
 string[] getTestFunctions(alias mod)() {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
-    string[] functions = [];
+    string[] functions;
     foreach(moduleMember; __traits(allMembers, mod)) {
         static immutable prefix = "test";
         static immutable minSize = prefix.length + 1;
@@ -29,6 +29,28 @@ string[] getTestFunctions(alias mod)() {
 
     return functions;
 }
+
+alias void function() TestFunction;
+
+auto getTestFunctionPointers(alias mod)() {
+    mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
+    TestFunction[] functions;
+    foreach(moduleMember; __traits(allMembers, mod)) {
+        //pragma(msg, "moduleMember is ", moduleMember);
+        static immutable prefix = "test";
+        static immutable minSize = prefix.length + 1;
+        static if(moduleMember.length >= minSize && moduleMember[0 .. prefix.length] == "test" &&
+                  isUpper(moduleMember[prefix.length])) {
+            //I couldn't find a way to check for access here. I tried __traits(getProtection)
+            //and got 'public' for private functions
+            pragma(msg, "Added test function ",  fullyQualifiedName!mod ~ "." ~ moduleMember);
+            mixin("functions ~= &" ~ fullyQualifiedName!mod ~ "." ~ moduleMember ~ ";");
+        }
+    }
+
+    return functions;
+}
+
 
 string[] getTestables(alias mod)() {
     return getTestClassNames!mod ~ getTestFunctions!mod;
