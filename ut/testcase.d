@@ -1,5 +1,8 @@
 module ut.testcase;
 
+import ut.check;
+import std.exception;
+
 
 struct TestResult {
     immutable bool success;
@@ -24,29 +27,37 @@ class TestCase {
 protected:
 
     bool assertTrue(bool condition, uint line = __LINE__, string file = __FILE__) {
-        if(!condition) fail(condition, true, line, file);
-        return !_failed;
+        return check(checkTrue(condition, file, line));
     }
 
     bool assertFalse(bool condition, uint line = __LINE__, string file = __FILE__) {
-        if(condition) fail(condition, false, line, file);
-        return !_failed;
+        return check(checkFalse(condition, file, line));
     }
 
     bool assertEqual(T)(T value, T expected, uint line = __LINE__, string file = __FILE__) {
-        if(value != expected) fail(value, expected, line, file);
-        return !_failed;
+        return check(checkEqual(value, expected, file, line));
     }
 
     bool assertNotEqual(T)(T value, T expected, uint line = __LINE__, string file = __FILE__) {
-        if(value == expected) fail(value, expected, line, file);
-        return !_failed;
+        return check(checkNotEqual(value, expected, file, line));
     }
 
 
 private:
     bool _failed;
     string _output;
+
+    bool check(E)(lazy E expression) {
+        setStatus(collectExceptionMsg(expression));
+        return !_failed;
+    }
+
+    void setStatus(in string msg) {
+        if(msg) {
+            _failed = true;
+            _output ~= msg;
+        }
+    }
 
     void fail(T)(T value, T expected, uint line = __LINE__, string file = __FILE__) {
         output(value, expected, line, file);
@@ -55,8 +66,8 @@ private:
 
     void output(T)(T value, T expected, uint line = __LINE__, string file = __FILE__) {
         import std.conv;
-        _output ~= "    " ~ file ~ ":" ~ to!string(line) ~ " - Value " ~ to!string(value) ~
-            " is not the expected " ~ to!string(expected) ~ "\n";
+        _output ~= "\n    " ~ file ~ ":" ~ to!string(line) ~ " - Value " ~ to!string(value) ~
+            " is not the expected " ~ to!string(expected);
     }
 }
 

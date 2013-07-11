@@ -16,12 +16,14 @@ struct TestSuite {
             if(!result.success) {
                 addFailure(test.getPath());
             }
-            writeln(test.getPath() ~ ":\n" ~ result.output);
+            writeln(test.getPath() ~ ":" ~ result.output);
         }
 
-        foreach(const ref string failure; _failures) {
+        if(_failures) writeln("\n");
+        foreach(failure; _failures) {
             writeln("Test ", failure, " failed.");
         }
+        if(_failures) writeln("");
 
         _stopWatch.stop();
         return _stopWatch.peek().seconds();

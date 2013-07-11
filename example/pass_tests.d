@@ -14,6 +14,7 @@ class DoubleTest: TestCase {
     override void test() {
         assertNotEqual(1.0, 2.0);
         assertEqual(2.0, 2.0);
+        checkEqual(2.0, 2.0);
     }
 }
 
