@@ -18,9 +18,17 @@ TestCase[] createTests(MODULES...)() {
         tests ~= test;
     }
 
-    static functions = getAllTestFunctions!MODULES();
+    foreach(func; getAllTestFunctions!MODULES()) {
+        tests ~= new FunctionTestCase!func();
+    }
 
     return tests;
+}
+
+private class FunctionTestCase(alias func): TestCase {
+    override void test() {
+        func();
+    }
 }
 
 private auto getAllTests(T, string expr, MODULES...)() {
@@ -34,7 +42,7 @@ private auto getAllTests(T, string expr, MODULES...)() {
 private auto getAllTestFunctions(MODULES...)() {
     void function()[] functions;
     foreach(mod; TypeTuple!MODULES) {
-        functions ~= getTestFunctionPointers!mod();
+        functions ~= getTestFunctions!mod();
     }
     return assumeUnique(functions);
 }

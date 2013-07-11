@@ -15,45 +15,24 @@ string[] getTestClassNames(alias mod)() {
     return classes;
 }
 
-string[] getTestFunctions(alias mod)() {
-    mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
-    string[] functions;
-    foreach(moduleMember; __traits(allMembers, mod)) {
-        static immutable prefix = "test";
-        static immutable minSize = prefix.length + 1;
-        static if(moduleMember.length >= minSize && moduleMember[0 .. prefix.length] == "test" &&
-                  isUpper(moduleMember[prefix.length])) {
-            functions ~= fullyQualifiedName!mod ~ "." ~ moduleMember;
-        }
-    }
-
-    return functions;
-}
 
 alias void function() TestFunction;
 
-auto getTestFunctionPointers(alias mod)() {
+auto getTestFunctions(alias mod)() {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
     TestFunction[] functions;
     foreach(moduleMember; __traits(allMembers, mod)) {
-        //pragma(msg, "moduleMember is ", moduleMember);
         static immutable prefix = "test";
         static immutable minSize = prefix.length + 1;
         static if(moduleMember.length >= minSize && moduleMember[0 .. prefix.length] == "test" &&
                   isUpper(moduleMember[prefix.length])) {
             //I couldn't find a way to check for access here. I tried __traits(getProtection)
             //and got 'public' for private functions
-            pragma(msg, "Added test function ",  fullyQualifiedName!mod ~ "." ~ moduleMember);
             mixin("functions ~= &" ~ fullyQualifiedName!mod ~ "." ~ moduleMember ~ ";");
         }
     }
 
     return functions;
-}
-
-
-string[] getTestables(alias mod)() {
-    return getTestClassNames!mod ~ getTestFunctions!mod;
 }
 
 
@@ -73,13 +52,7 @@ unittest {
 }
 
 unittest {
-    const expected = addModule(["testFoo", "testBar" ]);
+    const expected = [ &testFoo, &testBar ];
     const actual = getTestFunctions!(ut.tests.module_with_tests)();
-    assertEqual(actual, expected);
-}
-
-unittest {
-    const expected = addModule(["FooTest", "BarTest", "testFoo", "testBar"]);
-    const actual = getTestables!(ut.tests.module_with_tests)();
     assertEqual(actual, expected);
 }
