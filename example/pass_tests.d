@@ -1,7 +1,7 @@
 import ut.check;
 import ut.testcase;
 
-class IntTest: TestCase {
+class IntEqualTest: TestCase {
     override void test() {
         checkNotEqual(1, 5);
         checkNotEqual(5, 1);
@@ -10,7 +10,7 @@ class IntTest: TestCase {
     }
 }
 
-class DoubleTest: TestCase {
+class DoubleEqualTest: TestCase {
     override void test() {
         checkNotEqual(1.0, 2.0);
         checkEqual(2.0, 2.0);

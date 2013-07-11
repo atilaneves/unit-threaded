@@ -27,13 +27,13 @@ void testTrue() {
     checkTrue(true);
 }
 
-void testBar() {
+void testEqualVars() {
     immutable foo = 4;
     immutable bar = 6;
     checkEqual(foo, bar);
 }
 
-void someFun() {}
+void someFun() {} //not going to be executed as part of the testsuite
 
 unittest {
     //TODO: reenable
