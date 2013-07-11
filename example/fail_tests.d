@@ -1,24 +1,25 @@
+import ut.check;
 import ut.testcase;
 
 class WrongTest: TestCase {
     override void test() {
-        assertTrue(5 == 3);
-        assertFalse(5 == 5);
-        assertEqual(5, 5);
-        assertNotEqual(5, 3);
-        assertEqual(5, 3);
+        checkTrue(5 == 3);
+        checkFalse(5 == 5);
+        checkEqual(5, 5);
+        checkNotEqual(5, 3);
+        checkEqual(5, 3);
     }
 }
 
 class OtherWrongTest: TestCase {
     override void test() {
-        assertTrue(false);
+        checkTrue(false);
     }
 }
 
 class RightTest: TestCase {
     override void test() {
-        assertTrue(true);
+        checkTrue(true);
     }
 }
 

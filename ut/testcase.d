@@ -12,7 +12,7 @@ class TestCase {
 
     final string opCall() {
         setup();
-        test();
+        check(test());
         shutdown();
         return _output;
     }
@@ -20,25 +20,6 @@ class TestCase {
     void setup() { }
     void shutdown() { }
     abstract void test();
-
-protected:
-
-    bool assertTrue(bool condition, uint line = __LINE__, string file = __FILE__) {
-        return check(checkTrue(condition, file, line));
-    }
-
-    bool assertFalse(bool condition, uint line = __LINE__, string file = __FILE__) {
-        return check(checkFalse(condition, file, line));
-    }
-
-    bool assertEqual(T)(T value, T expected, uint line = __LINE__, string file = __FILE__) {
-        return check(checkEqual(value, expected, file, line));
-    }
-
-    bool assertNotEqual(T)(T value, T expected, uint line = __LINE__, string file = __FILE__) {
-        return check(checkNotEqual(value, expected, file, line));
-    }
-
 
 private:
     bool _failed;
@@ -66,23 +47,4 @@ private:
         _output ~= "\n    " ~ file ~ ":" ~ to!string(line) ~ " - Value " ~ to!string(value) ~
             " is not the expected " ~ to!string(expected);
     }
-}
-
-unittest {
-    class Test: TestCase {
-        override void test() {
-            assert(assertTrue(true));
-            assert(assertFalse(false));
-            assert(assertEqual(1, 1));
-            assert(assertEqual("foo", "foo"));
-            assert(assertEqual(true, true));
-            assert(assertEqual(false, false));
-            assert(assertEqual(1.0, 1.0));
-            assert(assertNotEqual(1, 2));
-            assert(assertNotEqual(true, false));
-            assert(assertNotEqual(1.0, 2.0));
-        }
-    }
-    auto test = new Test;
-    test.test();
 }
