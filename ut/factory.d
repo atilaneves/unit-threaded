@@ -10,15 +10,15 @@ import std.exception;
 /**
  * Creates tests cases from the given modules
  */
-TestCase[] createTests(MODULES...)() {
+TestCase[] createTests(MODULES...)() if(MODULES.length > 0) {
     TestCase[] tests;
-    foreach(name; getAllTests!(string, q{getTestClassNames}, MODULES)()) {
+    foreach(name; getAllTests!(q{getTestClassNames}, MODULES)()) {
         auto test = cast(TestCase) Object.factory(name);
         assert(test !is null, "Could not create object of type " ~ name);
         tests ~= test;
     }
 
-    foreach(func; getAllTestFunctions!MODULES()) {
+    foreach(func; getAllTests!(q{getTestFunctions}, MODULES)()) {
         tests ~= new FunctionTestCase!(func.stringof, func)();
     }
 
@@ -35,18 +35,11 @@ private class FunctionTestCase(string funcName, alias func): TestCase {
     }
 }
 
-private auto getAllTests(T, string expr, MODULES...)() {
-    T[] tests;
+private auto getAllTests(string expr, MODULES...)() {
+    //tests is whatever type expr returns
+    ReturnType!(mixin(expr ~ q{!(MODULES[0])})) tests;
     foreach(mod; TypeTuple!MODULES) {
         tests ~= mixin(expr ~ q{!mod()});
     }
     return assumeUnique(tests);
-}
-
-private auto getAllTestFunctions(MODULES...)() if(MODULES.length > 0) {
-    ReturnType!(getTestFunctions!(MODULES[0])) functions;
-    foreach(mod; TypeTuple!MODULES) {
-        functions ~= getTestFunctions!mod();
-    }
-    return assumeUnique(functions);
 }
