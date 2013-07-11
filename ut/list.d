@@ -22,7 +22,7 @@ alias Tuple!(string, TestFunction) TestFunctionTuple;
 
 auto getTestFunctions(alias mod)() {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
-    TestFunction[] functions;
+    TestFunctionTuple[] functions;
     foreach(moduleMember; __traits(allMembers, mod)) {
         static immutable prefix = "test";
         static immutable minSize = prefix.length + 1;
@@ -32,14 +32,12 @@ auto getTestFunctions(alias mod)() {
             //and got 'public' for private functions
 
             static immutable funcName = fullyQualifiedName!mod ~ "." ~ moduleMember;
-            // pragma(msg, "FuncName: ", funcName);
-            // pragma(msg, "TestFunctionTuple tuple; tuple[0] = \"" ~ funcName ~ "\"; tuple[1] = &" ~ funcName ~ ";");
-            // mixin("TestFunctionTuple tuple; tuple[0] = \"" ~ funcName ~ "\"; tuple[1] = &" ~ funcName ~ ";");
-            // mixin("functions ~= tuple;");
+            static immutable funcAddr = "&" ~ funcName;
 
-            //pragma(msg, "functions ~= TestFunctionTuple(" ~ funcName ~ ", &" ~ funcName ~ ");");
-            //mixin("functions ~= TestFunctionTuple(" ~ funcName ~ ", &" ~ funcName ~ ");");
-            mixin("functions ~= &" ~ funcName ~ ";");
+            mixin("TestFunctionTuple tuple;");
+            mixin("tuple[0] = \"" ~ funcName ~ "\";");
+            mixin("tuple[1] = " ~ funcAddr ~ ";");
+            mixin("functions ~= tuple;");
         }
     }
 
@@ -47,14 +45,14 @@ auto getTestFunctions(alias mod)() {
 }
 
 
-import ut.asserts;
-import ut.tests.module_with_tests; //defines tests and non-tests
-import std.algorithm;
-import std.array;
-
 private auto addModule(string[] elements, string mod = "ut.tests.module_with_tests") {
+    import std.algorithm;
+    import std.array;
     return array(map!(a => mod ~ "." ~ a)(elements));
 }
+
+import ut.tests.module_with_tests; //defines tests and non-tests
+import ut.asserts;
 
 unittest {
     const expected = addModule([ "FooTest", "BarTest" ]);
@@ -63,7 +61,9 @@ unittest {
 }
 
 unittest {
-    const expected = [ &testFoo, &testBar ];
+    TestFunctionTuple fooTuple; fooTuple[0] = "ut.tests.module_with_tests.testFoo"; fooTuple[1] = &testFoo;
+    TestFunctionTuple barTuple; barTuple[0] = "ut.tests.module_with_tests.testBar"; barTuple[1] = &testBar;
+    const expected = [ fooTuple, barTuple ];
     const actual = getTestFunctions!(ut.tests.module_with_tests)();
     assertEqual(actual, expected);
 }

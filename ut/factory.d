@@ -19,19 +19,19 @@ TestCase[] createTests(MODULES...)() if(MODULES.length > 0) {
     }
 
     foreach(func; getAllTests!(q{getTestFunctions}, MODULES)()) {
-        tests ~= new FunctionTestCase!(func.stringof, func)();
+        tests ~= new FunctionTestCase!(func)();
     }
 
     return tests;
 }
 
-private class FunctionTestCase(string funcName, alias func): TestCase {
+private class FunctionTestCase(alias funcTuple): TestCase {
     override void test() {
-        func();
+        funcTuple[1]();
     }
 
     override string getPath() {
-        return funcName;
+        return funcTuple[0];
     }
 }
 

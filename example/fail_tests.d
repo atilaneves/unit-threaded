@@ -23,7 +23,16 @@ class RightTest: TestCase {
     }
 }
 
-void testFoo() {}
+void testTrue() {
+    checkTrue(true);
+}
+
+void testBar() {
+    immutable foo = 4;
+    immutable bar = 6;
+    checkEqual(foo, bar);
+}
+
 void someFun() {}
 
 unittest {
