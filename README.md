@@ -5,11 +5,6 @@ Unit test framework for D.
 
 TODO:
 
-- More checks/asserts
-    - Arrays
-    - Associative arrays
-    - Strings
-    - etc.
 - Use lazy expressions to get better failure messages
 - Add sub-packages automatically to get the full tree
 - Actually be multi-threaded
