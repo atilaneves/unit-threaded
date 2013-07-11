@@ -2,6 +2,7 @@ module ut.list;
 
 import std.traits;
 import std.uni;
+import std.typecons;
 
 string[] getTestClassNames(alias mod)() {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
@@ -17,6 +18,7 @@ string[] getTestClassNames(alias mod)() {
 
 
 alias void function() TestFunction;
+alias Tuple!(string, TestFunction) TestFunctionTuple;
 
 auto getTestFunctions(alias mod)() {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
@@ -28,7 +30,16 @@ auto getTestFunctions(alias mod)() {
                   isUpper(moduleMember[prefix.length])) {
             //I couldn't find a way to check for access here. I tried __traits(getProtection)
             //and got 'public' for private functions
-            mixin("functions ~= &" ~ fullyQualifiedName!mod ~ "." ~ moduleMember ~ ";");
+
+            static immutable funcName = fullyQualifiedName!mod ~ "." ~ moduleMember;
+            // pragma(msg, "FuncName: ", funcName);
+            // pragma(msg, "TestFunctionTuple tuple; tuple[0] = \"" ~ funcName ~ "\"; tuple[1] = &" ~ funcName ~ ";");
+            // mixin("TestFunctionTuple tuple; tuple[0] = \"" ~ funcName ~ "\"; tuple[1] = &" ~ funcName ~ ";");
+            // mixin("functions ~= tuple;");
+
+            //pragma(msg, "functions ~= TestFunctionTuple(" ~ funcName ~ ", &" ~ funcName ~ ");");
+            //mixin("functions ~= TestFunctionTuple(" ~ funcName ~ ", &" ~ funcName ~ ");");
+            mixin("functions ~= &" ~ funcName ~ ";");
         }
     }
 

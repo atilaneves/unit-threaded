@@ -19,15 +19,19 @@ TestCase[] createTests(MODULES...)() {
     }
 
     foreach(func; getAllTestFunctions!MODULES()) {
-        tests ~= new FunctionTestCase!func();
+        tests ~= new FunctionTestCase!(func.stringof, func)();
     }
 
     return tests;
 }
 
-private class FunctionTestCase(alias func): TestCase {
+private class FunctionTestCase(string funcName, alias func): TestCase {
     override void test() {
         func();
+    }
+
+    override string getPath() {
+        return funcName;
     }
 }
 
@@ -39,8 +43,8 @@ private auto getAllTests(T, string expr, MODULES...)() {
     return assumeUnique(tests);
 }
 
-private auto getAllTestFunctions(MODULES...)() {
-    void function()[] functions;
+private auto getAllTestFunctions(MODULES...)() if(MODULES.length > 0) {
+    ReturnType!(getTestFunctions!(MODULES[0])) functions;
     foreach(mod; TypeTuple!MODULES) {
         functions ~= getTestFunctions!mod();
     }
