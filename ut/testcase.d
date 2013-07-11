@@ -2,23 +2,18 @@ module ut.testcase;
 
 import ut.check;
 import std.exception;
-
-
-struct TestResult {
-    immutable bool success;
-    immutable string output;
-}
+import std.string;
 
 
 class TestCase {
     string getPath() {
         return this.classinfo.name;
     }
-    final TestResult run() {
+    final string run() {
         setup();
         test();
         shutdown();
-        return TestResult(!_failed, _output);
+        return _output;
     }
     void setup() { }
     void shutdown() { }
@@ -55,7 +50,7 @@ private:
     void setStatus(in string msg) {
         if(msg) {
             _failed = true;
-            _output ~= msg;
+            _output ~= chomp(msg);
         }
     }
 

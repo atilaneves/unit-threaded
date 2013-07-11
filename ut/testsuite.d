@@ -12,11 +12,12 @@ struct TestSuite {
         import std.stdio;
         _stopWatch.start();
         foreach(TestCase test; _tests) {
-            immutable result = test.run();
-            if(!result.success) {
+            immutable error = test.run();
+            if(error) {
                 addFailure(test.getPath());
             }
-            writeln(test.getPath() ~ ":" ~ result.output);
+            writeln(test.getPath() ~ ":" ~ error);
+            if(error) writeln();
         }
 
         if(_failures) writeln("\n");
