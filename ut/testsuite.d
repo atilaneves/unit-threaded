@@ -11,7 +11,8 @@ struct TestSuite {
     double run() {
         import std.stdio;
         _stopWatch.start();
-        foreach(TestCase test; _tests) {
+
+        foreach(test; _tests) {
             immutable error = test();
             if(error) {
                 addFailure(test.getPath());

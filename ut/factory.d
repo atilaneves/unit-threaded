@@ -18,21 +18,32 @@ TestCase[] createTests(MODULES...)() if(MODULES.length > 0) {
         tests ~= test;
     }
 
-    foreach(func; getAllTests!(q{getTestFunctions}, MODULES)()) {
-        tests ~= new FunctionTestCase!(func)();
+    foreach(i, func; getAllTests!(q{getTestFunctions}, MODULES)()) {
+        import std.conv;
+        auto test = new FunctionTestCase(func);
+        assert(test !is null, "Could not create FunctionTestCase object");
+        tests ~= test;
     }
 
     return tests;
 }
 
-private class FunctionTestCase(alias funcTuple): TestCase {
+private class FunctionTestCase: TestCase {
+    this(immutable TestFunctionData func) {
+        _name = func.name;
+        _func = func.func;
+    }
+
     override void test() {
-        funcTuple[1]();
+        _func();
     }
 
     override string getPath() {
-        return funcTuple[0];
+        return _name;
     }
+
+    private string _name;
+    private TestFunction _func;
 }
 
 private auto getAllTests(string expr, MODULES...)() {

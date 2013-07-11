@@ -19,10 +19,14 @@ string[] getTestClassNames(alias mod)() {
 
 alias void function() TestFunction;
 alias Tuple!(string, TestFunction) TestFunctionTuple;
+struct TestFunctionData {
+    string name;
+    TestFunction func;
+}
 
 auto getTestFunctions(alias mod)() {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
-    TestFunctionTuple[] functions;
+    TestFunctionData[] functions;
     foreach(moduleMember; __traits(allMembers, mod)) {
         static immutable prefix = "test";
         static immutable minSize = prefix.length + 1;
@@ -30,14 +34,10 @@ auto getTestFunctions(alias mod)() {
                   isUpper(moduleMember[prefix.length])) {
             //I couldn't find a way to check for access here. I tried __traits(getProtection)
             //and got 'public' for private functions
-
             static immutable funcName = fullyQualifiedName!mod ~ "." ~ moduleMember;
             static immutable funcAddr = "&" ~ funcName;
 
-            mixin("TestFunctionTuple tuple;");
-            mixin("tuple[0] = \"" ~ funcName ~ "\";");
-            mixin("tuple[1] = " ~ funcAddr ~ ";");
-            mixin("functions ~= tuple;");
+            mixin("functions ~= TestFunctionData(\"" ~ funcName ~ "\", " ~ funcAddr ~ ");");
         }
     }
 
@@ -61,9 +61,9 @@ unittest {
 }
 
 unittest {
-    TestFunctionTuple fooTuple; fooTuple[0] = "ut.tests.module_with_tests.testFoo"; fooTuple[1] = &testFoo;
-    TestFunctionTuple barTuple; barTuple[0] = "ut.tests.module_with_tests.testBar"; barTuple[1] = &testBar;
-    const expected = [ fooTuple, barTuple ];
-    const actual = getTestFunctions!(ut.tests.module_with_tests)();
-    assertEqual(actual, expected);
+    // TestFunctionTuple fooTuple; fooTuple[0] = "ut.tests.module_with_tests.testFoo"; fooTuple[1] = &testFoo;
+    // TestFunctionTuple barTuple; barTuple[0] = "ut.tests.module_with_tests.testBar"; barTuple[1] = &testBar;
+    // const expected = [ fooTuple, barTuple ];
+    // const actual = getTestFunctions!(ut.tests.module_with_tests)();
+    // assertEqual(actual, expected);
 }
