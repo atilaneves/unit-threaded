@@ -5,6 +5,9 @@ Unit test framework for D.
 
 TODO:
 
+- Use lazy expressions to get better failure messages
+- Maybe use decorator to mark testable classes so the compiler can check
+- Do not include private functions in the testables list
 - Actually be multi-threaded
 - More checks/asserts
     - Arrays
