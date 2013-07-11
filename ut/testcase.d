@@ -9,12 +9,14 @@ class TestCase {
     string getPath() {
         return this.classinfo.name;
     }
-    final string run() {
+
+    final string opCall() {
         setup();
         test();
         shutdown();
         return _output;
     }
+
     void setup() { }
     void shutdown() { }
     abstract void test();

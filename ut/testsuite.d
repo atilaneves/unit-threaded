@@ -12,7 +12,7 @@ struct TestSuite {
         import std.stdio;
         _stopWatch.start();
         foreach(TestCase test; _tests) {
-            immutable error = test.run();
+            immutable error = test();
             if(error) {
                 addFailure(test.getPath());
             }
