@@ -9,6 +9,11 @@ import std.traits;
 import std.typetuple;
 import std.exception;
 import std.algorithm;
+import core.runtime;
+
+static this() {
+    Runtime.moduleUnitTester = &moduleUnitTester;
+}
 
 /**
  * Creates tests cases from the given modules
@@ -30,7 +35,7 @@ TestCase[] createTests(MODULES...)(in string[] testsToRun = []) if(MODULES.lengt
         tests ~= test;
     }
 
-    return tests;
+    return tests ~ builtinTests;
 }
 
 private bool isWantedTest(in string testName, in string[] testsToRun) {
@@ -67,6 +72,25 @@ private auto getAllTests(string expr, MODULES...)() pure nothrow {
     }
     return assumeUnique(tests);
 }
+
+//private void function()[] builtinTests; //built-in unittest blocks
+private TestCase[] builtinTests; //built-in unittest blocks
+
+private bool moduleUnitTester() {
+    foreach(mod; ModuleInfo) {
+        if(mod && mod.unitTest) {
+            if(startsWith(mod.name, "ut.")) {
+                writeln("Calling unittestblock of " ~ mod.name);
+                mod.unitTest()();
+            } else {
+                builtinTests ~= new FunctionTestCase(TestFunctionData(mod.name ~ ".unittest", mod.unitTest));
+            }
+        }
+    }
+
+    return true;
+}
+
 
 unittest {
     assert(isWantedTest("pass_tests.testEqual", ["pass_tests"]));
