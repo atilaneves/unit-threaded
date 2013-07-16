@@ -57,7 +57,3 @@ void testLongRunning3() {
 unittest {
     assert(false, "unittest block that always fails");
 }
-
-unittest {
-    assert(false, "other unittest block that always fails");
-}

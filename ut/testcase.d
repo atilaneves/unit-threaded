@@ -15,7 +15,7 @@ class TestCase {
     }
 
     final auto opCall() nothrow {
-        _output ~= getPath() ~ ":";
+        _output ~= getPrefix();
         check(setup());
         check(test());
         check(shutdown());
@@ -32,8 +32,12 @@ private:
     bool _failed;
     string _output;
 
-    bool check(E)(lazy E expression) nothrow {
-        setStatus(collectExceptionMsg(expression));
+    string getPrefix() const pure nothrow {
+        return getPath() ~ ":";
+    }
+
+    bool check(T = Exception, E)(lazy E expression) nothrow {
+        setStatus(collectExceptionMsg!T(expression));
         return !_failed;
     }
 

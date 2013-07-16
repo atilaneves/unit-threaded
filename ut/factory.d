@@ -3,12 +3,14 @@ module ut.factory;
 import ut.testcase;
 import ut.list;
 import ut.asserts;
+import ut.check;
 
 import std.stdio;
 import std.traits;
 import std.typetuple;
 import std.exception;
 import std.algorithm;
+import std.string;
 import core.runtime;
 
 static this() {
@@ -73,17 +75,30 @@ private auto getAllTests(string expr, MODULES...)() pure nothrow {
     return assumeUnique(tests);
 }
 
-//private void function()[] builtinTests; //built-in unittest blocks
+
 private TestCase[] builtinTests; //built-in unittest blocks
+
+private class BuiltinTestCase: FunctionTestCase {
+    this(immutable TestFunctionData func) pure nothrow {
+        super(func);
+    }
+
+    override void test() {
+        immutable output = collectExceptionMsg!Throwable(super.test());
+        if(output) {
+            throw new UnitTestException("\n    " ~ chomp(output));
+        }
+    }
+}
 
 private bool moduleUnitTester() {
     foreach(mod; ModuleInfo) {
         if(mod && mod.unitTest) {
             if(startsWith(mod.name, "ut.")) {
-                writeln("Calling unittestblock of " ~ mod.name);
                 mod.unitTest()();
             } else {
-                builtinTests ~= new FunctionTestCase(TestFunctionData(mod.name ~ ".unittest", mod.unitTest));
+                builtinTests ~=
+                    new BuiltinTestCase(TestFunctionData(mod.name ~ ".unittest", mod.unitTest));
             }
         }
     }
