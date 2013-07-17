@@ -5,6 +5,7 @@ import std.stdio;
 
 void writeInThread() {
     auto done = false;
+    Tid tid;
 
     while(!done) {
         string output;
@@ -12,8 +13,9 @@ void writeInThread() {
             (string msg) {
                 output ~= msg;
             },
-            (Tid tid) {
+            (Tid i) {
                 done = true;
+                tid = i;
             },
             (OwnerTerminated trm) {
                 done = true;
@@ -22,4 +24,5 @@ void writeInThread() {
         write(output);
     }
     stdout.flush();
+    if(tid != Tid.init) tid.send(thisTid);
 }

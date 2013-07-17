@@ -15,7 +15,6 @@ struct TestSuite {
     double run() {
         _stopWatch.start();
 
-        //spawn writer thread to write to stdout
         auto tid = spawn(&writeInThread);
         //foreach(test; taskPool.parallel(_tests)) {
         foreach(test; _tests) {
@@ -25,16 +24,15 @@ struct TestSuite {
             }
             tid.send(result.output);
         }
+        tid.send(thisTid); //tell it to join
+        receiveOnly!Tid(); //wait for it to join
 
         import std.stdio;
-        write("Srsly, all of them should have ended by now\n");
-
-        if(_failures) tid.send("\n\n");
+        if(_failures) writeln("\n");
         foreach(failure; _failures) {
-            tid.send("Test ", failure, " failed.\n");
+            writeln("Test ", failure, " failed.");
         }
-        if(_failures) tid.send("\n");
-        tid.send(thisTid); //join
+        if(_failures) writeln("");
 
         _stopWatch.stop();
         return _stopWatch.peek().seconds();
