@@ -1,6 +1,10 @@
 import ut.check;
 import ut.testcase;
 
+import core.time;
+import core.thread;
+
+
 class WrongTest: TestCase {
     override void test() {
         checkTrue(5 == 3);
@@ -34,6 +38,21 @@ void testEqualVars() {
 }
 
 void someFun() {} //not going to be executed as part of the testsuite
+
+
+//the tests below should take only 1 second if using parallelism
+void testLongRunning1() {
+    Thread.sleep( dur!("seconds")(1));
+}
+
+void testLongRunning2() {
+    Thread.sleep( dur!("seconds")(1));
+}
+
+void testLongRunning3() {
+    Thread.sleep( dur!("seconds")(1));
+}
+
 
 unittest {
     //TODO: reenable

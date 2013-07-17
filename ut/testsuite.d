@@ -13,11 +13,13 @@ struct TestSuite {
         _stopWatch.start();
 
         foreach(test; _tests) {
+            write(test.getPath() ~ ":");
+            stdout.flush();
             immutable error = test();
             if(error) {
                 addFailure(test.getPath());
             }
-            writeln(test.getPath() ~ ":" ~ error);
+            writeln(error);
             if(error) writeln();
         }
 
