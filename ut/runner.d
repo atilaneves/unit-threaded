@@ -7,6 +7,9 @@ import ut.term;
 import std.stdio;
 
 
+/**
+ * Runs all tests in passed-in modules. Modules are symbols
+ */
 bool runTests(MODULES...)() {
 
     auto suite = TestSuite(createTests!MODULES());
@@ -23,4 +26,28 @@ bool runTests(MODULES...)() {
 
     writelnGreen("OK!\n\n");
     return true;
+}
+
+/**
+ * Runs all tests in passed-in modules. Modules are strings
+ */
+bool runTestsIn(MODULES...)() {
+    mixin(getImportTestsCompileString!MODULES()); //e.g. import foo, bar, baz;
+    static immutable runStr = getRunTestsCompileString!MODULES();
+    mixin(getRunTestsCompileString!MODULES()); //e.g. runTests!(foo, bar, baz)();
+}
+
+private string getImportTestsCompileString(MODULES...)() {
+    return "import " ~ getModulesCompileString!MODULES() ~ ";";
+}
+
+private string getRunTestsCompileString(MODULES...)() {
+    return "return runTests!(" ~ getModulesCompileString!MODULES() ~ ")();";
+}
+
+private string getModulesCompileString(MODULES...)() {
+    import std.array;
+    string[] modules;
+    foreach(mod; MODULES) modules ~= mod;
+    return join(modules, ", ");
 }
