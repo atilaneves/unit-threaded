@@ -12,18 +12,16 @@ struct TestSuite {
         _tests = tests;
     }
 
-    double run() {
+    double run(bool multiThreaded = true) {
         _stopWatch.start();
 
         auto tid = spawn(&writeInThread);
-        //foreach(test; taskPool.parallel(_tests)) {
-        foreach(test; _tests) {
-            immutable result = test();
-            if(result.failed) {
-                addFailure(test.getPath());
-            }
-            tid.send(result.output);
+        if(multiThreaded) {
+            foreach(test; taskPool.parallel(_tests)) innerLoop(test, tid);
+        } else {
+            foreach(test; _tests) innerLoop(test, tid);
         }
+
         tid.send(thisTid); //tell it to join
         receiveOnly!Tid(); //wait for it to join
 
@@ -59,5 +57,11 @@ private:
     string[] _failures;
     StopWatch _stopWatch;
 
-
+    void innerLoop(TestCase test, Tid writerTid) {
+        immutable result = test();
+        if(result.failed) {
+            addFailure(test.getPath());
+        }
+        writerTid.send(result.output);
+    }
 }
