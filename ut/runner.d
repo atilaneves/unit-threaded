@@ -43,7 +43,7 @@ private string getImportTestsCompileString(MODULES...)() {
 }
 
 private string getRunTestsCompileString(MODULES...)() {
-    return "return runTests!(" ~ getModulesCompileString!MODULES() ~ ")();";
+    return "return runTests!(" ~ getModulesCompileString!MODULES() ~ ")(tests);";
 }
 
 private string getModulesCompileString(MODULES...)() {
