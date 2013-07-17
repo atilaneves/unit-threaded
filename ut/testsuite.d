@@ -15,17 +15,14 @@ struct TestSuite {
 
         //foreach(test; taskPool.parallel(_tests)) {
         foreach(test; _tests) {
-            string output;
-            output ~= test.getPath() ~ ":";
             immutable auto result = test();
             if(result.failed) {
                 addFailure(test.getPath());
             }
-            output ~= result.output ~ "\n";
-            if(result.failed) output ~= "\n";
-            write(output);
+            write(result.output);
         }
 
+        //ok to write to stdout on this thread now, passed the parallel bit
         if(_failures) writeln("\n");
         foreach(failure; _failures) {
             writeln("Test ", failure, " failed.");

@@ -15,9 +15,12 @@ class TestCase {
     }
 
     final auto opCall() nothrow {
+        _output ~= getPath() ~ ":";
         check(setup());
         check(test());
         check(shutdown());
+        _output ~= "\n";
+        if(_failed) _output ~= "\n";
         return TestResult(_failed, _output);
     }
 
