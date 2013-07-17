@@ -4,7 +4,7 @@ import std.traits;
 import std.uni;
 import std.typecons;
 
-string[] getTestClassNames(alias mod)() {
+string[] getTestClassNames(alias mod)() pure nothrow {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
     string[] classes;
     foreach(klass; __traits(allMembers, mod)) {
@@ -24,7 +24,7 @@ struct TestFunctionData {
     TestFunction func;
 }
 
-auto getTestFunctions(alias mod)() {
+auto getTestFunctions(alias mod)() pure nothrow {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
     TestFunctionData[] functions;
     foreach(moduleMember; __traits(allMembers, mod)) {
@@ -45,7 +45,7 @@ auto getTestFunctions(alias mod)() {
 }
 
 
-private auto addModule(string[] elements, string mod = "ut.tests.module_with_tests") {
+private auto addModule(string[] elements, string mod = "ut.tests.module_with_tests") nothrow {
     import std.algorithm;
     import std.array;
     return array(map!(a => mod ~ "." ~ a)(elements));

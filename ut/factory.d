@@ -29,7 +29,7 @@ TestCase[] createTests(MODULES...)() if(MODULES.length > 0) {
 }
 
 private class FunctionTestCase: TestCase {
-    this(immutable TestFunctionData func) {
+    this(immutable TestFunctionData func) pure nothrow {
         _name = func.name;
         _func = func.func;
     }
@@ -38,7 +38,7 @@ private class FunctionTestCase: TestCase {
         _func();
     }
 
-    override string getPath() {
+    override string getPath() const pure nothrow {
         return _name;
     }
 
@@ -46,7 +46,7 @@ private class FunctionTestCase: TestCase {
     private TestFunction _func;
 }
 
-private auto getAllTests(string expr, MODULES...)() {
+private auto getAllTests(string expr, MODULES...)() pure nothrow {
     //tests is whatever type expr returns
     ReturnType!(mixin(expr ~ q{!(MODULES[0])})) tests;
     foreach(mod; TypeTuple!MODULES) {

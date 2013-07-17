@@ -31,19 +31,19 @@ struct TestSuite {
         return _stopWatch.peek().seconds();
     }
 
-    void addFailure(string testPath) {
+    void addFailure(string testPath) nothrow {
         _failures ~= testPath;
     }
 
-    @property ulong numTestsRun() {
+    @property ulong numTestsRun() const pure nothrow {
         return _tests.length;
     }
 
-    @property ulong numFailures() {
+    @property ulong numFailures() const pure nothrow {
         return _failures.length;
     }
 
-    @property bool passed() {
+    @property bool passed() const pure nothrow {
         return numFailures() == 0;
     }
 
