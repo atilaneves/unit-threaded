@@ -1,8 +1,11 @@
 module ut.testsuite;
 
 import ut.testcase;
+import ut.writer_thread;
 import std.datetime;
 import std.parallelism;
+import std.concurrency;
+
 
 struct TestSuite {
     this(TestCase[] tests) {
@@ -10,24 +13,28 @@ struct TestSuite {
     }
 
     double run() {
-        import std.stdio;
         _stopWatch.start();
 
+        //spawn writer thread to write to stdout
+        auto tid = spawn(&writeInThread);
         //foreach(test; taskPool.parallel(_tests)) {
         foreach(test; _tests) {
-            immutable auto result = test();
+            immutable result = test();
             if(result.failed) {
                 addFailure(test.getPath());
             }
-            write(result.output);
+            tid.send(result.output);
         }
 
-        //ok to write to stdout on this thread now, passed the parallel bit
-        if(_failures) writeln("\n");
+        import std.stdio;
+        write("Srsly, all of them should have ended by now\n");
+
+        if(_failures) tid.send("\n\n");
         foreach(failure; _failures) {
-            writeln("Test ", failure, " failed.");
+            tid.send("Test ", failure, " failed.\n");
         }
-        if(_failures) writeln("");
+        if(_failures) tid.send("\n");
+        tid.send(thisTid); //join
 
         _stopWatch.stop();
         return _stopWatch.peek().seconds();
