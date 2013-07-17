@@ -11,10 +11,10 @@ import std.traits;
 /**
  * Runs all tests in passed-in modules. Modules are symbols
  */
-bool runTests(MODULES...)(in string[] tests = []) if(!is(typeof(MODULES[0]) == string)) {
+bool runTests(MODULES...)(bool multiThreaded, in string[] tests) if(!is(typeof(MODULES[0]) == string)) {
 
     auto suite = TestSuite(createTests!MODULES(tests));
-    immutable elapsed = suite.run();
+    immutable elapsed = suite.run(multiThreaded);
 
     writefln("\nTime taken: %.3f seconds", elapsed);
     writeln(suite.numTestsRun, " test(s) run, ",
@@ -32,7 +32,7 @@ bool runTests(MODULES...)(in string[] tests = []) if(!is(typeof(MODULES[0]) == s
 /**
  * Runs all tests in passed-in modules. Modules are strings
  */
-bool runTests(MODULES...)(in string[] tests = []) if(is(typeof(MODULES[0]) == string)) {
+bool runTests(MODULES...)(bool multiThreaded, in string[] tests = []) if(is(typeof(MODULES[0]) == string)) {
     mixin(getImportTestsCompileString!MODULES()); //e.g. import foo, bar, baz;
     static immutable runStr = getRunTestsCompileString!MODULES();
     mixin(getRunTestsCompileString!MODULES()); //e.g. runTests!(foo, bar, baz)();
@@ -43,7 +43,7 @@ private string getImportTestsCompileString(MODULES...)() {
 }
 
 private string getRunTestsCompileString(MODULES...)() {
-    return "return runTests!(" ~ getModulesCompileString!MODULES() ~ ")(tests);";
+    return "return runTests!(" ~ getModulesCompileString!MODULES() ~ ")(multiThreaded, tests);";
 }
 
 private string getModulesCompileString(MODULES...)() {
