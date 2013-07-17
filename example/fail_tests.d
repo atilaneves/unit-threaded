@@ -55,6 +55,8 @@ void testLongRunning3() {
 
 
 unittest {
+    import std.stdio;
+    writeln("In the unit test block of ", __FILE__);
     //TODO: reenable
     //assert(false, "unittest block that always fails");
 }
