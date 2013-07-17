@@ -4,17 +4,21 @@ import ut.check;
 import std.exception;
 import std.string;
 
+struct TestResult {
+    immutable bool failed;
+    immutable string output;
+}
 
 class TestCase {
     string getPath() const pure nothrow {
         return this.classinfo.name;
     }
 
-    final string opCall() nothrow {
+    final auto opCall() nothrow {
         check(setup());
         check(test());
         check(shutdown());
-        return _output;
+        return TestResult(_failed, _output);
     }
 
     void setup() { }

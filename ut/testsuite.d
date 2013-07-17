@@ -2,6 +2,7 @@ module ut.testsuite;
 
 import ut.testcase;
 import std.datetime;
+import std.parallelism;
 
 struct TestSuite {
     this(TestCase[] tests) {
@@ -12,15 +13,17 @@ struct TestSuite {
         import std.stdio;
         _stopWatch.start();
 
+        //foreach(test; taskPool.parallel(_tests)) {
         foreach(test; _tests) {
-            write(test.getPath() ~ ":");
-            stdout.flush();
-            immutable error = test();
-            if(error) {
+            string output;
+            output ~= test.getPath() ~ ":";
+            immutable auto result = test();
+            if(result.failed) {
                 addFailure(test.getPath());
             }
-            writeln(error);
-            if(error) writeln();
+            output ~= result.output ~ "\n";
+            if(result.failed) output ~= "\n";
+            write(output);
         }
 
         if(_failures) writeln("\n");
