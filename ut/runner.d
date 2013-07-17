@@ -5,12 +5,13 @@ import ut.testsuite;
 import ut.term;
 
 import std.stdio;
+import std.traits;
 
 
 /**
  * Runs all tests in passed-in modules. Modules are symbols
  */
-bool runTests(MODULES...)() {
+bool runTests(MODULES...)() if(!is(typeof(MODULES[0]) == string)) {
 
     auto suite = TestSuite(createTests!MODULES());
     immutable elapsed = suite.run();
@@ -31,7 +32,7 @@ bool runTests(MODULES...)() {
 /**
  * Runs all tests in passed-in modules. Modules are strings
  */
-bool runTestsIn(MODULES...)() {
+bool runTests(MODULES...)() if(is(typeof(MODULES[0]) == string)) {
     mixin(getImportTestsCompileString!MODULES()); //e.g. import foo, bar, baz;
     static immutable runStr = getRunTestsCompileString!MODULES();
     mixin(getRunTestsCompileString!MODULES()); //e.g. runTests!(foo, bar, baz)();
