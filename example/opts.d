@@ -1,14 +1,12 @@
-module example.opts;
-
 import std.getopt;
 
 struct Options {
     immutable bool multiThreaded;
-    immutable string[] args;
+    immutable string[] tests;
 };
 
 auto getOptions(string[] args) {
     bool single = false;
     getopt(args, "single|s", &single);
-    return Options(!single, args.dup);
+    return Options(!single, args[1..$].dup);
 }

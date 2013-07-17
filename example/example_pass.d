@@ -2,14 +2,14 @@
 
 import ut.runner;
 import pass_tests;
+import opts;
 
 import std.stdio;
 
 
 int main(string[] args) {
     writeln("Running passing unit-threaded examples...\n");
-    const tests = args[1..$];
-    immutable multiThreaded = true;
-    immutable success = runTests!(pass_tests)(multiThreaded, tests);
+    immutable options = getOptions(args);
+    immutable success = runTests!(pass_tests)(options.multiThreaded, options.tests);
     return success ? 0 : 1;
 }

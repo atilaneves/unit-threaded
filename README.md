@@ -5,9 +5,8 @@ Unit test framework for D.
 
 TODO:
 
-- Use lazy expressions to get better failure messages
-- Add sub-packages automatically to get the full tree
-- Actually be multi-threaded
 - Integrate with built-in unittest blocks (catch AssertionError?)
-- Random reordering of tests in single-threaded mode
-- Think about splitting code to avoid bloat and decrease linking time
+- Add all tests in a list of packages automatically
+- Use lazy expressions to get better failure messages
+- Random reordering of tests in single-threaded mode?
+- Split code to avoid bloat and decrease linking time?
