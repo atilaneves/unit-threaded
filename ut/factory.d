@@ -2,23 +2,28 @@ module ut.factory;
 
 import ut.testcase;
 import ut.list;
+import ut.asserts;
+
 import std.stdio;
 import std.traits;
 import std.typetuple;
 import std.exception;
+import std.algorithm;
 
 /**
  * Creates tests cases from the given modules
  */
-TestCase[] createTests(MODULES...)() if(MODULES.length > 0) {
+TestCase[] createTests(MODULES...)(in string[] testsToRun = []) if(MODULES.length > 0) {
     TestCase[] tests;
     foreach(name; getAllTests!(q{getTestClassNames}, MODULES)()) {
+        if(!isWantedTest(name, testsToRun)) continue;
         auto test = cast(TestCase) Object.factory(name);
         assert(test !is null, "Could not create object of type " ~ name);
         tests ~= test;
     }
 
     foreach(i, func; getAllTests!(q{getTestFunctions}, MODULES)()) {
+        if(!isWantedTest(func.name, testsToRun)) continue;
         import std.conv;
         auto test = new FunctionTestCase(func);
         assert(test !is null, "Could not create FunctionTestCase object for function " ~ func.name);
@@ -26,6 +31,14 @@ TestCase[] createTests(MODULES...)() if(MODULES.length > 0) {
     }
 
     return tests;
+}
+
+private bool isWantedTest(in string testName, in string[] testsToRun) {
+    if(!testsToRun.length) return true; //"all tests"
+    foreach(testToRun; testsToRun) {
+        if(startsWith(testName, testToRun)) return true;
+    }
+    return false;
 }
 
 private class FunctionTestCase: TestCase {
@@ -53,4 +66,12 @@ private auto getAllTests(string expr, MODULES...)() pure nothrow {
         tests ~= mixin(expr ~ q{!mod()});
     }
     return assumeUnique(tests);
+}
+
+unittest {
+    assert(isWantedTest("pass_tests.testEqual", ["pass_tests"]));
+    assert(isWantedTest("pass_tests.testEqual", ["pass_tests."]));
+    assert(isWantedTest("pass_tests.testEqual", ["pass_tests.testEqual"]));
+    assert(isWantedTest("pass_tests.testEqual", []));
+    assert(!isWantedTest("pass_tests.testEqual", ["pass_tests.foo"]));
 }

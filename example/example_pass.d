@@ -6,8 +6,9 @@ import pass_tests;
 import std.stdio;
 
 
-int main() {
+int main(string[] args) {
     writeln("Running passing unit-threaded examples...\n");
-    immutable success = runTests!(pass_tests)();
+    const tests = args[1..$];
+    immutable success = runTests!(pass_tests)(tests);
     return success ? 0 : 1;
 }

@@ -11,9 +11,9 @@ import std.traits;
 /**
  * Runs all tests in passed-in modules. Modules are symbols
  */
-bool runTests(MODULES...)() if(!is(typeof(MODULES[0]) == string)) {
+bool runTests(MODULES...)(in string[] tests = []) if(!is(typeof(MODULES[0]) == string)) {
 
-    auto suite = TestSuite(createTests!MODULES());
+    auto suite = TestSuite(createTests!MODULES(tests));
     immutable elapsed = suite.run();
 
     writefln("\nTime taken: %.3f seconds", elapsed);
@@ -32,7 +32,7 @@ bool runTests(MODULES...)() if(!is(typeof(MODULES[0]) == string)) {
 /**
  * Runs all tests in passed-in modules. Modules are strings
  */
-bool runTests(MODULES...)() if(is(typeof(MODULES[0]) == string)) {
+bool runTests(MODULES...)(in string[] tests = []) if(is(typeof(MODULES[0]) == string)) {
     mixin(getImportTestsCompileString!MODULES()); //e.g. import foo, bar, baz;
     static immutable runStr = getRunTestsCompileString!MODULES();
     mixin(getRunTestsCompileString!MODULES()); //e.g. runTests!(foo, bar, baz)();
