@@ -1,4 +1,5 @@
-module ut.check;
+module unit_threaded.asserts;
+
 @safe
 
 import std.exception;

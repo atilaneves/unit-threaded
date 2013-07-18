@@ -1,6 +1,6 @@
-module ut.testcase;
+module unit_threaded.testcase;
 
-import ut.check;
+import unit_threaded.check;
 import std.exception;
 import std.string;
 

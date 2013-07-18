@@ -1,7 +1,7 @@
-module ut.testsuite;
+module unit_threaded.testsuite;
 
-import ut.testcase;
-import ut.writer_thread;
+import unit_threaded.testcase;
+import unit_threaded.writer_thread;
 import std.datetime;
 import std.parallelism;
 import std.concurrency;

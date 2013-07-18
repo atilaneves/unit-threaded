@@ -1,8 +1,8 @@
-module ut.runner;
+module unit_threaded.runner;
 
-import ut.factory;
-import ut.testsuite;
-import ut.term;
+import unit_threaded.factory;
+import unit_threaded.testsuite;
+import unit_threaded.term;
 
 import std.stdio;
 import std.traits;

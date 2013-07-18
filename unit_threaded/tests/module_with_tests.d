@@ -1,4 +1,4 @@
-module ut.tests.module_with_tests;
+module unit_threaded.tests.module_with_tests;
 
 //test functions
 void testFoo() {}

@@ -1,6 +1,6 @@
-#!/usr/bin/rdmd -unittest
+#!/usr/bin/rdmd -I.. -unittest
 
-import ut.runner;
+import unit_threaded.runner;
 import std.stdio;
 import opts;
 

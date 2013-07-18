@@ -1,9 +1,9 @@
-module ut.factory;
+module unit_threaded.factory;
 
-import ut.testcase;
-import ut.list;
-import ut.asserts;
-import ut.check;
+import unit_threaded.testcase;
+import unit_threaded.list;
+import unit_threaded.asserts;
+import unit_threaded.check;
 
 import std.stdio;
 import std.traits;
@@ -94,7 +94,7 @@ private class BuiltinTestCase: FunctionTestCase {
 private bool moduleUnitTester() {
     foreach(mod; ModuleInfo) {
         if(mod && mod.unitTest) {
-            if(startsWith(mod.name, "ut.")) {
+            if(startsWith(mod.name, "unit_threaded.")) {
                 mod.unitTest()();
             } else {
                 builtinTests ~=

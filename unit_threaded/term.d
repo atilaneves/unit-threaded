@@ -1,4 +1,4 @@
-module ut.term;
+module unit_threaded.term;
 
 version(Posix) {
     import std.stdio;

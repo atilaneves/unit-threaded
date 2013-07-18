@@ -1,4 +1,4 @@
-module ut.list;
+module unit_threaded.list;
 
 import std.traits;
 import std.uni;
@@ -45,25 +45,17 @@ auto getTestFunctions(alias mod)() pure nothrow {
 }
 
 
-private auto addModule(string[] elements, string mod = "ut.tests.module_with_tests") nothrow {
+private auto addModule(string[] elements, string mod = "unit_threaded.tests.module_with_tests") nothrow {
     import std.algorithm;
     import std.array;
     return array(map!(a => mod ~ "." ~ a)(elements));
 }
 
-import ut.tests.module_with_tests; //defines tests and non-tests
-import ut.asserts;
+import unit_threaded.tests.module_with_tests; //defines tests and non-tests
+import unit_threaded.asserts;
 
 unittest {
     const expected = addModule([ "FooTest", "BarTest" ]);
-    const actual = getTestClassNames!(ut.tests.module_with_tests)();
+    const actual = getTestClassNames!(unit_threaded.tests.module_with_tests)();
     assertEqual(actual, expected);
-}
-
-unittest {
-    // TestFunctionTuple fooTuple; fooTuple[0] = "ut.tests.module_with_tests.testFoo"; fooTuple[1] = &testFoo;
-    // TestFunctionTuple barTuple; barTuple[0] = "ut.tests.module_with_tests.testBar"; barTuple[1] = &testBar;
-    // const expected = [ fooTuple, barTuple ];
-    // const actual = getTestFunctions!(ut.tests.module_with_tests)();
-    // assertEqual(actual, expected);
 }

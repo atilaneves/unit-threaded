@@ -1,4 +1,4 @@
-module ut.asserts;
+module unit_threaded.asserts;
 
 import std.conv;
 

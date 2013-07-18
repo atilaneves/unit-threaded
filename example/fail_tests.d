@@ -1,5 +1,5 @@
-import ut.check;
-import ut.testcase;
+import unit_threaded.check;
+import unit_threaded.testcase;
 
 import core.time;
 import core.thread;

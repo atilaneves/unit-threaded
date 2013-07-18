@@ -1,4 +1,4 @@
-module ut.writer_thread;
+module unit_threaded.writer_thread;
 
 import std.concurrency;
 import std.stdio;
