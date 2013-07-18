@@ -7,6 +7,7 @@ import unit_threaded.options;
 
 import std.stdio;
 import std.traits;
+import std.typetuple;
 
 
 /**
@@ -25,7 +26,7 @@ int runTestsFromArgs(MODULES...)(string[] args) {
 /**
  * Runs all tests in passed-in modules. Modules are symbols.
  */
-bool runTests(MOD_SYMBOLS...)(in Options options) if(!is(typeof(MOD_SYMBOLS[0]) == string)) {
+bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
 
     auto suite = TestSuite(createTests!MOD_SYMBOLS(options.tests));
     immutable elapsed = suite.run(options.multiThreaded);
@@ -46,7 +47,7 @@ bool runTests(MOD_SYMBOLS...)(in Options options) if(!is(typeof(MOD_SYMBOLS[0]) 
 /**
  * Runs all tests in passed-in modules. Modules are strings.
  */
-bool runTests(MOD_STRINGS...)(in Options options) if(is(typeof(MOD_STRINGS[0]) == string)) {
+bool runTests(MOD_STRINGS...)(in Options options) if(allSatisfy!(isSomeString, typeof(MOD_STRINGS))) {
     mixin(getImportTestsCompileString!MOD_STRINGS()); //e.g. import foo, bar, baz;
     static immutable runStr = getRunTestsCompileString!MOD_STRINGS();
     mixin(getRunTestsCompileString!MOD_STRINGS()); //e.g. runTests!(foo, bar, baz)();
