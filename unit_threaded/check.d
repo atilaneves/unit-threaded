@@ -13,31 +13,31 @@ class UnitTestException: Exception {
     }
 }
 
-void checkTrue(bool condition, string file = __FILE__, uint line = __LINE__) {
+void checkTrue(bool condition, string file = __FILE__, ulong line = __LINE__) {
     if(!condition) failEqual(condition, true, file, line);
 }
 
-void checkFalse(bool condition, string file = __FILE__, uint line = __LINE__) {
+void checkFalse(bool condition, string file = __FILE__, ulong line = __LINE__) {
     if(condition) failEqual(condition, false, file, line);
 }
 
-void checkEqual(T)(T value, T expected, string file = __FILE__, uint line = __LINE__) {
+void checkEqual(T)(T value, T expected, string file = __FILE__, ulong line = __LINE__) {
     if(value != expected) failEqual(value, expected, file, line);
 }
 
-void checkNotEqual(T)(T value, T expected, string file = __FILE__, uint line = __LINE__) {
+void checkNotEqual(T)(T value, T expected, string file = __FILE__, ulong line = __LINE__) {
     if(value == expected) failEqual(value, expected, file, line);
 }
 
-void checkNull(T)(T value, string file = __FILE__, uint line = __LINE__) {
+void checkNull(T)(T value, string file = __FILE__, ulong line = __LINE__) {
     if(value !is null) fail(getOutputPrefix(file, line) ~ "Value is null");
 }
 
-void checkNotNull(T)(T value, string file = __FILE__, uint line = __LINE__) {
+void checkNotNull(T)(T value, string file = __FILE__, ulong line = __LINE__) {
     if(value is null) fail(getOutputPrefix(file, line) ~ "Value is null");
 }
 
-void checkIn(T, U)(T value, U container, string file = __FILE__, uint line = __LINE__)
+void checkIn(T, U)(T value, U container, string file = __FILE__, ulong line = __LINE__)
     if(isAssociativeArray!U)
 {
     if(value !in container) {
@@ -45,7 +45,7 @@ void checkIn(T, U)(T value, U container, string file = __FILE__, uint line = __L
     }
 }
 
-void checkIn(T, U)(T value, U container, string file = __FILE__, uint line = __LINE__)
+void checkIn(T, U)(T value, U container, string file = __FILE__, ulong line = __LINE__)
     if(!isAssociativeArray!U)
 {
     if(!find(container, value)) {
@@ -53,7 +53,7 @@ void checkIn(T, U)(T value, U container, string file = __FILE__, uint line = __L
     }
 }
 
-void checkNotIn(T, U)(T value, U container, string file = __FILE__, uint line = __LINE__)
+void checkNotIn(T, U)(T value, U container, string file = __FILE__, ulong line = __LINE__)
     if(isAssociativeArray!U)
 {
     if(value in container) {
@@ -61,7 +61,7 @@ void checkNotIn(T, U)(T value, U container, string file = __FILE__, uint line = 
     }
 }
 
-void checkNotIn(T, U)(T value, U container, string file = __FILE__, uint line = __LINE__)
+void checkNotIn(T, U)(T value, U container, string file = __FILE__, ulong line = __LINE__)
     if(!isAssociativeArray!U)
 {
     if(find(container, value).length > 0) {
@@ -69,22 +69,25 @@ void checkNotIn(T, U)(T value, U container, string file = __FILE__, uint line = 
     }
 }
 
-
-private void failEqual(T, U)(in T value, in U expected, in string file, in uint line) {
-    throw new UnitTestException(getOutput(value, expected, file, line));
+void utFail(in string output, in string file, in ulong line) {
+    fail(getOutputPrefix(file, line) ~ output);
 }
 
-private void fail(in string output) {
+private void fail(in string output) pure {
     throw new UnitTestException(output);
 }
 
-private string getOutput(T)(in T value, in T expected, in string file, in uint line) {
+private void failEqual(T, U)(in T value, in U expected, in string file, in ulong line) {
+    throw new UnitTestException(getOutput(value, expected, file, line));
+}
+
+private string getOutput(T)(in T value, in T expected, in string file, in ulong line) {
     return getOutputPrefix(file, line) ~
         "Value " ~ to!string(value) ~
         " is not the expected " ~ to!string(expected) ~ "\n";
 }
 
-private string getOutputPrefix(in string file, in uint line) {
+private string getOutputPrefix(in string file, in ulong line) {
     return "\n    " ~ file ~ ":" ~ to!string(line) ~ " - ";
 }
 

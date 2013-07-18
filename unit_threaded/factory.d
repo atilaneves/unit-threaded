@@ -84,9 +84,10 @@ private class BuiltinTestCase: FunctionTestCase {
     }
 
     override void test() {
-        immutable output = collectExceptionMsg!Throwable(super.test());
-        if(output) {
-            throw new UnitTestException("\n    " ~ chomp(output));
+        try {
+            super.test();
+        } catch(Throwable t) {
+            utFail(t.msg, t.file, t.line);
         }
     }
 }
