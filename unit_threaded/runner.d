@@ -10,11 +10,24 @@ import std.traits;
 
 
 /**
- * Runs all tests in passed-in modules. Modules are symbols
+ * Runs all tests in passed-in modules. Modules can be symbols
+ * or strings. Arguments are taken from the command-line.
+ * -s Can be passed to run in single-threaded mode. The rest
+ * of argv is considered to be test names to be run.
+ * Returns: integer suitable for program return code.
  */
-bool runTests(MODULES...)(in Options options) if(!is(typeof(MODULES[0]) == string)) {
+int runTestsFromArgs(MODULES...)(string[] args) {
+    immutable success = runTests!MODULES(getOptions(args));
+    return success ? 0 : 1;
+}
 
-    auto suite = TestSuite(createTests!MODULES(options.tests));
+
+/**
+ * Runs all tests in passed-in modules. Modules are symbols.
+ */
+bool runTests(MOD_SYMBOLS...)(in Options options) if(!is(typeof(MOD_SYMBOLS[0]) == string)) {
+
+    auto suite = TestSuite(createTests!MOD_SYMBOLS(options.tests));
     immutable elapsed = suite.run(options.multiThreaded);
 
     writefln("\nTime taken: %.3f seconds", elapsed);
@@ -31,25 +44,25 @@ bool runTests(MODULES...)(in Options options) if(!is(typeof(MODULES[0]) == strin
 }
 
 /**
- * Runs all tests in passed-in modules. Modules are strings
+ * Runs all tests in passed-in modules. Modules are strings.
  */
-bool runTests(MODULES...)(in Options options) if(is(typeof(MODULES[0]) == string)) {
-    mixin(getImportTestsCompileString!MODULES()); //e.g. import foo, bar, baz;
-    static immutable runStr = getRunTestsCompileString!MODULES();
-    mixin(getRunTestsCompileString!MODULES()); //e.g. runTests!(foo, bar, baz)();
+bool runTests(MOD_STRINGS...)(in Options options) if(is(typeof(MOD_STRINGS[0]) == string)) {
+    mixin(getImportTestsCompileString!MOD_STRINGS()); //e.g. import foo, bar, baz;
+    static immutable runStr = getRunTestsCompileString!MOD_STRINGS();
+    mixin(getRunTestsCompileString!MOD_STRINGS()); //e.g. runTests!(foo, bar, baz)();
 }
 
-private string getImportTestsCompileString(MODULES...)() {
-    return "import " ~ getModulesCompileString!MODULES() ~ ";";
+private string getImportTestsCompileString(MOD_STRINGS...)() {
+    return "import " ~ getModulesCompileString!MOD_STRINGS() ~ ";";
 }
 
-private string getRunTestsCompileString(MODULES...)() {
-    return "return runTests!(" ~ getModulesCompileString!MODULES() ~ ")(options);";
+private string getRunTestsCompileString(MOD_STRINGS...)() {
+    return "return runTests!(" ~ getModulesCompileString!MOD_STRINGS() ~ ")(options);";
 }
 
-private string getModulesCompileString(MODULES...)() {
+private string getModulesCompileString(MOD_STRINGS...)() {
     import std.array;
     string[] modules;
-    foreach(mod; MODULES) modules ~= mod;
+    foreach(mod; MOD_STRINGS) modules ~= mod;
     return join(modules, ", ");
 }
