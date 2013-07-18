@@ -17,7 +17,7 @@ import std.typetuple;
  * of argv is considered to be test names to be run.
  * Returns: integer suitable for program return code.
  */
-int runTestsFromArgs(MODULES...)(string[] args) {
+int runTests(MODULES...)(string[] args) {
     immutable success = runTests!MODULES(getOptions(args));
     return success ? 0 : 1;
 }

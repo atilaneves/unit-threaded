@@ -8,5 +8,5 @@ import std.stdio;
 
 int main(string[] args) {
     writeln("Running passing unit-threaded examples...\n");
-    return runTestsFromArgs!(pass_tests)(args);
+    return runTests!(pass_tests)(args);
 }

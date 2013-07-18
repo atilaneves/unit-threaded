@@ -7,5 +7,5 @@ int main(string[] args) {
     writeln("Running failing unit-threaded examples...\n");
     ///fail_tests and pass_tests are two modules in this directory
     ///no import necessary at the top, passed in as strings
-    return runTestsFromArgs!("fail_tests", "pass_tests")(args);
+    return runTests!("fail_tests", "pass_tests")(args);
 }
