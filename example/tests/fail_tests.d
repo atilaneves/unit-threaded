@@ -1,4 +1,4 @@
-module tests.fail_tests;
+module example.tests.fail_tests;
 
 import unit_threaded.check;
 import unit_threaded.testcase;

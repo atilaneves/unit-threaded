@@ -29,13 +29,12 @@ override the appropriate functions(s).
 
 Since D packages are just directories and there is no way to read the filesystem
 at compile-time, there is no way to automatically add all tests in packages(s).
-That will have to be done by the build system.
-
-
-
-TODO:
-
-- Add all tests in a list of packages automatically
+To mitigate this and avoid having to manually write the name of all the modules
+containing tests, a utility called [`finder`](unit_threaded/finder.d) can be
+used to generate a source file automatically. To use it, pass a 1st argument
+a file name to generate, and the rest of the arguments should be directory
+names. It will automatically generate a file and execute it with rdmd,
+then print the result.
 
 
 MAYBE:

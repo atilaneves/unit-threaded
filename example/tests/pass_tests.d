@@ -1,4 +1,4 @@
-module tests.pass_tests;
+module example.tests.pass_tests;
 
 import unit_threaded.check;
 import unit_threaded.testcase;
