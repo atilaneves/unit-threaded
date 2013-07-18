@@ -3,6 +3,7 @@ module unit_threaded.runner;
 import unit_threaded.factory;
 import unit_threaded.testsuite;
 import unit_threaded.term;
+import unit_threaded.options;
 
 import std.stdio;
 import std.traits;
@@ -11,10 +12,10 @@ import std.traits;
 /**
  * Runs all tests in passed-in modules. Modules are symbols
  */
-bool runTests(MODULES...)(bool multiThreaded, in string[] tests) if(!is(typeof(MODULES[0]) == string)) {
+bool runTests(MODULES...)(in Options options) if(!is(typeof(MODULES[0]) == string)) {
 
-    auto suite = TestSuite(createTests!MODULES(tests));
-    immutable elapsed = suite.run(multiThreaded);
+    auto suite = TestSuite(createTests!MODULES(options.tests));
+    immutable elapsed = suite.run(options.multiThreaded);
 
     writefln("\nTime taken: %.3f seconds", elapsed);
     writeln(suite.numTestsRun, " test(s) run, ",
@@ -32,7 +33,7 @@ bool runTests(MODULES...)(bool multiThreaded, in string[] tests) if(!is(typeof(M
 /**
  * Runs all tests in passed-in modules. Modules are strings
  */
-bool runTests(MODULES...)(bool multiThreaded, in string[] tests = []) if(is(typeof(MODULES[0]) == string)) {
+bool runTests(MODULES...)(in Options options) if(is(typeof(MODULES[0]) == string)) {
     mixin(getImportTestsCompileString!MODULES()); //e.g. import foo, bar, baz;
     static immutable runStr = getRunTestsCompileString!MODULES();
     mixin(getRunTestsCompileString!MODULES()); //e.g. runTests!(foo, bar, baz)();
@@ -43,7 +44,7 @@ private string getImportTestsCompileString(MODULES...)() {
 }
 
 private string getRunTestsCompileString(MODULES...)() {
-    return "return runTests!(" ~ getModulesCompileString!MODULES() ~ ")(multiThreaded, tests);";
+    return "return runTests!(" ~ getModulesCompileString!MODULES() ~ ")(options);";
 }
 
 private string getModulesCompileString(MODULES...)() {
