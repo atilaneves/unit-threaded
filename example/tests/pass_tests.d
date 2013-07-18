@@ -1,3 +1,5 @@
+module tests.pass_tests;
+
 import unit_threaded.check;
 import unit_threaded.testcase;
 
