@@ -1,3 +1,5 @@
+module unit_threaded.options;
+
 import std.getopt;
 
 struct Options {

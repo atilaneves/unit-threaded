@@ -1,8 +1,8 @@
-#!/usr/bin/rdmd -I.. -unittest
+#!/usr/bin/rdmd -unittest
 
 import unit_threaded.runner;
+import unit_threaded.options;
 import std.stdio;
-import opts;
 
 int main(string[] args) {
     writeln("Running failing unit-threaded examples...\n");

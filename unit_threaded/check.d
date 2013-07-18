@@ -1,4 +1,4 @@
-module unit_threaded.asserts;
+module unit_threaded.check;
 
 @safe
 
