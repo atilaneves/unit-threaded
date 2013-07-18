@@ -37,20 +37,29 @@ void testEqualVars() {
     checkEqual(foo, bar);
 }
 
-void someFun() {} //not going to be executed as part of the testsuite
+void someFun() {
+    //not going to be executed as part of the testsuite,
+    //doesn't obey the naming convention
+    assert(0, "Never going to happen");
+}
 
 
-//the tests below should take only 1 second if using parallelism
+//the tests below should take only 1 second in total if using parallelism
+//(given enough cores)
 void testLongRunning1() {
-    Thread.sleep( dur!("seconds")(1));
+    Thread.sleep( dur!"seconds"(1));
 }
 
 void testLongRunning2() {
-    Thread.sleep( dur!("seconds")(1));
+    Thread.sleep( dur!"seconds"(1));
 }
 
 void testLongRunning3() {
-    Thread.sleep( dur!("seconds")(1));
+    Thread.sleep( dur!"seconds"(1));
+}
+
+void testLongRunning4() {
+    Thread.sleep( dur!"seconds"(1));
 }
 
 
