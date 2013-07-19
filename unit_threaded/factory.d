@@ -13,15 +13,20 @@ import std.algorithm;
 import std.string;
 import core.runtime;
 
+/**
+ * Replace the D runtime's normal unittest block tester with our own
+ */
 static this() {
     Runtime.moduleUnitTester = &moduleUnitTester;
 }
 
 /**
- * Creates tests cases from the given modules
+ * Creates tests cases from the given modules.
+ * If testsToRun is empty, it means run all tests.
  */
 TestCase[] createTests(MODULES...)(in string[] testsToRun = []) if(MODULES.length > 0) {
     TestCase[] tests;
+    //Create all tests derived from TestCase
     foreach(name; getAllTests!(q{getTestClassNames}, MODULES)()) {
         if(!isWantedTest(name, testsToRun)) continue;
         auto test = cast(TestCase) Object.factory(name);
@@ -29,6 +34,7 @@ TestCase[] createTests(MODULES...)(in string[] testsToRun = []) if(MODULES.lengt
         tests ~= test;
     }
 
+    //Create all tests from testFoo() functions
     foreach(i, func; getAllTests!(q{getTestFunctions}, MODULES)()) {
         if(!isWantedTest(func.name, testsToRun)) continue;
         import std.conv;

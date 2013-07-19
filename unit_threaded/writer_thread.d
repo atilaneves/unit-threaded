@@ -1,5 +1,9 @@
 module unit_threaded.writer_thread;
 
+/**
+ * Thread to output to stdout
+ */
+
 import std.concurrency;
 import std.stdio;
 

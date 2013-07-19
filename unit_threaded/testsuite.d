@@ -6,7 +6,9 @@ import std.datetime;
 import std.parallelism;
 import std.concurrency;
 
-
+/**
+ * Responsible for running tests
+ */
 struct TestSuite {
     this(TestCase[] tests) {
         _tests = tests;
@@ -36,10 +38,6 @@ struct TestSuite {
         return _stopWatch.peek().seconds();
     }
 
-    void addFailure(string testPath) nothrow {
-        _failures ~= testPath;
-    }
-
     @property ulong numTestsRun() const pure nothrow {
         return _tests.length;
     }
@@ -56,6 +54,10 @@ private:
     TestCase[] _tests;
     string[] _failures;
     StopWatch _stopWatch;
+
+    void addFailure(string testPath) nothrow {
+        _failures ~= testPath;
+    }
 
     void innerLoop(TestCase test, Tid writerTid) {
         immutable result = test();

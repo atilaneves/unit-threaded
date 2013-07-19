@@ -4,6 +4,10 @@ import std.traits;
 import std.uni;
 import std.typecons;
 
+/**
+ * Finds all test classes (classes implementing a test() function)
+ * in the given module
+ */
 string[] getTestClassNames(alias mod)() pure nothrow {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
     string[] classes;
@@ -24,6 +28,10 @@ struct TestFunctionData {
     TestFunction func;
 }
 
+/**
+ * Finds all test functions in the given module.
+ * Returns an array of TestFunctionData structs
+ */
 auto getTestFunctions(alias mod)() pure nothrow {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
     TestFunctionData[] functions;

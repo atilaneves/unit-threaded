@@ -1,5 +1,9 @@
 module unit_threaded.term;
 
+/**
+ * Generates coloured output on POSIX systems
+ */
+
 version(Posix) {
     import std.stdio;
 

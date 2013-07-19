@@ -9,6 +9,9 @@ struct TestResult {
     immutable string output;
 }
 
+/**
+ * Class from which other test cases derive
+ */
 class TestCase {
     string getPath() const pure nothrow {
         return this.classinfo.name;
@@ -24,8 +27,8 @@ class TestCase {
         return TestResult(_failed, _output);
     }
 
-    void setup() { }
-    void shutdown() { }
+    void setup() { } ///override to run before test()
+    void shutdown() { } ///override to run after test()
     abstract void test();
 
 private:

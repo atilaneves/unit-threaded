@@ -7,6 +7,9 @@ struct Options {
     immutable string[] tests;
 };
 
+/**
+ * Parses the command-line args and returns Options
+ */
 auto getOptions(string[] args) {
     bool single = false;
     getopt(args, "single|s", &single);

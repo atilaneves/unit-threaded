@@ -2,6 +2,12 @@
 
 module unit_threaded.finder;
 
+/**
+ * Implements a program to search a list of directories
+ * for all .d files, then writes and executes a D program
+ * to run all tests contained in those files
+ */
+
 import std.stdio;
 import std.file;
 import std.exception;
@@ -12,6 +18,10 @@ import std.conv;
 import std.process;
 
 
+/**
+ * args is a filename and a list of directories to search in
+ * the filename is the 1st element, the others are directories.
+*/
 int main(string[] args) {
     const fileName = args[1];
     const dirs = args[2..$];
