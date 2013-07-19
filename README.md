@@ -3,7 +3,12 @@ unit-threaded
 
 
 Multi-threaded unit test framework for D. Based on similar work for
-[C++11](https://bitbucket.org/atilaneves/unit-thread).
+[C++11](https://bitbucket.org/atilaneves/unit-thread). Its goals are:
+
+1. To run concurrently (by default) for maximal speed and turnaround for TDD
+2. To make it easy to write tests (functions as test cases)
+3. No test registration. Tests are discovered with D's compile-time reflection
+4. To be able to run specific tests or group of tests via the command-line
 
 The library is all in the `unit_threaded` package. There are two
 example programs in the [`example`](example/) folder, one with passing unit tests
@@ -20,7 +25,7 @@ be done as symbols or strings, and the two approaches are shown in
 the examples.
 
 There is no need to register tests. The registration is implicit by
-deriving from `TestCase` and overriding `test()` or by writing a function
+deriving from `TestCase` and overriding `test()` *or* by writing a function
 whose name is in camel-case and begins with test (e.g. `testFoo()`, `testGadget()`).
 Specify which modules contain tests when calling `runTests()` and that's it.
 
@@ -39,6 +44,6 @@ then print the result.
 
 MAYBE:
 
-- Lazy expressions to get better failure messages?
-- Random reordering of tests in single-threaded mode?
-- Split code to avoid bloat and decrease linking time?
+- Compile-time string expressions to get better failure messages?
+- Option to shuffle tests in single-threaded mode?
+- Split code in different executables to avoid bloat and decrease linking time?
