@@ -16,6 +16,13 @@ package bool isDebugOutputEnabled() nothrow {
     return _debugOutput;
 }
 
+void addToOutput(ref string output, in string msg) {
+    if(_debugOutput) {
+        writeln(msg);
+    } else {
+        output ~= msg;
+    }
+}
 
 /**
  * Write if debug output was enabled. Not thread-safe in the sense that it
