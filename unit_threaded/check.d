@@ -21,7 +21,8 @@ void checkFalse(bool condition, string file = __FILE__, ulong line = __LINE__) {
     if(condition) failEqual(condition, false, file, line);
 }
 
-void checkEqual(T)(T value, T expected, string file = __FILE__, ulong line = __LINE__) {
+void checkEqual(T, U)(T value, U expected, string file = __FILE__, ulong line = __LINE__)
+if(is(typeof(value != expected) == bool)) {
     if(value != expected) failEqual(value, expected, file, line);
 }
 
@@ -81,7 +82,7 @@ private void failEqual(T, U)(in T value, in U expected, in string file, in ulong
     throw new UnitTestException(getOutput(value, expected, file, line));
 }
 
-private string getOutput(T)(in T value, in T expected, in string file, in ulong line) {
+private string getOutput(T, U)(in T value, in U expected, in string file, in ulong line) {
     return getOutputPrefix(file, line) ~
         "Value " ~ to!string(value) ~
         " is not the expected " ~ to!string(expected) ~ "\n";
@@ -118,6 +119,11 @@ unittest {
 
     assertCheck(checkEqual([2, 3], [2, 3]));
     assertCheck(checkNotEqual([2, 3], [2, 3, 4]));
+
+    int[] ints = [ 1, 2, 3];
+    byte[] bytes = [ 1, 2, 3];
+    assertCheck(checkEqual(ints, bytes));
+    assertCheck(checkEqual(bytes, ints));
 
     assertCheck(checkEqual([1: 2.0, 2: 4.0], [1: 2.0, 2: 4.0]));
     assertCheck(checkNotEqual([1: 2.0, 2: 4.0], [1: 2.2, 2: 4.0]));
