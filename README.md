@@ -41,6 +41,12 @@ a file name to generate, and the rest of the arguments should be directory
 names. It will automatically generate a file and execute it with rdmd,
 then print the result.
 
+There is support for debug prints in the tests with the `-d` switch.
+This is only supported in single-threaded mode (`-s`). Setting `-d`
+without `-s` will trigger a warning followed by the forceful use of `-s`.
+TestCases and test functions can print debug output with the function
+`writelnUt` available [here](unit_threaded/io.d).
+
 
 MAYBE:
 
