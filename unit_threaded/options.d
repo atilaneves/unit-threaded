@@ -1,6 +1,7 @@
 module unit_threaded.options;
 
 import std.getopt;
+import std.stdio;
 
 struct Options {
     immutable bool multiThreaded;
@@ -17,5 +18,11 @@ auto getOptions(string[] args) {
     getopt(args,
            "single|s", &single, //single-threaded
            "debug|d", &debugOutput); //print debug output
+    if(debugOutput) {
+        if(!single) {
+            stderr.writeln("\n***** Cannot use -d without -s, forcing -s *****\n\n");
+        }
+        single = true;
+    }
     return Options(!single, args[1..$].dup, debugOutput);
 }

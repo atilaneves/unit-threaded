@@ -4,6 +4,7 @@ import unit_threaded.factory;
 import unit_threaded.testsuite;
 import unit_threaded.io;
 import unit_threaded.options;
+import unit_threaded.testcase;
 
 import std.stdio;
 import std.traits;
@@ -18,7 +19,10 @@ import std.typetuple;
  * Returns: integer suitable for program return code.
  */
 int runTests(MODULES...)(string[] args) {
-    immutable success = runTests!MODULES(getOptions(args));
+    immutable options = getOptions(args);
+    if(options.debugOutput) enableDebugOutput();
+
+    immutable success = runTests!MODULES(options);
     return success ? 0 : 1;
 }
 
@@ -27,8 +31,6 @@ int runTests(MODULES...)(string[] args) {
  * Runs all tests in passed-in modules. Modules are symbols.
  */
 bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
-    if(options.debugOutput) enableDebugOutput();
-
     auto suite = TestSuite(createTests!MOD_SYMBOLS(options.tests));
     immutable elapsed = suite.run(options.multiThreaded);
 

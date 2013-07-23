@@ -36,6 +36,9 @@ class TestCase {
 
 protected:
 
+    /**
+     * Write to stdout if debugOutput was enabled
+     */
     void writelnUt(T...)(T args) {
         if(isDebugOutputEnabled()) _output ~= "    " ~ text(args) ~ "\n";
     }
