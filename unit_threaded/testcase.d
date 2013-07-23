@@ -31,6 +31,7 @@ class TestCase {
     void shutdown() { } ///override to run after test()
     abstract void test();
 
+
 private:
     bool _failed;
     string _output;

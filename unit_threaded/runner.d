@@ -2,7 +2,7 @@ module unit_threaded.runner;
 
 import unit_threaded.factory;
 import unit_threaded.testsuite;
-import unit_threaded.term;
+import unit_threaded.io;
 import unit_threaded.options;
 
 import std.stdio;
@@ -27,6 +27,7 @@ int runTests(MODULES...)(string[] args) {
  * Runs all tests in passed-in modules. Modules are symbols.
  */
 bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
+    if(options.debugOutput) enableDebugOutput();
 
     auto suite = TestSuite(createTests!MOD_SYMBOLS(options.tests));
     immutable elapsed = suite.run(options.multiThreaded);

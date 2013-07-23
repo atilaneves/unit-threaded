@@ -5,6 +5,7 @@ import std.getopt;
 struct Options {
     immutable bool multiThreaded;
     immutable string[] tests;
+    immutable bool debugOutput;
 };
 
 /**
@@ -12,6 +13,9 @@ struct Options {
  */
 auto getOptions(string[] args) {
     bool single = false;
-    getopt(args, "single|s", &single);
-    return Options(!single, args[1..$].dup);
+    bool debugOutput = false;
+    getopt(args,
+           "single|s", &single, //single-threaded
+           "debug|d", &debugOutput); //print debug output
+    return Options(!single, args[1..$].dup, debugOutput);
 }
