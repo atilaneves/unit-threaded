@@ -1,8 +1,11 @@
 module unit_threaded.testcase;
 
 import unit_threaded.check;
+import unit_threaded.io;
+
 import std.exception;
 import std.string;
+import std.conv;
 
 struct TestResult {
     immutable bool failed;
@@ -31,6 +34,11 @@ class TestCase {
     void shutdown() { } ///override to run after test()
     abstract void test();
 
+protected:
+
+    void writelnUt(T...)(T args) {
+        if(isDebugOutputEnabled()) _output ~= "    " ~ text(args) ~ "\n";
+    }
 
 private:
     bool _failed;

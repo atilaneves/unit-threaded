@@ -5,10 +5,6 @@
 module unit_threaded.io;
 
 
-import std.exception;
-import std.conv;
-
-
 private bool _debugOutput = false; ///whether or not to print debug messages
 
 
@@ -22,20 +18,9 @@ package bool isDebugOutputEnabled() nothrow {
 
 
 /**
- * Not a real exception. This a hack in order to enable test functions
- * (not classes) to add to the TestCase instance _output in a "thread-safe"
- * manner (i.e. no overlapped outputs)
- */
-package class DebugOutputException: Exception {
-    this(T...)(T args) {
-        super(text(args));
-    }
-}
-/**
- * Write if debug output was enabled.
- * Not thread-safe in the sense that it will get
- * printed out immediately and may overlap with
- * other output
+ * Write if debug output was enabled. Not thread-safe in the sense that it
+ * will get printed out immediately and may overlap with other output.
+ * To be used by test functions (not TestCases).
  */
 void writelnUt(T...)(T args) {
     if(_debugOutput) writeln(args);
