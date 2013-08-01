@@ -7,6 +7,7 @@ import std.conv;
 import std.algorithm;
 import std.traits;
 
+
 class UnitTestException: Exception {
     this(string msg) {
         super(msg);
@@ -70,6 +71,25 @@ void checkNotIn(T, U)(T value, U container, string file = __FILE__, ulong line =
         fail(getOutputPrefix(file, line) ~ "Value " ~ to!string(value) ~ " in " ~ to!string(container));
     }
 }
+
+void checkThrown(T: Throwable = Exception, E)(lazy E expr, string file = __FILE__, ulong line = __LINE__) {
+    if(!threw!T(expr)) fail(getOutputPrefix(file, line) ~ "Expression did not throw");
+}
+
+void checkNotThrown(T: Throwable = Exception, E)(lazy E expr, string file = __FILE__, ulong line = __LINE__) {
+    if(threw!T(expr)) fail(getOutputPrefix(file, line) ~ "Expression threw");
+}
+
+private bool threw(T: Throwable, E)(lazy E expr) {
+    try {
+        expr();
+    } catch(T e) {
+        return true;
+    }
+
+    return false;
+}
+
 
 void utFail(in string output, in string file, in ulong line) {
     fail(getOutputPrefix(file, line) ~ output);

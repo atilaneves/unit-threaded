@@ -4,6 +4,7 @@ import unit_threaded.check;
 import unit_threaded.testcase;
 import unit_threaded.io;
 
+
 class IntEqualTest: TestCase {
     override void test() {
         writelnUt("This will not show up unless -d is used");
@@ -33,4 +34,27 @@ void testNotEqual() {
     checkNotEqual(3, 4);
     checkNotEqual(5.0, 6.0);
     checkNotEqual("foo", "bar");
+}
+
+
+private class MyException: Exception {
+    this() {
+        super("MyException");
+    }
+}
+
+void testThrown() {
+    checkThrown!MyException(throwFunc());
+}
+
+void testNotThrown() {
+    checkNotThrown(nothrowFunc());
+}
+
+private void throwFunc() {
+    throw new MyException;
+}
+
+private void nothrowFunc() nothrow {
+    ;
 }

@@ -21,7 +21,7 @@ import std.process;
 /**
  * args is a filename and a list of directories to search in
  * the filename is the 1st element, the others are directories.
-*/
+ */
 int main(string[] args) {
     const fileName = args[1];
     const dirs = args[2..$];
