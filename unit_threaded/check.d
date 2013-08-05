@@ -14,33 +14,33 @@ class UnitTestException: Exception {
     }
 }
 
-void checkTrue(bool condition, string file = __FILE__, ulong line = __LINE__) {
+void checkTrue(in bool condition, in string file = __FILE__, in ulong line = __LINE__) {
     if(!condition) failEqual(condition, true, file, line);
 }
 
-void checkFalse(bool condition, string file = __FILE__, ulong line = __LINE__) {
+void checkFalse(in bool condition, in string file = __FILE__, in ulong line = __LINE__) {
     if(condition) failEqual(condition, false, file, line);
 }
 
-void checkEqual(T, U)(T value, U expected, string file = __FILE__, ulong line = __LINE__)
+void checkEqual(T, U)(in T value, in U expected, in string file = __FILE__, in ulong line = __LINE__)
 if(is(typeof(value != expected) == bool)) {
     if(value != expected) failEqual(value, expected, file, line);
 }
 
-void checkNotEqual(T, U)(T value, U expected, string file = __FILE__, ulong line = __LINE__)
+void checkNotEqual(T, U)(in T value, in U expected, in string file = __FILE__, in ulong line = __LINE__)
 if(is(typeof(value == expected) == bool)) {
     if(value == expected) failEqual(value, expected, file, line);
 }
 
-void checkNull(T)(T value, string file = __FILE__, ulong line = __LINE__) {
+void checkNull(T)(in T value, in string file = __FILE__, in ulong line = __LINE__) {
     if(value !is null) fail(getOutputPrefix(file, line) ~ "Value is null");
 }
 
-void checkNotNull(T)(T value, string file = __FILE__, ulong line = __LINE__) {
+void checkNotNull(T)(in T value, in string file = __FILE__, in ulong line = __LINE__) {
     if(value is null) fail(getOutputPrefix(file, line) ~ "Value is null");
 }
 
-void checkIn(T, U)(T value, U container, string file = __FILE__, ulong line = __LINE__)
+void checkIn(T, U)(in T value, in U container, in string file = __FILE__, in ulong line = __LINE__)
     if(isAssociativeArray!U)
 {
     if(value !in container) {
@@ -48,7 +48,7 @@ void checkIn(T, U)(T value, U container, string file = __FILE__, ulong line = __
     }
 }
 
-void checkIn(T, U)(T value, U container, string file = __FILE__, ulong line = __LINE__)
+void checkIn(T, U)(in T value, in U container, in string file = __FILE__, in ulong line = __LINE__)
     if(!isAssociativeArray!U)
 {
     if(!find(container, value)) {
@@ -56,7 +56,7 @@ void checkIn(T, U)(T value, U container, string file = __FILE__, ulong line = __
     }
 }
 
-void checkNotIn(T, U)(T value, U container, string file = __FILE__, ulong line = __LINE__)
+void checkNotIn(T, U)(in T value, in U container, in string file = __FILE__, in ulong line = __LINE__)
     if(isAssociativeArray!U)
 {
     if(value in container) {
@@ -64,7 +64,7 @@ void checkNotIn(T, U)(T value, U container, string file = __FILE__, ulong line =
     }
 }
 
-void checkNotIn(T, U)(T value, U container, string file = __FILE__, ulong line = __LINE__)
+void checkNotIn(T, U)(in T value, in U container, in string file = __FILE__, in ulong line = __LINE__)
     if(!isAssociativeArray!U)
 {
     if(find(container, value).length > 0) {
@@ -72,11 +72,11 @@ void checkNotIn(T, U)(T value, U container, string file = __FILE__, ulong line =
     }
 }
 
-void checkThrown(T: Throwable = Exception, E)(lazy E expr, string file = __FILE__, ulong line = __LINE__) {
+void checkThrown(T: Throwable = Exception, E)(lazy E expr, in string file = __FILE__, in ulong line = __LINE__) {
     if(!threw!T(expr)) fail(getOutputPrefix(file, line) ~ "Expression did not throw");
 }
 
-void checkNotThrown(T: Throwable = Exception, E)(lazy E expr, string file = __FILE__, ulong line = __LINE__) {
+void checkNotThrown(T: Throwable = Exception, E)(lazy E expr, in string file = __FILE__, in ulong line = __LINE__) {
     if(threw!T(expr)) fail(getOutputPrefix(file, line) ~ "Expression threw");
 }
 
@@ -150,6 +150,10 @@ unittest {
 
     assertCheck(checkEqual([1: 2.0, 2: 4.0], [1: 2.0, 2: 4.0]));
     assertCheck(checkNotEqual([1: 2.0, 2: 4.0], [1: 2.2, 2: 4.0]));
+    const constIntToInts = [ 1:2, 3: 7, 9: 345];
+    auto intToInts = [ 1:2, 3: 7, 9: 345];
+    assertCheck(checkEqual(intToInts, constIntToInts));
+    assertCheck(checkEqual(constIntToInts, intToInts));
 }
 
 unittest {
