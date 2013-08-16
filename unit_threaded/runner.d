@@ -34,6 +34,11 @@ bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, 
     auto suite = TestSuite(createTests!MOD_SYMBOLS(options.tests));
     immutable elapsed = suite.run(options.multiThreaded);
 
+    if(!suite.numTestsRun) {
+        writeln("Did not run any tests!!!");
+        return false;
+    }
+
     writefln("\nTime taken: %.3f seconds", elapsed);
     writeln(suite.numTestsRun, " test(s) run, ",
             suite.numFailures, " failed.\n");
