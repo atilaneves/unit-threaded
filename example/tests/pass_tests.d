@@ -56,5 +56,5 @@ private void throwFunc() {
 }
 
 private void nothrowFunc() nothrow {
-    ;
+    {}
 }

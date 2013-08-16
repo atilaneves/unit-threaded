@@ -158,7 +158,7 @@ unittest {
 
 unittest {
     assertCheck(checkNull(null));
-    class Foo { };
+    class Foo { }
     assertCheck(checkNotNull(new Foo));
 }
 
