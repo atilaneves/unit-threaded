@@ -3,6 +3,7 @@ module example.tests.pass_tests;
 import unit_threaded.check;
 import unit_threaded.testcase;
 import unit_threaded.io;
+import core.thread;
 
 
 class IntEqualTest: TestCase {
@@ -57,4 +58,22 @@ private void throwFunc() {
 
 private void nothrowFunc() nothrow {
     {}
+}
+
+//the tests below should take only 1 second in total if using parallelism
+//(given enough cores)
+void testLongRunning1() {
+    Thread.sleep( dur!"seconds"(1));
+}
+
+void testLongRunning2() {
+    Thread.sleep( dur!"seconds"(1));
+}
+
+void testLongRunning3() {
+    Thread.sleep( dur!"seconds"(1));
+}
+
+void testLongRunning4() {
+    Thread.sleep( dur!"seconds"(1));
 }
