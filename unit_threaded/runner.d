@@ -12,6 +12,7 @@ import std.traits;
 import std.typetuple;
 import std.concurrency;
 import std.conv;
+import std.algorithm;
 import core.thread;
 
 
@@ -24,12 +25,30 @@ import core.thread;
  */
 int runTests(MODULES...)(string[] args) {
     immutable options = getOptions(args);
+    if(options.list) {
+        writeln("Listing tests:");
+        import std.algorithm;
+        foreach(test; getTestNames!MODULES()) {
+            writeln(test);
+        }
+    }
+
+    if(options.exit) return 0;
     if(options.debugOutput) enableDebugOutput();
 
     immutable success = runTests!MODULES(options);
     return success ? 0 : 1;
 }
 
+private auto getTestNames(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
+    return map!(a => a.name)(getTestClassesAndFunctions!MOD_SYMBOLS());
+}
+
+private auto getTestNames(MOD_STRINGS...)() if(allSatisfy!(isSomeString, typeof(MOD_STRINGS))) {
+    mixin(getImportTestsCompileString!MOD_STRINGS()); //e.g. import foo, bar, baz;
+    mixin("return map!(a => a.name)(getTestClassesAndFunctions!(" ~
+          getModulesCompileString!MOD_STRINGS() ~ ")());");
+}
 
 /**
  * Runs all tests in passed-in modules. Modules are symbols.
