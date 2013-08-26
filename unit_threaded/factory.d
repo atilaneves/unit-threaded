@@ -26,13 +26,13 @@ static this() {
  */
 TestCase[] createTests(MODULES...)(in string[] testsToRun = []) if(MODULES.length > 0) {
     TestCase[] tests;
-    foreach(data; getAllTests!(q{getTestClassNames}, MODULES)() ~ getAllTests!(q{getTestFunctions}, MODULES)()) {
+    foreach(data; getTestClassesAndFunctions!MODULES()) {
         if(!isWantedTest(data.name, testsToRun)) continue;
         auto test = createTestCase(data);
         if(test !is null) tests ~= test; //can be null if abtract base class
     }
 
-    return tests ~ builtinTests;
+    return tests ~ builtinTests; //builtInTests defined below
 }
 
 TestCase createTestCase(TestData data) {
@@ -71,6 +71,11 @@ private class FunctionTestCase: TestCase {
 
     private string _name;
     private TestFunction _func;
+}
+
+private auto getTestClassesAndFunctions(MODULES...)() {
+    return getAllTests!(q{getTestClassNames}, MODULES)() ~
+           getAllTests!(q{getTestFunctions}, MODULES)();
 }
 
 private auto getAllTests(string expr, MODULES...)() pure nothrow {
