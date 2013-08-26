@@ -35,32 +35,29 @@ int runTests(MODULES...)(string[] args) {
  * Runs all tests in passed-in modules. Modules are symbols.
  */
 bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
-    auto tid = spawn(&writeInThread);
-    //sleep to give writerThread some time to set up. Otherwise,
+    WriterThread.get(); //make sure this is up
+    //sleep to give WriterThread some time to set up. Otherwise,
     //tests with output could write to stdout in the meanwhile
-    Thread.sleep( dur!"msecs"(5));
+    Thread.sleep(dur!"msecs"(5));
 
     auto suite = TestSuite(createTests!MOD_SYMBOLS(options.tests));
-    immutable elapsed = suite.run(tid, options.multiThreaded);
+    immutable elapsed = suite.run(options.multiThreaded);
 
     if(!suite.numTestsRun) {
         writeln("Did not run any tests!!!");
         return false;
     }
 
-    tid.send(text("\nTime taken: ", elapsed, " seconds\n"));
-    tid.send(text(suite.numTestsRun, " test(s) run, ",
-                   suite.numFailures, " failed.\n\n"));
+    WriterThread.get().writeln("\nTime taken: ", elapsed, " seconds");
+    WriterThread.get().writeln(suite.numTestsRun, " test(s) run, ",
+                               suite.numFailures, " failed.\n");
 
     if(!suite.passed) {
-        tid.send(red("Unit tests failed!\n\n"));
+        WriterThread.get().writeln(red("Unit tests failed!\n"));
         return false; //oops
     }
 
-    tid.send(green("OK!\n\n"));
-
-    tid.send(thisTid); //tell it to join
-    receiveOnly!Tid(); //wait for it to join
+    WriterThread.get().writeln(green("OK!\n"));
 
     return true;
 }

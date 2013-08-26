@@ -1,11 +1,49 @@
 module unit_threaded.writer_thread;
 
+import std.concurrency;
+import std.stdio;
+import std.conv;
+
 /**
  * Thread to output to stdout
  */
+class WriterThread {
+    static WriterThread get() {
+        if(!_instantiated) {
+            synchronized {
+                if (_instance is null) {
+                    _instance = new WriterThread;
+                }
+                _instantiated = true;
+            }
+        }
+        return _instance;
+    }
 
-import std.concurrency;
-import std.stdio;
+    void write(T...)(T args) {
+        _tid.send(text(args));
+    }
+
+    void writeln(T...)(T args) {
+        write(args, "\n");
+    }
+
+    void join() {
+        _tid.send(thisTid); //tell it to join
+        receiveOnly!Tid(); //wait for it to join
+    }
+
+private:
+
+    this() {
+        _tid = spawn(&writeInThread);
+    }
+
+    Tid _tid;
+
+    static bool _instantiated; // Thread local
+    __gshared WriterThread _instance;
+}
 
 void writeInThread() {
     auto done = false;

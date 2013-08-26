@@ -8,7 +8,6 @@ import core.thread;
 
 class IntEqualTest: TestCase {
     override void test() {
-        writelnUt("This will not show up unless -d is used");
         checkNotEqual(1, 5);
         checkNotEqual(5, 1);
         checkEqual(3, 3);
@@ -25,7 +24,6 @@ class DoubleEqualTest: TestCase {
 }
 
 void testEqual() {
-    writelnUt("More output for writelnUt (disabled with -d)");
     checkEqual(1, 1);
     checkEqual(1.0, 1.0);
     checkEqual("foo", "foo");

@@ -16,20 +16,20 @@ struct TestSuite {
         _tests = tests;
     }
 
-    double run(Tid writerTid, in bool multiThreaded = true) {
+    double run(in bool multiThreaded = true) {
         _stopWatch.start();
 
         immutable redirectIo = multiThreaded;
 
         if(multiThreaded) {
-            foreach(test; taskPool.parallel(_tests)) innerLoop(test, writerTid);
+            foreach(test; taskPool.parallel(_tests)) innerLoop(test);
         } else {
-            foreach(test; _tests) innerLoop(test, writerTid);
+            foreach(test; _tests) innerLoop(test);
         }
 
-        if(_failures) writerTid.send("\n");
+        if(_failures) WriterThread.get().writeln("");
         foreach(failure; _failures) {
-            writerTid.send(text("Test ", failure, " failed.\n"));
+            WriterThread.get().writeln("Test ", failure, " failed.");
         }
         if(_failures) writeln("");
 
@@ -58,12 +58,12 @@ private:
         _failures ~= testPath;
     }
 
-    void innerLoop(TestCase test, Tid writerTid) {
-        writerTid.send(test.getPath() ~ ":\n");
+    void innerLoop(TestCase test) {
+        WriterThread.get().writeln(test.getPath() ~ ":");
         immutable result = test();
         if(result.failed) {
             addFailure(test.getPath());
         }
-        writerTid.send(result.output);
+        WriterThread.get().write(result.output);
     }
 }

@@ -4,6 +4,8 @@
 
 module unit_threaded.io;
 
+import unit_threaded.writer_thread;
+
 
 private bool _debugOutput = false; ///whether or not to print debug messages
 
@@ -27,10 +29,9 @@ void addToOutput(ref string output, in string msg) {
 /**
  * Write if debug output was enabled. Not thread-safe in the sense that it
  * will get printed out immediately and may overlap with other output.
- * To be used by test functions (not TestCases).
  */
 void writelnUt(T...)(T args) {
-    if(_debugOutput) writeln(args);
+    if(_debugOutput) WriterThread.get().writeln(args);
 }
 
 /**
