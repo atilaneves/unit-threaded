@@ -110,7 +110,7 @@ private string getOutput(T, U)(in T value, in U expected, in string file, in ulo
 }
 
 private string getOutputPrefix(in string file, in ulong line) {
-    return "\n    " ~ file ~ ":" ~ to!string(line) ~ " - ";
+    return "    " ~ file ~ ":" ~ to!string(line) ~ " - ";
 }
 
 

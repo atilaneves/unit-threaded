@@ -77,3 +77,10 @@ void testLongRunning3() {
 void testLongRunning4() {
     Thread.sleep( dur!"seconds"(1));
 }
+
+// void testNoIo() {
+//     import std.stdio;
+//     writeln("This should not be seen except for -d option");
+//     writeln("Or this");
+//     stderr.writeln("Stderr shouldn't be seen either");
+// }

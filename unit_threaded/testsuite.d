@@ -5,6 +5,7 @@ import unit_threaded.writer_thread;
 import std.datetime;
 import std.parallelism;
 import std.concurrency;
+import std.stdio;
 
 /**
  * Responsible for running tests
@@ -18,16 +19,16 @@ struct TestSuite {
         _stopWatch.start();
 
         auto tid = spawn(&writeInThread);
+        immutable redirectIo = multiThreaded;
         if(multiThreaded) {
-            foreach(test; taskPool.parallel(_tests)) innerLoop(test, tid);
+            foreach(test; taskPool.parallel(_tests)) innerLoop(test, tid, redirectIo);
         } else {
-            foreach(test; _tests) innerLoop(test, tid);
+            foreach(test; _tests) innerLoop(test, tid, redirectIo);
         }
 
         tid.send(thisTid); //tell it to join
         receiveOnly!Tid(); //wait for it to join
 
-        import std.stdio;
         if(_failures) writeln("\n");
         foreach(failure; _failures) {
             writeln("Test ", failure, " failed.");
@@ -59,7 +60,8 @@ private:
         _failures ~= testPath;
     }
 
-    void innerLoop(TestCase test, Tid writerTid) {
+    void innerLoop(TestCase test, Tid writerTid, bool redirectIo) {
+        writerTid.send(test.getPath() ~ ":\n");
         immutable result = test();
         if(result.failed) {
             addFailure(test.getPath());
