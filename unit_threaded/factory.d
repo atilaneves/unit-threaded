@@ -30,14 +30,12 @@ TestCase[] createTests(MODULES...)(in string[] testsToRun = []) if(MODULES.lengt
     foreach(name; getAllTests!(q{getTestClassNames}, MODULES)()) {
         if(!isWantedTest(name, testsToRun)) continue;
         auto test = cast(TestCase) Object.factory(name);
-        if(test !is null) tests ~= test;
-        //can be null if abtract base class
+        if(test !is null) tests ~= test; //can be null if abtract base class
     }
 
     //Create all tests from testFoo() functions
     foreach(i, func; getAllTests!(q{getTestFunctions}, MODULES)()) {
         if(!isWantedTest(func.name, testsToRun)) continue;
-        import std.conv;
         auto test = new FunctionTestCase(func);
         assert(test !is null, "Could not create FunctionTestCase object for function " ~ func.name);
         tests ~= test;

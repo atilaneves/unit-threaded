@@ -2,7 +2,6 @@ module unit_threaded.list;
 
 import std.traits;
 import std.uni;
-import std.typecons;
 import std.typetuple;
 import unit_threaded.check; //UnitTest
 
@@ -45,7 +44,6 @@ string[] getTestClassNames(alias mod)() pure nothrow {
 }
 
 alias void function() TestFunction;
-alias Tuple!(string, TestFunction) TestFunctionTuple;
 struct TestFunctionData {
     string name;
     TestFunction func;
