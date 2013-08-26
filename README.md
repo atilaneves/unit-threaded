@@ -68,15 +68,15 @@ Tests can also be hidden with the `@HiddenTest` attribute. This means
 that particular test doesn't get run by default but can still be run
 by passing its name as a command-line argument.
 
-Since D packages are just directories and there is no way to read the
-filesystem at compile-time, there is no way to automatically add all
-tests in packages(s).  To mitigate this and avoid having to manually
-write the name of all the modules containing tests, a utility called
-[`run_tests_in_dir`](utils/run_tests_in_dir.d) can be used to generate
-a source file automatically. To use it, pass as the 1st argument a
-file name to generate, and the rest of the arguments should be
-directory names. It will automatically generate a file and execute it
-with rdmd, then print the result.
+Since D packages are just directories and there the compiler can't
+read the filesystem at compile-time, there is no way to automatically
+add all tests in a package.  To mitigate this and avoid having to
+manually write the name of all the modules containing tests, a utility
+called [`run_tests_in_dir`](utils/run_tests_in_dirs.d) can be used to
+generate a source file automatically. To use it, pass as the 1st
+argument a file name to generate, and the rest of the arguments should
+be directory names. It will automatically generate a file and execute
+it with rdmd, then print the result.
 
 There is support for debug prints in the tests with the `-d` switch.
 This is only supported in single-threaded mode (`-s`). Setting `-d`
