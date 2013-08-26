@@ -5,9 +5,9 @@ unit-threaded
 Multi-threaded unit test framework for D. Based on similar work for
 [C++11](https://bitbucket.org/atilaneves/unit-thread).
 
-But doesn't D have built-in `unittest` blocks? Yes, and they're
+"But doesn't D have built-in `unittest` blocks"? Yes, and they're
 massively useful. Even short scripts can benefit from them with 0
-effort and setup In fact, I use them to test this library.  However,
+effort and setup. In fact, I use them to test this library. However,
 for larger projects it lacks some functionality:
 
 1. If all tests pass, great. If one fails, it's hard to know why.
@@ -24,22 +24,26 @@ for TDD
 2. To make it easy to write tests (functions as test cases)
 3. No test registration. Tests are discovered with D's compile-time
 reflection
-4. To be able to run specific tests or group of tests via
+4. Support for built-in `unittest` blocks
+5. To be able to run specific tests or group of tests via
 the command-line
-5. Suppress tested code output by default (important
+6. Suppress tested code stdio and stderr output by default (important
 when running in multiple threads).
-6. Have a special mode that only
-works when using a single thread under which tested code output is
-turned back on, as well as special writelnUt debug messages.
+7. Have a special mode that only works when using a single thread
+under which tested code output is turned back on, as well as special
+writelnUt debug messages.
+8. Ability to temporarily hide tests from being run by default whilst
+stil being able to run them
 
 The library is all in the `unit_threaded` package. There are two
 example programs in the [`example`](example/) folder, one with passing
 unit tests and the other failing, to show what the output looks like
 in each case.
 
-There is support for the built-in D unittest blocks as well, as seen
-in the output of [`example_fail`](example/example_fail.d). They are
-included automatically.
+The built-in D unittest blocks are included automatically, as seen in
+the output of both example programs
+(`example.tests.pass_tests.unittest` and its homologue in
+[`example_fail`](example/example_fail)).
 
 The easiest way to run tests is by doing what the example code does:
 calling `runTests()` in [`runner.d`](unit_threaded/runner.d) with
@@ -49,11 +53,11 @@ the examples.
 
 There is no need to register tests. The registration is implicit by
 deriving from `TestCase` and overriding `test()` *or* by writing a
-function whose name is in camel-case and begins with test
+function whose name is in camel-case and begins with "test"
 (e.g. `testFoo()`, `testGadget()`).  Specify which modules contain
 tests when calling `runTests()` and that's it.
 
-TestCase also has support for `setup()` and `shutdown()`, child
+`TestCase` also has support for `setup()` and `shutdown()`, child
 classes need only override the appropriate functions(s).
 
 Don't like the algorithm for registering tests? Not a problem. The

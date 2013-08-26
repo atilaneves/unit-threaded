@@ -151,3 +151,7 @@ class HiddenTest: TestCase {
 void testHidden() {
     checkNotNull(null); //hidden by default, fails if explicitly run
 }
+
+unittest {
+    assert(true); //unit test block that always passes
+}
