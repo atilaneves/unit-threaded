@@ -44,29 +44,30 @@ string[] getTestClassNames(alias mod)() pure nothrow {
 }
 
 alias void function() TestFunction;
-struct TestFunctionData {
-    string name;
-    TestFunction func;
-}
 
+/**
+ * Common data for test functions and test classes
+ */
+struct TestData {
+    string name;
+    TestFunction test; //only used for functions, null for classes
+}
 
 /**
  * Finds all test functions in the given module.
- * Returns an array of TestFunctionData structs
+ * Returns an array of TestData structs
  */
 auto getTestFunctions(alias mod)() pure nothrow {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
-    TestFunctionData[] functions;
+    TestData[] functions;
     foreach(moduleMember; __traits(allMembers, mod)) {
         static if(__traits(compiles, mixin(moduleMember)) && !HasDontTestAttr!(mod, moduleMember) &&
                   (IsTestFunction!(mod, moduleMember) ||
                    (isSomeFunction!(mixin(moduleMember)) && HasUnitTestAttr!(mod, moduleMember)))) {
-            //I couldn't find a way to check for access here. I tried __traits(getProtection)
-            //and got 'public' for private functions
             enum funcName = fullyQualifiedName!mod ~ "." ~ moduleMember;
             enum funcAddr = "&" ~ funcName;
 
-            mixin("functions ~= TestFunctionData(\"" ~ funcName ~ "\", " ~ funcAddr ~ ");");
+            mixin("functions ~= TestData(\"" ~ funcName ~ "\", " ~ funcAddr ~ ");");
         }
     }
 

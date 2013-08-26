@@ -29,19 +29,25 @@ TestCase[] createTests(MODULES...)(in string[] testsToRun = []) if(MODULES.lengt
     //Create all tests derived from TestCase
     foreach(name; getAllTests!(q{getTestClassNames}, MODULES)()) {
         if(!isWantedTest(name, testsToRun)) continue;
-        auto test = cast(TestCase) Object.factory(name);
+        auto test = createTestCase(TestData(name));
         if(test !is null) tests ~= test; //can be null if abtract base class
     }
 
     //Create all tests from testFoo() functions
-    foreach(i, func; getAllTests!(q{getTestFunctions}, MODULES)()) {
-        if(!isWantedTest(func.name, testsToRun)) continue;
-        auto test = new FunctionTestCase(func);
-        assert(test !is null, "Could not create FunctionTestCase object for function " ~ func.name);
+    foreach(i, data; getAllTests!(q{getTestFunctions}, MODULES)()) {
+        if(!isWantedTest(data.name, testsToRun)) continue;
+        auto test = createTestCase(data);
+        assert(test !is null, "Could not create FunctionTestCase object for function " ~ data.name);
         tests ~= test;
     }
 
     return tests ~ builtinTests;
+}
+
+TestCase createTestCase(TestData data) {
+    return data.test is null ?
+        cast(TestCase) Object.factory(data.name) :
+        new FunctionTestCase(data);
 }
 
 private bool isWantedTest(in string testName, in string[] testsToRun) {
@@ -53,9 +59,9 @@ private bool isWantedTest(in string testName, in string[] testsToRun) {
 }
 
 private class FunctionTestCase: TestCase {
-    this(immutable TestFunctionData func) pure nothrow {
-        _name = func.name;
-        _func = func.func;
+    this(immutable TestData data) pure nothrow {
+        _name = data.name;
+        _func = data.test;
     }
 
     override void test() {
@@ -83,8 +89,8 @@ private auto getAllTests(string expr, MODULES...)() pure nothrow {
 private TestCase[] builtinTests; //built-in unittest blocks
 
 private class BuiltinTestCase: FunctionTestCase {
-    this(immutable TestFunctionData func) pure nothrow {
-        super(func);
+    this(immutable TestData data) pure nothrow {
+        super(data);
     }
 
     override void test() {
@@ -103,7 +109,7 @@ private bool moduleUnitTester() {
                 mod.unitTest()();
             } else {
                 builtinTests ~=
-                    new BuiltinTestCase(TestFunctionData(mod.name ~ ".unittest", mod.unitTest));
+                    new BuiltinTestCase(TestData(mod.name ~ ".unittest", mod.unitTest));
             }
         }
     }
