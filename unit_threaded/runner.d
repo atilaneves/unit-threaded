@@ -48,16 +48,16 @@ bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, 
         return false;
     }
 
-    WriterThread.get().writeln("\nTime taken: ", elapsed, " seconds");
-    WriterThread.get().writeln(suite.numTestsRun, " test(s) run, ",
-                               suite.numFailures, " failed.\n");
+    utWriteln("\nTime taken: ", elapsed, " seconds");
+    utWriteln(suite.numTestsRun, " test(s) run, ",
+              suite.numFailures, " failed.\n");
 
     if(!suite.passed) {
-        WriterThread.get().writeln(red("Unit tests failed!\n"));
+        utWritelnRed("Unit tests failed!\n");
         return false; //oops
     }
 
-    WriterThread.get().writeln(green("OK!\n"));
+    utWritelnGreen("OK!\n");
 
     return true;
 }

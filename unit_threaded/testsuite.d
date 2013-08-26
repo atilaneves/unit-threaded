@@ -27,9 +27,9 @@ struct TestSuite {
             foreach(test; _tests) innerLoop(test);
         }
 
-        if(_failures) WriterThread.get().writeln("");
+        if(_failures) utWriteln("");
         foreach(failure; _failures) {
-            WriterThread.get().writeln("Test ", failure, " failed.");
+            utWriteln("Test ", failure, " failed.");
         }
         if(_failures) writeln("");
 
@@ -59,11 +59,11 @@ private:
     }
 
     void innerLoop(TestCase test) {
-        WriterThread.get().writeln(test.getPath() ~ ":");
+        utWriteln(test.getPath() ~ ":");
         immutable result = test();
         if(result.failed) {
             addFailure(test.getPath());
         }
-        WriterThread.get().write(result.output);
+        utWrite(result.output);
     }
 }

@@ -1,8 +1,27 @@
 module unit_threaded.writer_thread;
 
+import unit_threaded.io;
 import std.concurrency;
 import std.stdio;
 import std.conv;
+
+
+package void utWrite(T...)(T args) {
+    WriterThread.get().write(args);
+}
+
+package void utWriteln(T...)(T args) {
+    WriterThread.get().writeln(args);
+}
+
+package void utWritelnGreen(T...)(T args) {
+    WriterThread.get().writelnGreen(args);
+}
+
+package void utWritelnRed(T...)(T args) {
+    WriterThread.get().writelnRed(args);
+}
+
 
 /**
  * Thread to output to stdout
@@ -28,6 +47,14 @@ class WriterThread {
         write(args, "\n");
     }
 
+    void writelnGreen(T...)(T args) {
+        _tid.send(green(text(args) ~ "\n"));
+    }
+
+    void writelnRed(T...)(T args) {
+        _tid.send(red(text(args) ~ "\n"));
+    }
+
     void join() {
         _tid.send(thisTid); //tell it to join
         receiveOnly!Tid(); //wait for it to join
@@ -36,7 +63,7 @@ class WriterThread {
 private:
 
     this() {
-        _tid = spawn(&writeInThread);
+        _tid = spawn(&threadWriter);
     }
 
     Tid _tid;
@@ -45,7 +72,7 @@ private:
     __gshared WriterThread _instance;
 }
 
-void writeInThread() {
+private void threadWriter() {
     auto done = false;
     Tid tid;
 
