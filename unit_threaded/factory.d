@@ -30,8 +30,8 @@ TestCase[] createTests(MODULES...)(in string[] testsToRun = []) if(MODULES.lengt
     foreach(name; getAllTests!(q{getTestClassNames}, MODULES)()) {
         if(!isWantedTest(name, testsToRun)) continue;
         auto test = cast(TestCase) Object.factory(name);
-        assert(test !is null, "Could not create object of type " ~ name);
-        tests ~= test;
+        if(test !is null) tests ~= test;
+        //can be null if abtract base class
     }
 
     //Create all tests from testFoo() functions

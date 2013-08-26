@@ -112,3 +112,19 @@ void funcAttributes() {
     //to the list of tests despite its name
     checkEqual(1, 1);
 }
+
+//won't be registered, impossible to instantiate
+class BaseAttr: TestCase {
+    override void test() {
+        doTest();
+    }
+
+    abstract void doTest();
+}
+
+//will be registered since actually has 'test' method
+class Attr: BaseAttr{
+    override void doTest() {
+        checkEqual(2, 2);
+    }
+}
