@@ -3,12 +3,30 @@ unit-threaded
 
 
 Multi-threaded unit test framework for D. Based on similar work for
-[C++11](https://bitbucket.org/atilaneves/unit-thread). Its goals are:
+[C++11](https://bitbucket.org/atilaneves/unit-thread).
+
+But doesn't D have built-in `unittest` blocks? Yes, and they're
+massively useful. Even short scripts can benefit from them with
+0 effort and setup. However, for larger projects it lacks some
+functionality:
+
+1. If all tests pass, great. If one fails, it's hard to know why.
+2. The only tool is assert, and you have to write your own assert
+   messages (no assertEqual, assertNull, etc.)
+3. No possibility to run just one particular test
+4. Only runs in one thread.
+
+So I wrote this library in and for a language with built-in support
+for unit tests. Its goals are:
 
 1. To run concurrently (by default) for maximal speed and turnaround for TDD
 2. To make it easy to write tests (functions as test cases)
 3. No test registration. Tests are discovered with D's compile-time reflection
 4. To be able to run specific tests or group of tests via the command-line
+5. Suppress tested code output by default (important when running in multiple threads).
+6. Have a special mode that only works when using a single thread under which
+   tested code output is turned back on, as well as special writelnUt debug
+   messages.
 
 The library is all in the `unit_threaded` package. There are two
 example programs in the [`example`](example/) folder, one with passing unit tests
