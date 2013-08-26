@@ -50,6 +50,29 @@ struct TestFunctionData {
 }
 
 
+/**
+ * Finds all test functions in the given module.
+ * Returns an array of TestFunctionData structs
+ */
+auto getTestFunctions(alias mod)() pure nothrow {
+    mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
+    TestFunctionData[] functions;
+    foreach(moduleMember; __traits(allMembers, mod)) {
+        static if(__traits(compiles, mixin(moduleMember)) && !HasDontTestAttr!(mod, moduleMember) &&
+                  (IsTestFunction!(mod, moduleMember) ||
+                   (isSomeFunction!(mixin(moduleMember)) && HasUnitTestAttr!(mod, moduleMember)))) {
+            //I couldn't find a way to check for access here. I tried __traits(getProtection)
+            //and got 'public' for private functions
+            enum funcName = fullyQualifiedName!mod ~ "." ~ moduleMember;
+            enum funcAddr = "&" ~ funcName;
+
+            mixin("functions ~= TestFunctionData(\"" ~ funcName ~ "\", " ~ funcAddr ~ ");");
+        }
+    }
+
+    return functions;
+}
+
 private template IsTestFunction(alias mod, alias T) {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
 
@@ -65,30 +88,8 @@ private template IsTestFunction(alias mod, alias T) {
     }
 }
 
-/**
- * Finds all test functions in the given module.
- * Returns an array of TestFunctionData structs
- */
-auto getTestFunctions(alias mod)() pure nothrow {
-    mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
-    TestFunctionData[] functions;
-    foreach(moduleMember; __traits(allMembers, mod)) {
-        static if(__traits(compiles, mixin(moduleMember)) && !HasDontTestAttr!(mod, moduleMember) &&
-                  (IsTestFunction!(mod, moduleMember) ||
-                   (isSomeFunction!(mixin(moduleMember)) && HasUnitTestAttr!(mod, moduleMember)))) {
-            //I couldn't find a way to check for access here. I tried __traits(getProtection)
-            //and got 'public' for private functions
-            static immutable funcName = fullyQualifiedName!mod ~ "." ~ moduleMember;
-            static immutable funcAddr = "&" ~ funcName;
 
-            mixin("functions ~= TestFunctionData(\"" ~ funcName ~ "\", " ~ funcAddr ~ ");");
-        }
-    }
-
-    return functions;
-}
-
-
+//helper function for the unittest blocks below
 private auto addModule(string[] elements, string mod = "unit_threaded.tests.module_with_tests") nothrow {
     import std.algorithm;
     import std.array;
