@@ -27,7 +27,6 @@ int runTests(MODULES...)(string[] args) {
     immutable options = getOptions(args);
     if(options.list) {
         writeln("Listing tests:");
-        import std.algorithm;
         foreach(test; getTestNames!MODULES()) {
             writeln(test);
         }
