@@ -44,30 +44,20 @@ version(Posix) {
     static this() {
         import core.sys.posix.unistd;
         _useEscCodes = isatty(stdout.fileno()) != 0;
-        _escCodes = [ "Red": "\033[31;1m",
-                      "Green": "\033[32;1m",
-                      "Cancel": "\033[0;;m" ];
+        _escCodes = [ "red": "\033[31;1m",
+                      "green": "\033[32;1m",
+                      "cancel": "\033[0;;m" ];
     }
 
-    private void escCode(string colour) {
-        if(_useEscCodes) {
-            write(_escCodes[colour]);
-            stdout.flush();
-        }
+    string green(in string msg) {
+        return _escCodes["green"] ~ msg ~ _escCodes["cancel"];
     }
 
-    private string getWriteFunc(string colour) {
-        return q{void writeln} ~ colour ~ "(T...)(T elts) {" ~ //e.g. void writelnRed(T...)(T elts) {
-                   `escCode("` ~ colour ~ `");` ~ //e.g. escCode("Red");
-                   "writeln(elts);" ~
-                   `escCode("Cancel");` ~
-               "}";
+    string red(in string msg) {
+        return _escCodes["red"] ~ msg ~ _escCodes["cancel"];
     }
-
-    mixin(getWriteFunc("Red")); //writelnRed
-    mixin(getWriteFunc("Green")); //writelnGreen
 
 } else {
-    void writelnRed(string str)   { writeln(str); }
-    void writelnGreen(string str) { writeln(str); }
+    string green(in string msg) { return msg; }
+    string red(in string msg) { return msg; }
 }

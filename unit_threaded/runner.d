@@ -5,10 +5,14 @@ import unit_threaded.testsuite;
 import unit_threaded.io;
 import unit_threaded.options;
 import unit_threaded.testcase;
+import unit_threaded.writer_thread;
 
 import std.stdio;
 import std.traits;
 import std.typetuple;
+import std.concurrency;
+import std.conv;
+import core.thread;
 
 
 /**
@@ -31,24 +35,33 @@ int runTests(MODULES...)(string[] args) {
  * Runs all tests in passed-in modules. Modules are symbols.
  */
 bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
+    auto tid = spawn(&writeInThread);
+    //sleep to give writerThread some time to set up. Otherwise,
+    //tests with output could write to stdout in the meanwhile
+    Thread.sleep( dur!"msecs"(5));
+
     auto suite = TestSuite(createTests!MOD_SYMBOLS(options.tests));
-    immutable elapsed = suite.run(options.multiThreaded);
+    immutable elapsed = suite.run(tid, options.multiThreaded);
 
     if(!suite.numTestsRun) {
         writeln("Did not run any tests!!!");
         return false;
     }
 
-    writefln("\nTime taken: %.3f seconds", elapsed);
-    writeln(suite.numTestsRun, " test(s) run, ",
-            suite.numFailures, " failed.\n");
+    tid.send(text("\nTime taken: ", elapsed, " seconds\n"));
+    tid.send(text(suite.numTestsRun, " test(s) run, ",
+                   suite.numFailures, " failed.\n\n"));
 
     if(!suite.passed) {
-        writelnRed("Unit tests failed!\n\n");
+        tid.send(red("Unit tests failed!\n\n"));
         return false; //oops
     }
 
-    writelnGreen("OK!\n\n");
+    tid.send(green("OK!\n\n"));
+
+    tid.send(thisTid); //tell it to join
+    receiveOnly!Tid(); //wait for it to join
+
     return true;
 }
 

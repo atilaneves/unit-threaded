@@ -11,6 +11,14 @@ void writeInThread() {
     auto done = false;
     Tid tid;
 
+    auto saveStdout = stdout;
+    scope(exit) stdout = saveStdout;
+    auto saveStderr = stderr;
+    scope(exit) stderr = saveStderr;
+
+    stdout = File("/dev/null", "w");
+    stderr = File("/dev/null", "w");
+
     while(!done) {
         string output;
         receive(
@@ -25,8 +33,8 @@ void writeInThread() {
                 done = true;
             }
         );
-        write(output);
+        saveStdout.write(output);
     }
-    stdout.flush();
+    saveStdout.flush();
     if(tid != Tid.init) tid.send(thisTid);
 }
