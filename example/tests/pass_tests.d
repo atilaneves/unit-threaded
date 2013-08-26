@@ -128,3 +128,16 @@ class Attr: BaseAttr{
         checkEqual(2, 2);
     }
 }
+
+//won't be tested due to attribute
+@DontTest
+void testThatWontRun() {
+    checkEqual(1, 2); //doesn't matter, won't run anyway
+}
+
+@DontTest
+class TestThatWontRun: TestCase {
+    override void test() {
+        checkNotNull(null);
+    }
+}

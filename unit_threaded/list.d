@@ -5,31 +5,39 @@ import std.uni;
 import std.typecons;
 import std.typetuple;
 import unit_threaded.check; //UnitTest
-/**
- * Finds all test classes (classes implementing a test() function)
- * in the given module
- */
 
 private template HasUnitTestAttr(alias mod, alias T) {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
-    static if(__traits(getProtection, mixin(T)) != "private") {
-        enum index = staticIndexOf!(UnitTest, __traits(getAttributes, mixin(T)));
-        static if(index >= 0) {
-            enum HasUnitTestAttr = true;
-        } else {
-            enum HasUnitTestAttr = false;
-        }
+    enum index = staticIndexOf!(UnitTest, __traits(getAttributes, mixin(T)));
+    static if(index >= 0) {
+        enum HasUnitTestAttr = true;
     } else {
         enum HasUnitTestAttr = false;
     }
 }
 
 
+private template HasDontTestAttr(alias mod, alias T) {
+    mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
+    enum index = staticIndexOf!(DontTest, __traits(getAttributes, mixin(T)));
+    static if(index >= 0) {
+        enum HasDontTestAttr = true;
+    } else {
+        enum HasDontTestAttr = false;
+    }
+}
+
+
+/**
+ * Finds all test classes (classes implementing a test() function)
+ * in the given module
+ */
 string[] getTestClassNames(alias mod)() pure nothrow {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
     string[] classes;
     foreach(klass; __traits(allMembers, mod)) {
         static if(__traits(compiles, mixin(klass)) && !isSomeFunction!(mixin(klass)) &&
+                  !HasDontTestAttr!(mod, klass) &&
                   (__traits(hasMember, mixin(klass), "test") ||
                    HasUnitTestAttr!(mod, klass))) {
             classes ~= fullyQualifiedName!mod ~ "." ~ klass;
@@ -70,7 +78,7 @@ auto getTestFunctions(alias mod)() pure nothrow {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
     TestFunctionData[] functions;
     foreach(moduleMember; __traits(allMembers, mod)) {
-        static if(__traits(compiles, mixin(moduleMember)) &&
+        static if(__traits(compiles, mixin(moduleMember)) && !HasDontTestAttr!(mod, moduleMember) &&
                   (IsTestFunction!(mod, moduleMember) ||
                    (isSomeFunction!(mixin(moduleMember)) && HasUnitTestAttr!(mod, moduleMember)))) {
             //I couldn't find a way to check for access here. I tried __traits(getProtection)
