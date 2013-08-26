@@ -138,6 +138,6 @@ void testThatWontRun() {
 @DontTest
 class TestThatWontRun: TestCase {
     override void test() {
-        checkNotNull(null);
+        checkNotNull(null); //doesn't matter, won't run anyway
     }
 }
