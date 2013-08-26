@@ -20,3 +20,6 @@ class BarTest { void test() { } }
 //non-test classes
 class NotATest { void tes() { } }
 class AlsoNotATest { void testosterone() { } }
+
+@HiddenTest void withHidden() {}
+void withoutHidden() { }

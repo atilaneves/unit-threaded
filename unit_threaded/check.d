@@ -8,8 +8,9 @@ import std.algorithm;
 import std.traits;
 
 //attributes
-enum UnitTest;
-enum DontTest;
+enum UnitTest; //opt-in to registration
+enum DontTest; //opt-out of registration
+enum HiddenTest; //hide test. Not run by default but can be run.
 
 class UnitTestException: Exception {
     this(string msg) {

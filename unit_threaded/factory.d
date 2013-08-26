@@ -27,7 +27,7 @@ static this() {
 TestCase[] createTests(MODULES...)(in string[] testsToRun = []) if(MODULES.length > 0) {
     TestCase[] tests;
     foreach(data; getTestClassesAndFunctions!MODULES()) {
-        if(!isWantedTest(data.name, testsToRun)) continue;
+        if(!isWantedTest(data, testsToRun)) continue;
         auto test = createTestCase(data);
         if(test !is null) tests ~= test; //can be null if abtract base class
     }
@@ -47,10 +47,10 @@ private TestCase createTestCase(TestData data) {
     return testCase;
 }
 
-private bool isWantedTest(in string testName, in string[] testsToRun) {
-    if(!testsToRun.length) return true; //"all tests"
+private bool isWantedTest(in TestData data, in string[] testsToRun) {
+    if(!testsToRun.length) return !data.hidden; //"all tests (except hidden)"
     foreach(testToRun; testsToRun) {
-        if(startsWith(testName, testToRun)) return true;
+        if(startsWith(data.name, testToRun)) return true; //even if hidden
     }
     return false;
 }
@@ -110,8 +110,9 @@ private bool moduleUnitTester() {
             if(startsWith(mod.name, "unit_threaded.")) {
                 mod.unitTest()();
             } else {
+                enum hidden = false;
                 builtinTests ~=
-                    new BuiltinTestCase(TestData(mod.name ~ ".unittest", mod.unitTest));
+                    new BuiltinTestCase(TestData(mod.name ~ ".unittest", hidden, mod.unitTest));
             }
         }
     }
@@ -121,9 +122,9 @@ private bool moduleUnitTester() {
 
 
 unittest {
-    assert(isWantedTest("pass_tests.testEqual", ["pass_tests"]));
-    assert(isWantedTest("pass_tests.testEqual", ["pass_tests."]));
-    assert(isWantedTest("pass_tests.testEqual", ["pass_tests.testEqual"]));
-    assert(isWantedTest("pass_tests.testEqual", []));
-    assert(!isWantedTest("pass_tests.testEqual", ["pass_tests.foo"]));
+    assert(isWantedTest(TestData("pass_tests.testEqual"), ["pass_tests"]));
+    assert(isWantedTest(TestData("pass_tests.testEqual"), ["pass_tests."]));
+    assert(isWantedTest(TestData("pass_tests.testEqual"), ["pass_tests.testEqual"]));
+    assert(isWantedTest(TestData("pass_tests.testEqual"), []));
+    assert(!isWantedTest(TestData("pass_tests.testEqual"), ["pass_tests.foo"]));
 }

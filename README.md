@@ -57,8 +57,12 @@ TestCase also has support for `setup()` and `shutdown()`, child
 classes need only override the appropriate functions(s).
 
 Don't like the algorithm for registering tests? Not a problem. The
-attributes @UnitTest and @DontTest can be used to opt-in or
+attributes `@UnitTest` and `@DontTest` can be used to opt-in or
 opt-out. These are used in the examples.
+
+Tests can also be hidden with the `@HiddenTest` attribute. This means
+that particular test doesn't get run by default but can still be run
+by passing its name as a command-line argument.
 
 Since D packages are just directories and there is no way to read the
 filesystem at compile-time, there is no way to automatically add all

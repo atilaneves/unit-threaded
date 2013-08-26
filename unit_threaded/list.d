@@ -29,8 +29,9 @@ private template HasDontTestAttr(alias mod, string T) {
  */
 alias void function() TestFunction;
 struct TestData {
-    string name;
-    TestFunction test; //only used for functions, null for classes
+    immutable string name;
+    immutable bool hidden;
+    const TestFunction test; //only used for functions, null for classes
 }
 
 /**
@@ -45,7 +46,7 @@ auto getTestClassNames(alias mod)() pure nothrow {
                   !HasDontTestAttr!(mod, klass) &&
                   (__traits(hasMember, mixin(klass), "test") ||
                    HasUnitTestAttr!(mod, klass))) {
-            classes ~= TestData(fullyQualifiedName!mod ~ "." ~ klass);
+            classes ~= TestData(fullyQualifiedName!mod ~ "." ~ klass, HasAttribute!(mod, klass, HiddenTest));
         }
     }
 
@@ -66,7 +67,9 @@ auto getTestFunctions(alias mod)() pure nothrow {
             enum funcName = fullyQualifiedName!mod ~ "." ~ moduleMember;
             enum funcAddr = "&" ~ funcName;
 
-            mixin("functions ~= TestData(\"" ~ funcName ~ "\", " ~ funcAddr ~ ");");
+            mixin(`functions ~= TestData("` ~ funcName ~ `", ` ~
+                  HasAttribute!(mod, moduleMember, HiddenTest).stringof ~ ", " ~ funcAddr ~ ");");
+
         }
     }
 
@@ -120,3 +123,8 @@ unittest {
     auto actual = map!(a => a.name)(getTestFunctions!(unit_threaded.tests.module_with_tests)());
     assertEqual(array(actual), expected);
 }
+
+// unittest {
+//     assert(HasHiddenAttr!("unit_threaded.tests.module_with_tests", withHidden));
+//     assert(!HasHiddenAttr!("unit_threaded.tests.module_with_tests", withoutHidden));
+// }
