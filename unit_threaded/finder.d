@@ -23,6 +23,7 @@ import std.process;
  * the filename is the 1st element, the others are directories.
  */
 int main(string[] args) {
+    enforce(args.length >= 2, "Usage: finder.d <filename> <dir>...");
     const fileName = args[1];
     const dirs = args[2..$];
     writeln("Finding all test cases in ", dirs);
