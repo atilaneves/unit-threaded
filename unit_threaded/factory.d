@@ -26,28 +26,25 @@ static this() {
  */
 TestCase[] createTests(MODULES...)(in string[] testsToRun = []) if(MODULES.length > 0) {
     TestCase[] tests;
-    //Create all tests derived from TestCase
-    foreach(data; getAllTests!(q{getTestClassNames}, MODULES)()) {
+    foreach(data; getAllTests!(q{getTestClassNames}, MODULES)() ~ getAllTests!(q{getTestFunctions}, MODULES)()) {
         if(!isWantedTest(data.name, testsToRun)) continue;
         auto test = createTestCase(data);
         if(test !is null) tests ~= test; //can be null if abtract base class
-    }
-
-    //Create all tests from testFoo() functions
-    foreach(data; getAllTests!(q{getTestFunctions}, MODULES)()) {
-        if(!isWantedTest(data.name, testsToRun)) continue;
-        auto test = createTestCase(data);
-        assert(test !is null, "Could not create FunctionTestCase object for function " ~ data.name);
-        tests ~= test;
     }
 
     return tests ~ builtinTests;
 }
 
 TestCase createTestCase(TestData data) {
-    return data.test is null ?
-        cast(TestCase) Object.factory(data.name) :
+    auto testCase = data.test is null ?
+        cast(TestCase) Object.factory(data.name):
         new FunctionTestCase(data);
+
+    if(data.test !is null) {
+        assert(testCase !is null, "Could not create FunctionTestCase object for function " ~ data.name);
+    }
+
+    return testCase;
 }
 
 private bool isWantedTest(in string testName, in string[] testsToRun) {
