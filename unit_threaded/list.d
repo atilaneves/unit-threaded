@@ -3,7 +3,7 @@ module unit_threaded.list;
 import std.traits;
 import std.uni;
 import std.typetuple;
-import unit_threaded.check; //UnitTest
+import unit_threaded.check; //enum labels
 
 private template HasAttribute(alias mod, string T, alias A) {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
@@ -14,14 +14,6 @@ private template HasAttribute(alias mod, string T, alias A) {
         enum HasAttribute = false;
     }
 
-}
-
-private template HasUnitTestAttr(alias mod, string T) {
-    enum HasUnitTestAttr = HasAttribute!(mod, T, UnitTest);
-}
-
-private template HasDontTestAttr(alias mod, string T) {
-    enum HasDontTestAttr = HasAttribute!(mod, T, DontTest);
 }
 
 /**
@@ -43,9 +35,9 @@ auto getTestClassNames(alias mod)() pure nothrow {
     TestData[] classes;
     foreach(klass; __traits(allMembers, mod)) {
         static if(__traits(compiles, mixin(klass)) && !isSomeFunction!(mixin(klass)) &&
-                  !HasDontTestAttr!(mod, klass) &&
+                  !HasAttribute!(mod, klass, DontTest) &&
                   (__traits(hasMember, mixin(klass), "test") ||
-                   HasUnitTestAttr!(mod, klass))) {
+                   HasAttribute!(mod, klass, UnitTest))) {
             classes ~= TestData(fullyQualifiedName!mod ~ "." ~ klass, HasAttribute!(mod, klass, HiddenTest));
         }
     }
@@ -61,9 +53,9 @@ auto getTestFunctions(alias mod)() pure nothrow {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
     TestData[] functions;
     foreach(moduleMember; __traits(allMembers, mod)) {
-        static if(__traits(compiles, mixin(moduleMember)) && !HasDontTestAttr!(mod, moduleMember) &&
+        static if(__traits(compiles, mixin(moduleMember)) && !HasAttribute!(mod, moduleMember, DontTest) &&
                   (IsTestFunction!(mod, moduleMember) ||
-                   (isSomeFunction!(mixin(moduleMember)) && HasUnitTestAttr!(mod, moduleMember)))) {
+                   (isSomeFunction!(mixin(moduleMember)) && HasAttribute!(mod, moduleMember, UnitTest)))) {
             enum funcName = fullyQualifiedName!mod ~ "." ~ moduleMember;
             enum funcAddr = "&" ~ funcName;
 
