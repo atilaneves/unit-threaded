@@ -1,9 +1,6 @@
 module example.tests.fail_tests;
 
-import unit_threaded.check;
-import unit_threaded.testcase;
-
-import core.time;
+import unit_threaded.all;
 import core.thread;
 
 

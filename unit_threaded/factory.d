@@ -35,7 +35,7 @@ TestCase[] createTests(MODULES...)(in string[] testsToRun = []) if(MODULES.lengt
     return tests ~ builtinTests; //builtInTests defined below
 }
 
-TestCase createTestCase(TestData data) {
+private TestCase createTestCase(TestData data) {
     auto testCase = data.test is null ?
         cast(TestCase) Object.factory(data.name):
         new FunctionTestCase(data);
