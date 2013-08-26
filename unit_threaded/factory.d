@@ -27,14 +27,14 @@ static this() {
 TestCase[] createTests(MODULES...)(in string[] testsToRun = []) if(MODULES.length > 0) {
     TestCase[] tests;
     //Create all tests derived from TestCase
-    foreach(name; getAllTests!(q{getTestClassNames}, MODULES)()) {
-        if(!isWantedTest(name, testsToRun)) continue;
-        auto test = createTestCase(TestData(name));
+    foreach(data; getAllTests!(q{getTestClassNames}, MODULES)()) {
+        if(!isWantedTest(data.name, testsToRun)) continue;
+        auto test = createTestCase(data);
         if(test !is null) tests ~= test; //can be null if abtract base class
     }
 
     //Create all tests from testFoo() functions
-    foreach(i, data; getAllTests!(q{getTestFunctions}, MODULES)()) {
+    foreach(data; getAllTests!(q{getTestFunctions}, MODULES)()) {
         if(!isWantedTest(data.name, testsToRun)) continue;
         auto test = createTestCase(data);
         assert(test !is null, "Could not create FunctionTestCase object for function " ~ data.name);

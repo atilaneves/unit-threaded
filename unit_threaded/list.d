@@ -25,32 +25,31 @@ private template HasDontTestAttr(alias mod, string T) {
 }
 
 /**
+ * Common data for test functions and test classes
+ */
+alias void function() TestFunction;
+struct TestData {
+    string name;
+    TestFunction test; //only used for functions, null for classes
+}
+
+/**
  * Finds all test classes (classes implementing a test() function)
  * in the given module
  */
-string[] getTestClassNames(alias mod)() pure nothrow {
+auto getTestClassNames(alias mod)() pure nothrow {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
-    string[] classes;
+    TestData[] classes;
     foreach(klass; __traits(allMembers, mod)) {
         static if(__traits(compiles, mixin(klass)) && !isSomeFunction!(mixin(klass)) &&
                   !HasDontTestAttr!(mod, klass) &&
                   (__traits(hasMember, mixin(klass), "test") ||
                    HasUnitTestAttr!(mod, klass))) {
-            classes ~= fullyQualifiedName!mod ~ "." ~ klass;
+            classes ~= TestData(fullyQualifiedName!mod ~ "." ~ klass);
         }
     }
 
     return classes;
-}
-
-alias void function() TestFunction;
-
-/**
- * Common data for test functions and test classes
- */
-struct TestData {
-    string name;
-    TestFunction test; //only used for functions, null for classes
 }
 
 /**
@@ -102,8 +101,10 @@ import unit_threaded.asserts;
 
 
 unittest {
+    import std.algorithm;
+    import std.array;
     const expected = addModule([ "FooTest", "BarTest", "Blergh"]);
-    const actual = getTestClassNames!(unit_threaded.tests.module_with_tests)();
+    const actual = array(map!(a => a.name)(getTestClassNames!(unit_threaded.tests.module_with_tests)()));
     assertEqual(actual, expected);
 }
 
