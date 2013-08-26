@@ -7,6 +7,7 @@ import std.conv;
 import std.algorithm;
 import std.traits;
 
+enum UnitTest; //for attribute
 
 class UnitTestException: Exception {
     this(string msg) {

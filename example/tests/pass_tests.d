@@ -82,7 +82,7 @@ class TestIo: TestCase {
     }
 }
 
-void testNoIo() {
+void testNoIo1() {
     import std.stdio;
     writeln("This should not be seen except for -d option");
     writeln("Or this");
@@ -103,4 +103,12 @@ void testNoIo3() {
     writeln("This should not be seen except for -d option");
     writeln("Or this");
     stderr.writeln("Stderr shouldn't be seen either");
+}
+
+
+@UnitTest
+void funcAttributes() {
+    //tests that using the @UnitTest UDA adds this function
+    //to the list of tests despite its name
+    checkEqual(1, 1);
 }
