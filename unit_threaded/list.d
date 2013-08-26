@@ -6,27 +6,24 @@ import std.typecons;
 import std.typetuple;
 import unit_threaded.check; //UnitTest
 
-private template HasUnitTestAttr(alias mod, alias T) {
+private template HasAttribute(alias mod, string T, alias A) {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
-    enum index = staticIndexOf!(UnitTest, __traits(getAttributes, mixin(T)));
+    enum index = staticIndexOf!(A, __traits(getAttributes, mixin(T)));
     static if(index >= 0) {
-        enum HasUnitTestAttr = true;
+        enum HasAttribute = true;
     } else {
-        enum HasUnitTestAttr = false;
+        enum HasAttribute = false;
     }
+
 }
 
-
-private template HasDontTestAttr(alias mod, alias T) {
-    mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
-    enum index = staticIndexOf!(DontTest, __traits(getAttributes, mixin(T)));
-    static if(index >= 0) {
-        enum HasDontTestAttr = true;
-    } else {
-        enum HasDontTestAttr = false;
-    }
+private template HasUnitTestAttr(alias mod, string T) {
+    enum HasUnitTestAttr = HasAttribute!(mod, T, UnitTest);
 }
 
+private template HasDontTestAttr(alias mod, string T) {
+    enum HasDontTestAttr = HasAttribute!(mod, T, DontTest);
+}
 
 /**
  * Finds all test classes (classes implementing a test() function)
