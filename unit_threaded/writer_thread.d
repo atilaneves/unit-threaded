@@ -77,12 +77,12 @@ private void threadWriter() {
     Tid tid;
 
     auto saveStdout = stdout;
-    scope(exit) stdout = saveStdout;
     auto saveStderr = stderr;
-    scope(exit) stderr = saveStderr;
 
-    stdout = File("/dev/null", "w");
-    stderr = File("/dev/null", "w");
+    if(!isDebugOutputEnabled()) {
+        stdout = File("/dev/null", "w");
+        stderr = File("/dev/null", "w");
+    }
 
     while(!done) {
         string output;
@@ -101,5 +101,7 @@ private void threadWriter() {
         saveStdout.write(output);
     }
     saveStdout.flush();
+    stdout = saveStdout;
+    stderr = saveStderr;
     if(tid != Tid.init) tid.send(thisTid);
 }

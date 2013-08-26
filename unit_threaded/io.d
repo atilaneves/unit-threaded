@@ -7,15 +7,19 @@ module unit_threaded.io;
 import unit_threaded.writer_thread;
 
 
-private bool _debugOutput = false; ///whether or not to print debug messages
+private shared(bool) _debugOutput = false; ///whether or not to print debug messages
 
 
-package void enableDebugOutput() nothrow {
-    _debugOutput = true;
+package void enableDebugOutput() {
+    synchronized {
+        _debugOutput = true;
+    }
 }
 
-package bool isDebugOutputEnabled() nothrow {
-    return _debugOutput;
+package bool isDebugOutputEnabled() {
+    synchronized {
+        return _debugOutput;
+    }
 }
 
 void addToOutput(ref string output, in string msg) {
