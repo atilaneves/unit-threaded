@@ -157,6 +157,12 @@ private void testPrivate() {
     checkNotNull(null); //won't run, can't fail
 }
 
+private class PrivateTest: TestCase {
+    override void test() {
+        checkNotNull(null); //won't run, can't fail
+    }
+}
+
 unittest {
     assert(true); //unit test block that always passes
 }
