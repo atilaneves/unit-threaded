@@ -152,6 +152,11 @@ void testHidden() {
     checkNotNull(null); //hidden by default, fails if explicitly run
 }
 
+private void testPrivate() {
+    //private function, won't get run
+    checkNotNull(null); //won't run, can't fail
+}
+
 unittest {
     assert(true); //unit test block that always passes
 }

@@ -55,7 +55,8 @@ There is no need to register tests. The registration is implicit by
 deriving from `TestCase` and overriding `test()` *or* by writing a
 function whose name is in camel-case and begins with "test"
 (e.g. `testFoo()`, `testGadget()`).  Specify which modules contain
-tests when calling `runTests()` and that's it.
+tests when calling `runTests()` and that's it. Private functions
+are skipped.
 
 `TestCase` also has support for `setup()` and `shutdown()`, child
 classes need only override the appropriate functions(s).
