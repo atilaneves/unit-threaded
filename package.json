@@ -1,0 +1,10 @@
+{
+    "name": "unit-threaded",
+    "description": "Multi-threaded unit test framework",
+    "authors": ["Atila Nevves"],
+    "homepage": "http://github.com/atilaneves/unit-threaded",
+    "license": "BSD 3-clause",
+    "sourcePaths": ["unit_threaded"],
+    "importPaths": ["."],
+    "targetType": "library"
+}
