@@ -84,3 +84,16 @@ This is only supported in single-threaded mode (`-s`). Setting `-d`
 without `-s` will trigger a warning followed by the forceful use of
 `-s`.  TestCases and test functions can print debug output with the
 function `writelnUt` available [here](unit_threaded/io.d).
+
+Related Projects
+----------------
+- [dunit](https://github.com/linkrope/dunit):
+  xUnit Testing Framework for D
+- [DMocks-revived](https://github.com/QAston/DMocks-revived):
+  a mock-object framework that allows to mock interfaces or classes
+- [specd](https://github.com/jostly/specd):
+  a unit testing framework inspired by [specs2](http://etorreborre.github.io/specs2/) and [ScalaTest](http://www.scalatest.org)
+- [DUnit](https://github.com/kalekold/dunit):
+  a toolkit of test assertions and a template mixin to enable mocking
+- [unit-threaded](https://github.com/atilaneves/unit-threaded):
+  a multi-threaded unit testing framework
