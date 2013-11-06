@@ -80,11 +80,14 @@ private void threadWriter() {
     auto saveStderr = stderr;
 
     if(!isDebugOutputEnabled()) {
-        //TODO: Windows
         version(Posix) {
-            stdout = File("/dev/null", "w");
-            stderr = File("/dev/null", "w");
+            enum nullFileName = "/dev/null";
+        } else {
+            enum nullFileName = "NUL";
         }
+
+        stdout = File(nullFileName, "w");
+        stderr = File(nullFileName, "w");
     }
 
     while(!done) {
