@@ -99,7 +99,7 @@ void utFail(in string output, in string file, in ulong line) {
     fail(getOutputPrefix(file, line) ~ output);
 }
 
-private void fail(in string output) pure {
+private void fail(in string output) {
     throw new UnitTestException(output);
 }
 

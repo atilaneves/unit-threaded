@@ -24,6 +24,7 @@ package bool isDebugOutputEnabled() {
 
 void addToOutput(ref string output, in string msg) {
     if(_debugOutput) {
+        import std.stdio;
         writeln(msg);
     } else {
         output ~= msg;
@@ -54,15 +55,15 @@ version(Posix) {
                       "cancel": "\033[0;;m" ];
     }
 
-    string green(in string msg) {
+    string green(in string msg) pure nothrow {
         return _escCodes["green"] ~ msg ~ _escCodes["cancel"];
     }
 
-    string red(in string msg) {
+    string red(in string msg) pure nothrow {
         return _escCodes["red"] ~ msg ~ _escCodes["cancel"];
     }
 
 } else {
-    string green(in string msg) { return msg; }
-    string red(in string msg) { return msg; }
+    string green(in string msg) pure nothrow { return msg; }
+    string red(in string msg) pure nothrow { return msg; }
 }
