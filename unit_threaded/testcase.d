@@ -20,11 +20,12 @@ class TestCase {
         return this.classinfo.name;
     }
 
-    final auto opCall()  {
+    final auto opCall() {
+        print(getPath() ~ ":\n");
         check(setup());
         check(test());
         check(shutdown());
-        if(_failed) addToOutput(_output, "\n\n");
+        if(_failed) print("\n\n");
         return TestResult(_failed, _output);
     }
 
@@ -44,7 +45,11 @@ private:
     void setStatus(in string msg) {
         if(msg) {
             _failed = true;
-            addToOutput(_output, chomp(msg));
+            print(chomp(msg));
         }
+    }
+
+    void print(in string msg) {
+        addToOutput(_output, msg);
     }
 }

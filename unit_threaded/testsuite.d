@@ -59,7 +59,6 @@ private:
     }
 
     void innerLoop(TestCase test) {
-        utWriteln(test.getPath() ~ ":");
         immutable result = test();
         if(result.failed) {
             addFailure(test.getPath());
