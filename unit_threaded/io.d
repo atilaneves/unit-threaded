@@ -55,11 +55,11 @@ version(Posix) {
                       "cancel": "\033[0;;m" ];
     }
 
-    string green(in string msg) pure nothrow {
+    string green(in string msg) {
         return _escCodes["green"] ~ msg ~ _escCodes["cancel"];
     }
 
-    string red(in string msg) pure nothrow {
+    string red(in string msg) {
         return _escCodes["red"] ~ msg ~ _escCodes["cancel"];
     }
 
