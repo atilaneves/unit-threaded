@@ -26,8 +26,9 @@ int main(string[] args) {
     enforce(args.length >= 2, text("Usage: ", __FILE__, " <dir>..."));
 
     const options = getOptions(args);
-    auto file = writeFile(options, findModuleNames(options.dirs));
+    if(options.help) return 0;
 
+    auto file = writeFile(options, findModuleNames(options.dirs));
     immutable rdmd = executeRdmd(options);
     writeln(rdmd.output);
 
@@ -39,6 +40,7 @@ private struct Options {
     string fileName;
     string[] dirs;
     string unit_threaded;
+    bool help;
 }
 
 private Options getOptions(string[] args) {
@@ -47,7 +49,24 @@ private Options getOptions(string[] args) {
            "debug|d", &options.debugOutput,
            "file|f", &options.fileName,
            "unit_threaded|u", &options.unit_threaded,
+           "help|h", &options.help
         );
+
+    if(options.help) {
+        writeln("Usage: ", __FILE__, " [options] <dir1> [dir2]...\n",
+                "Options:\n",
+                "    -h/--help: help\n",
+                "    -u/--unit_threaded: directory location of the unit_threaded library\n",
+                "    -d/--debug: print debug information\n",
+                "    -f/--file: file name to write to\n",
+                "\nThis will run all unit tests encountered in the given directories.\n",
+                "It does this by scanning them and writing a D source file that imports\n",
+                "all of them then running that source file with rdmd. By default the\n",
+                "source file is a randomly named temporary file but that can be changed\n",
+                "with the -f option. If the unit_threaded library is not in the default\n",
+                "search paths then it must be specified with the -u option.\n\n");
+    }
+
     if(!options.fileName) options.fileName = createFileName(); //random filename
     options.dirs = args[1..$];
     if(options.debugOutput) writeln(__FILE__, ": finding all test cases in ", options.dirs);
