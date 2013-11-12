@@ -25,13 +25,11 @@ import std.getopt;
 int main(string[] args) {
     enforce(args.length >= 2, text("Usage: ", __FILE__, " <dir>..."));
     const options = getOptions(args);
-    immutable fileName = createFileName(options);
-
     const modules = findModuleNames(options.dirs);
-    auto file = writeFile(fileName, modules, options.dirs);
+    auto file = writeFile(options, modules);
     printFile(options, file);
 
-    immutable rdmd = executeRdmd(options, fileName);
+    immutable rdmd = executeRdmd(options);
     writeln(rdmd.output);
     return rdmd.status;
 }
@@ -40,22 +38,23 @@ private struct Options {
     bool debugOutput;
     string fileName;
     string[] dirs;
+    string unit_threaded;
 }
 
 private Options getOptions(string[] args) {
     Options options;
     getopt(args,
            "debug|d", &options.debugOutput,
-           "file|f", &options.fileName
+           "file|f", &options.fileName,
+           "unit_threaded|u", &options.unit_threaded,
         );
+    if(!options.fileName) options.fileName = createFileName(); //random filename
     options.dirs = args[1..$];
     if(options.debugOutput) writeln(__FILE__, ": finding all test cases in ", options.dirs);
     return options;
 }
 
-private string createFileName(in Options options) {
-    if(options.fileName) return options.fileName;
-
+private string createFileName() {
     import std.random;
     import std.ascii : letters, digits;
     immutable nameLength = uniform(10, 20);
@@ -83,19 +82,19 @@ auto findModuleNames(in string[] dirs) {
     return array(map!(a => replace(a.name[0 .. $-2], dirSeparator, "."))(findModuleEntries(dirs)));
 }
 
-private auto writeFile(in string fileName, in string[] modules, in string[] dirs) {
-    auto file = File(fileName, "w");
+private auto writeFile(in Options options, in string[] modules) {
+    auto file = File(options.fileName, "w");
     file.writeln("import unit_threaded.runner;");
     file.writeln("import std.stdio;");
     file.writeln("");
     file.writeln("int main(string[] args) {");
-    file.writeln(`    writeln("\nAutomatically generated file ` ~ fileName ~ `");`);
-    file.writeln("    writeln(`Running unit tests from dirs " ~ to!string(dirs) ~ "\n`);");
+    file.writeln(`    writeln("\nAutomatically generated file ` ~ options.fileName ~ `");`);
+    file.writeln("    writeln(`Running unit tests from dirs " ~ to!string(options.dirs) ~ "\n`);");
     file.writeln("    return runTests!(" ~ join(map!(a => `"` ~ a ~ `"`)(modules), ", ") ~ ")(args);");
     file.writeln("}");
     file.close();
 
-    return File(fileName, "r");
+    return File(options.fileName, "r");
 }
 
 private void printFile(in Options options, File file) {
@@ -108,8 +107,8 @@ private void printFile(in Options options, File file) {
     file.rewind();
 }
 
-private auto executeRdmd(in Options options, in string fileName) {
-    auto rdmdArgs = getRdmdArgs(fileName, options.dirs);
+private auto executeRdmd(in Options options) {
+    auto rdmdArgs = getRdmdArgs(options.fileName, options.dirs);
     if(options.debugOutput) writeln("Executing ", join(rdmdArgs, ", "));
     return execute(rdmdArgs);
 }
