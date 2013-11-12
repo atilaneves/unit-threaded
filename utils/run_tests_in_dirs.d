@@ -16,7 +16,7 @@ import std.algorithm;
 import std.path;
 import std.conv;
 import std.process;
-
+import std.getopt;
 
 /**
  * args is a filename and a list of directories to search in
@@ -24,23 +24,36 @@ import std.process;
  */
 int main(string[] args) {
     enforce(args.length >= 2, text("Usage: ", __FILE__, " <dir>..."));
-    immutable fileName = createFileName();
-    const dirs = args[1..$];
-    writeln(__FILE__, ": finding all test cases in ", dirs);
+    const options = getOptions(args);
+    immutable fileName = createFileName(options);
 
-    const modules = findModuleNames(dirs);
-    auto file = writeFile(fileName, modules, dirs);
-    printFile(file);
+    const modules = findModuleNames(options.dirs);
+    auto file = writeFile(fileName, modules, options.dirs);
+    printFile(options, file);
 
-    auto rdmdArgs = getRdmdArgs(fileName, dirs);
-    writeln("Executing rdmd like this: ", join(rdmdArgs, ", "));
-    auto rdmd = execute(rdmdArgs);
-
+    immutable rdmd = executeRdmd(options, fileName);
     writeln(rdmd.output);
     return rdmd.status;
 }
 
-private string createFileName() {
+private struct Options {
+    bool debugOutput;
+    string fileName;
+    string[] dirs;
+}
+
+private Options getOptions(string[] args) {
+    Options options;
+    getopt(args,
+           "debug|d", &options.debugOutput,
+           "file|f", &options.fileName
+        );
+    options.dirs = args[1..$];
+    if(options.debugOutput) writeln(__FILE__, ": finding all test cases in ", options.dirs);
+    return options;
+}
+
+private string createFileName(in Options options) {
     import std.random;
     import std.ascii : letters, digits;
     immutable nameLength = uniform(10, 20);
@@ -83,13 +96,20 @@ private auto writeFile(in string fileName, in string[] modules, in string[] dirs
     return File(fileName, "r");
 }
 
-private void printFile(File file) {
+private void printFile(in Options options, File file) {
+    if(!options.debugOutput) return;
     writeln("Executing this code:\n");
     foreach(line; file.byLine()) {
         writeln(line);
     }
     writeln();
     file.rewind();
+}
+
+private auto executeRdmd(in Options options, in string fileName) {
+    auto rdmdArgs = getRdmdArgs(fileName, options.dirs);
+    if(options.debugOutput) writeln("Executing ", join(rdmdArgs, ", "));
+    return execute(rdmdArgs);
 }
 
 private auto getRdmdArgs(in string fileName, in string[] dirs) {
