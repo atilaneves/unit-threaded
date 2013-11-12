@@ -24,13 +24,13 @@ import std.getopt;
  */
 int main(string[] args) {
     enforce(args.length >= 2, text("Usage: ", __FILE__, " <dir>..."));
+
     const options = getOptions(args);
-    const modules = findModuleNames(options.dirs);
-    auto file = writeFile(options, modules);
-    printFile(options, file);
+    auto file = writeFile(options, findModuleNames(options.dirs));
 
     immutable rdmd = executeRdmd(options);
     writeln(rdmd.output);
+
     return rdmd.status;
 }
 
@@ -83,18 +83,20 @@ auto findModuleNames(in string[] dirs) {
 }
 
 private auto writeFile(in Options options, in string[] modules) {
-    auto file = File(options.fileName, "w");
-    file.writeln("import unit_threaded.runner;");
-    file.writeln("import std.stdio;");
-    file.writeln("");
-    file.writeln("int main(string[] args) {");
-    file.writeln(`    writeln("\nAutomatically generated file ` ~ options.fileName ~ `");`);
-    file.writeln("    writeln(`Running unit tests from dirs " ~ to!string(options.dirs) ~ "\n`);");
-    file.writeln("    return runTests!(" ~ join(map!(a => `"` ~ a ~ `"`)(modules), ", ") ~ ")(args);");
-    file.writeln("}");
-    file.close();
+    auto filew = File(options.fileName, "w");
+    filew.writeln("import unit_threaded.runner;");
+    filew.writeln("import std.stdio;");
+    filew.writeln("");
+    filew.writeln("int main(string[] args) {");
+    filew.writeln(`    writeln("\nAutomatically generated file ` ~ options.fileName ~ `");`);
+    filew.writeln("    writeln(`Running unit tests from dirs " ~ to!string(options.dirs) ~ "\n`);");
+    filew.writeln("    return runTests!(" ~ join(map!(a => `"` ~ a ~ `"`)(modules), ", ") ~ ")(args);");
+    filew.writeln("}");
+    filew.close();
 
-    return File(options.fileName, "r");
+    auto filer = File(options.fileName, "r");
+    printFile(options, filer);
+    return filer;
 }
 
 private void printFile(in Options options, File file) {
