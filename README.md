@@ -76,7 +76,7 @@ Since D packages are just directories and there the compiler can't
 read the filesystem at compile-time, there is no way to automatically
 add all tests in a package.  To mitigate this and avoid having to
 manually write the name of all the modules containing tests, a utility
-called [`run_tests_in_dir`](utils/run_tests_in_dirs.d) can be used to
+called [`ut_runner`](utils/ut_runner.d) can be used to
 generate a source file automatically. Simply pass in the desired
 directories to scan as command-line arguments. It automatically
 generates a file, executes it with rdmd, and print the result.

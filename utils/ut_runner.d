@@ -1,7 +1,5 @@
 #!/usr/bin/rdmd
 
-module unit_threaded.finder;
-
 /**
  * Implements a program to search a list of directories
  * for all .d files, then writes and executes a D program
