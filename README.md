@@ -77,10 +77,10 @@ read the filesystem at compile-time, there is no way to automatically
 add all tests in a package.  To mitigate this and avoid having to
 manually write the name of all the modules containing tests, a utility
 called [`run_tests_in_dir`](utils/run_tests_in_dirs.d) can be used to
-generate a source file automatically. To use it, pass as the 1st
-argument a file name to generate, and the rest of the arguments should
-be directory names. It will automatically generate a file and execute
-it with rdmd, then print the result.
+generate a source file automatically. Simply pass in the desired
+directories to scan as command-line arguments. It automatically
+generates a file, executes it with rdmd, and print the result.
+Use the -h option to get help on the command.
 
 There is support for debug prints in the tests with the `-d` switch.
 This is only supported in single-threaded mode (`-s`). Setting `-d`
