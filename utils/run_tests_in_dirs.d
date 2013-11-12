@@ -110,11 +110,9 @@ private void printFile(in Options options, File file) {
 }
 
 private auto executeRdmd(in Options options) {
-    auto rdmdArgs = getRdmdArgs(options.fileName, options.dirs);
-    if(options.debugOutput) writeln("Executing ", join(rdmdArgs, ", "));
+    immutable includeDirs = options.dirs ~ options.unit_threaded ? [options.unit_threaded] : [];
+    immutable includes = join(map!(a => "-I" ~ a)(includeDirs), ", ");
+    auto rdmdArgs = [ "rdmd" ] ~ includes ~ options.fileName;
+    if(options.debugOutput) writeln("Executing: ", join(rdmdArgs, ", "));
     return execute(rdmdArgs);
-}
-
-private auto getRdmdArgs(in string fileName, in string[] dirs) {
-    return [ "rdmd" ] ~ join(map!(a => "-I" ~ a)(dirs), ", ") ~ fileName;
 }
