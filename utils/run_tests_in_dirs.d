@@ -54,6 +54,8 @@ private Options getOptions(string[] args) {
 }
 
 private string createFileName(in Options options) {
+    if(options.fileName) return options.fileName;
+
     import std.random;
     import std.ascii : letters, digits;
     immutable nameLength = uniform(10, 20);
