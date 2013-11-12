@@ -23,12 +23,12 @@ import std.process;
  * the filename is the 1st element, the others are directories.
  */
 int main(string[] args) {
-    enforce(args.length >= 2, "Usage: finder.d <filename> <dir>...");
-    const fileName = args[1];
-    const dirs = args[2..$];
-    writeln("Finding all test cases in ", dirs);
+    enforce(args.length >= 2, text("Usage: ", __FILE__, " <dir>..."));
+    immutable fileName = createFileName();
+    const dirs = args[1..$];
+    writeln(__FILE__, ": finding all test cases in ", dirs);
 
-    auto modules = findModuleNames(dirs);
+    const modules = findModuleNames(dirs);
     auto file = writeFile(fileName, modules, dirs);
     printFile(file);
 
@@ -40,6 +40,19 @@ int main(string[] args) {
     return rdmd.status;
 }
 
+private string createFileName() {
+    import std.random;
+    import std.ascii : letters, digits;
+    immutable nameLength = uniform(10, 20);
+    immutable alphanums = letters ~ digits;
+
+    string fileName = "" ~ letters[uniform(0, letters.length)];
+    foreach(i; 0 .. nameLength) {
+        fileName ~= alphanums[uniform(0, alphanums.length)];
+    }
+
+    return buildPath(tempDir(),  fileName ~ ".d");
+}
 
 auto findModuleEntries(in string[] dirs) {
     DirEntry[] modules;
@@ -55,13 +68,13 @@ auto findModuleNames(in string[] dirs) {
     return array(map!(a => replace(a.name[0 .. $-2], dirSeparator, "."))(findModuleEntries(dirs)));
 }
 
-private auto writeFile(in string fileName, string[] modules, in string[] dirs) {
+private auto writeFile(in string fileName, in string[] modules, in string[] dirs) {
     auto file = File(fileName, "w");
     file.writeln("import unit_threaded.runner;");
     file.writeln("import std.stdio;");
     file.writeln("");
     file.writeln("int main(string[] args) {");
-    file.writeln(`    writeln("\nAutomatically generated file");`);
+    file.writeln(`    writeln("\nAutomatically generated file ` ~ fileName ~ `");`);
     file.writeln("    writeln(`Running unit tests from dirs " ~ to!string(dirs) ~ "\n`);");
     file.writeln("    return runTests!(" ~ join(map!(a => `"` ~ a ~ `"`)(modules), ", ") ~ ")(args);");
     file.writeln("}");
