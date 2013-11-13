@@ -40,5 +40,5 @@ auto getOptions(string[] args) {
         single = true;
     }
     immutable exit =  help || list;
-    return Options(!single, args[1..$].dup, debugOutput, list, exit);
+    return Options(!single, args[1..$], debugOutput, list, exit);
 }

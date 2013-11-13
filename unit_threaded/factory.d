@@ -32,7 +32,11 @@ TestCase[] createTests(MODULES...)(in string[] testsToRun = []) if(MODULES.lengt
         if(test !is null) tests ~= test; //can be null if abtract base class
     }
 
-    return tests ~ builtinTests; //builtInTests defined below
+    foreach(test; builtinTests) { //builtInTests defined below
+        if(isWantedTest(test.getPath(), testsToRun)) tests ~= test;
+    }
+
+    return tests;
 }
 
 private TestCase createTestCase(TestData data) {
@@ -49,8 +53,13 @@ private TestCase createTestCase(TestData data) {
 
 private bool isWantedTest(in TestData data, in string[] testsToRun) {
     if(!testsToRun.length) return !data.hidden; //"all tests (except hidden)"
+    return isWantedTest(data.name, testsToRun);
+}
+
+private bool isWantedTest(in string name, in string[] testsToRun) {
+    if(!testsToRun.length) return true;
     foreach(testToRun; testsToRun) {
-        if(startsWith(data.name, testToRun)) return true; //even if hidden
+        if(startsWith(name, testToRun)) return true; //even if hidden
     }
     return false;
 }
@@ -127,4 +136,7 @@ unittest {
     assert(isWantedTest(TestData("pass_tests.testEqual"), ["pass_tests.testEqual"]));
     assert(isWantedTest(TestData("pass_tests.testEqual"), []));
     assert(!isWantedTest(TestData("pass_tests.testEqual"), ["pass_tests.foo"]));
+    assert(!isWantedTest("example.tests.pass.normal.unittest",
+                         ["example.tests.pass.io.TestFoo"]));
+    assert(isWantedTest("example.tests.pass.normal.unittest", []));
 }

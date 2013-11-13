@@ -58,7 +58,13 @@ bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, 
     //tests with output could write to stdout in the meanwhile
     Thread.sleep(dur!"msecs"(5));
 
-    auto suite = TestSuite(createTests!MOD_SYMBOLS(options.tests));
+    auto tests = createTests!MOD_SYMBOLS(options.tests);
+    if(!tests) {
+        utWritelnRed("Error: no tests to run!\n");
+        return false;
+    }
+
+    auto suite = TestSuite(tests);
     immutable elapsed = suite.run(options.multiThreaded);
 
     if(!suite.numTestsRun) {
