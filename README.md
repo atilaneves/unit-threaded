@@ -1,7 +1,8 @@
 unit-threaded
 =============
 
-###**Warning**: With dmd 2.064.2 on Linux 64-bit this code crashes
+###**Warning**: With dmd 2.064.2 on Linux 64-bit this code might
+crash (it does for me on Arch Linux).
 **I'm waiting on the bug fix but right now I'm downgrading
 to dmd 2.063 to be able to use this library. On Windows it's ok.**
 
