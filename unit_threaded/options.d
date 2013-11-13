@@ -9,7 +9,7 @@ struct Options {
     bool debugOutput;
     bool list;
     bool exit;
-};
+}
 
 /**
  * Parses the command-line args and returns Options
