@@ -60,7 +60,8 @@ bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, 
 
     auto tests = createTests!MOD_SYMBOLS(options.tests);
     if(!tests) {
-        utWritelnRed("Error: no tests to run!\n");
+        utWritelnRed("Error! No tests to run for args: ");
+        utWriteln(options.tests);
         return false;
     }
 
