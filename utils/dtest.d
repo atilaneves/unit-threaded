@@ -89,7 +89,10 @@ auto findModuleEntries(in string[] dirs) {
     DirEntry[] modules;
     foreach(dir; dirs) {
         enforce(isDir(dir), dir ~ " is not a directory name");
-        modules ~= array(dirEntries(dir, "*.d", SpanMode.depth));
+        auto entries = dirEntries(dir, "*.d", SpanMode.depth);
+        auto normalised = map!(a => DirEntry(buildNormalizedPath(a)))(entries);
+        modules ~= array(normalised);
+        writeln("modules now ", modules);
     }
     return modules;
 }
