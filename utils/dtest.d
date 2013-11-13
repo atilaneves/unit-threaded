@@ -38,6 +38,7 @@ private struct Options {
     bool verbose;
     string fileName;
     string[] dirs;
+    string[] includes;
     string unit_threaded;
     bool help;
 
@@ -64,6 +65,7 @@ private Options getOptions(string[] args) {
            "unit_threaded|u", &options.unit_threaded,
            "help|h", &options.help,
            "test|t", &options.dirs,
+           "I", &options.includes,
            //these are unit_threaded options
            "single|s", &options.single, //single-threaded
            "debug|d", &options.debugOutput, //print debug output
@@ -81,6 +83,7 @@ Usage: dtest [options] [test1] [test2]...
         -t/--test: add a test directory to the list. If no test directories
         are specified, then the default list is ["tests"]
         -u/--unit_threaded: directory location of the unit_threaded library
+        -I: extra include directories to specify to rdmd
         -d/--debug: print debug information
         -f/--file: file name to write to
         -s/--single: run the tests in one thread
@@ -178,8 +181,10 @@ private void printFile(in Options options, File file) {
 }
 
 private auto executeRdmd(in Options options) {
-    immutable includeDirs = options.dirs ~ options.unit_threaded ? [options.unit_threaded] : [];
-    immutable includes = join(map!(a => "-I" ~ a)(includeDirs), ", ");
+    const testIncludeDirs = options.dirs ~ options.unit_threaded ? [options.unit_threaded] : [];
+    const testIncludes = array(map!(a => "-I" ~ a)(testIncludeDirs));
+    const moreIncludes = array(map!(a => "-I" ~ a)(options.includes));
+    const includes = testIncludes ~ moreIncludes;
     auto rdmdArgs = [ "rdmd" ] ~ includes ~ options.fileName ~ options.getRunnerArgs() ~ options.args;
     if(options.verbose) writeln("Executing: ", join(rdmdArgs, ", "));
     return execute(rdmdArgs);

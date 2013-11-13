@@ -23,6 +23,7 @@ This means `rdmd` must be installed for this program to work.
         are specified, then the default list is ["tests"]  
         -u/--unit_threaded: directory location of the unit_threaded library  
         -d/--debug: print debug information  
+        -I: extra include directories to specify to rdmd  
         -f/--file: file name to write to  
         -s/--single: run the tests in one thread  
         -d/--debug: print debugging information from the tests  
