@@ -26,7 +26,7 @@ int main(string[] args) {
     const options = getOptions(args);
     if(options.help) return 0;
 
-    auto file = writeFile(options, findModuleNames(options.dirs));
+    writeFile(options, findModuleNames(options.dirs));
     immutable rdmd = executeRdmd(options);
     writeln(rdmd.output);
 
@@ -34,40 +34,89 @@ int main(string[] args) {
 }
 
 private struct Options {
-    bool debugOutput;
+    //dtest options
+    bool verbose;
     string fileName;
     string[] dirs;
     string unit_threaded;
     bool help;
+
+    //unit_threaded.runner options
+    string[] args;
+    bool debugOutput;
+    bool single;
+    bool list;
+    string[] getRunnerArgs() const {
+        string[] args = [];
+        if(single) args ~= "--single";
+        if(debugOutput) args ~= "--debug";
+        if(list) args ~= "--list";
+        return args;
+    }
 }
 
 private Options getOptions(string[] args) {
     Options options;
     getopt(args,
-           "debug|d", &options.debugOutput,
+           //dtest options
+           "verbose|v", &options.verbose,
            "file|f", &options.fileName,
            "unit_threaded|u", &options.unit_threaded,
-           "help|h", &options.help
+           "help|h", &options.help,
+           "test|t", &options.dirs,
+           //these are unit_threaded options
+           "single|s", &options.single, //single-threaded
+           "debug|d", &options.debugOutput, //print debug output
+           "list|l", &options.list
         );
 
     if(options.help) {
-        writeln("Usage: ", __FILE__, " [options] <dir1> [dir2]...\n",
-                "Options:\n",
-                "    -h/--help: help\n",
-                "    -u/--unit_threaded: directory location of the unit_threaded library\n",
-                "    -d/--debug: print debug information\n",
-                "    -f/--file: file name to write to\n",
-                "\nThis will run all unit tests encountered in the given directories.\n",
-                "It does this by scanning them and writing a D source file that imports\n",
-                "all of them then running that source file with rdmd. By default the\n",
-                "source file is a randomly named temporary file but that can be changed\n",
-                "with the -f option. If the unit_threaded library is not in the default\n",
-                "search paths then it must be specified with the -u option.\n\n");
+
+        writeln(q"EOS
+
+Usage: dtest [options] [test1] [test2]...
+
+    Options:
+        -h/--help: help
+        -t/--test: add a test directory to the list. If no test directories
+        are specified, then the default list is ["tests"]
+        -u/--unit_threaded: directory location of the unit_threaded library
+        -d/--debug: print debug information
+        -f/--file: file name to write to
+        -s/--single: run the tests in one thread
+        -d/--debug: print debugging information from the tests
+        -l/--list: list all tests but do not run them
+
+    This will run all unit tests encountered in the given directories
+    (see -t option). It does this by scanning them and writing a D source
+    file that imports all of them then running that source file with rdmd.
+    By default the source file is a randomly named temporary file but that
+    can be changed with the -f option. If the unit_threaded library is not
+    in the default search paths then it must be specified with the -u option.
+    If any command-line arguments exist they will be forwarded to the
+    unit_threaded library and used as the names of the tests to run. If
+    none are specified, all of them are run.
+
+    To run all tests located in a directory called "tests":
+
+    dtest -u<PATH_TO_UNIT_THREADED>
+
+    To run all tests in dir1, dir2, etc.:
+
+    dtest -u<PATH_TO_UNIT_THREADED> -t dir1 -t dir2...
+
+    To run tests foo and bar in directory mydir:
+
+    dtest -u<PATH_TO_UNIT_THREADED> -t mydir mydir.foo mydir.bar
+
+EOS");
+
     }
 
     if(!options.fileName) options.fileName = createFileName(); //random filename
-    options.dirs = args[1..$];
-    if(options.debugOutput) writeln(__FILE__, ": finding all test cases in ", options.dirs);
+    if(!options.dirs) options.dirs = ["tests"];
+    options.args = args[1..$];
+    if(options.verbose) writeln(__FILE__, ": finding all test cases in ", options.dirs);
     return options;
 }
 
@@ -92,7 +141,6 @@ auto findModuleEntries(in string[] dirs) {
         auto entries = dirEntries(dir, "*.d", SpanMode.depth);
         auto normalised = map!(a => DirEntry(buildNormalizedPath(a)))(entries);
         modules ~= array(normalised);
-        writeln("modules now ", modules);
     }
     return modules;
 }
@@ -103,24 +151,24 @@ auto findModuleNames(in string[] dirs) {
 }
 
 private auto writeFile(in Options options, in string[] modules) {
-    auto filew = File(options.fileName, "w");
-    filew.writeln("import unit_threaded.runner;");
-    filew.writeln("import std.stdio;");
-    filew.writeln("");
-    filew.writeln("int main(string[] args) {");
-    filew.writeln(`    writeln("\nAutomatically generated file ` ~ options.fileName ~ `");`);
-    filew.writeln("    writeln(`Running unit tests from dirs " ~ to!string(options.dirs) ~ "\n`);");
-    filew.writeln("    return runTests!(" ~ join(map!(a => `"` ~ a ~ `"`)(modules), ", ") ~ ")(args);");
-    filew.writeln("}");
-    filew.close();
+    auto wfile = File(options.fileName, "w");
+    wfile.writeln("import unit_threaded.runner;");
+    wfile.writeln("import std.stdio;");
+    wfile.writeln("");
+    wfile.writeln("int main(string[] args) {");
+    wfile.writeln(`    writeln("\nAutomatically generated file ` ~ options.fileName ~ `");`);
+    wfile.writeln("    writeln(`Running unit tests from dirs " ~ to!string(options.dirs) ~ "\n`);");
+    wfile.writeln("    return runTests!(" ~ join(map!(a => `"` ~ a ~ `"`)(modules), ", ") ~ ")(args);");
+    wfile.writeln("}");
+    wfile.close();
 
-    auto filer = File(options.fileName, "r");
-    printFile(options, filer);
-    return filer;
+    auto rfile = File(options.fileName, "r");
+    printFile(options, rfile);
+    return rfile;
 }
 
 private void printFile(in Options options, File file) {
-    if(!options.debugOutput) return;
+    if(!options.verbose) return;
     writeln("Executing this code:\n");
     foreach(line; file.byLine()) {
         writeln(line);
@@ -132,7 +180,7 @@ private void printFile(in Options options, File file) {
 private auto executeRdmd(in Options options) {
     immutable includeDirs = options.dirs ~ options.unit_threaded ? [options.unit_threaded] : [];
     immutable includes = join(map!(a => "-I" ~ a)(includeDirs), ", ");
-    auto rdmdArgs = [ "rdmd" ] ~ includes ~ options.fileName;
-    if(options.debugOutput) writeln("Executing: ", join(rdmdArgs, ", "));
+    auto rdmdArgs = [ "rdmd" ] ~ includes ~ options.fileName ~ options.getRunnerArgs() ~ options.args;
+    if(options.verbose) writeln("Executing: ", join(rdmdArgs, ", "));
     return execute(rdmdArgs);
 }
