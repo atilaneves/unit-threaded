@@ -24,7 +24,7 @@ import core.thread;
  * Returns: integer suitable for program return code.
  */
 int runTests(MODULES...)(string[] args) {
-    immutable options = getOptions(args);
+    const options = getOptions(args);
     if(options.list) {
         writeln("Listing tests:");
         foreach(test; getTestNames!MODULES()) {

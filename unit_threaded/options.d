@@ -4,11 +4,11 @@ import std.getopt;
 import std.stdio;
 
 struct Options {
-    immutable bool multiThreaded;
-    immutable string[] tests;
-    immutable bool debugOutput;
-    immutable bool list;
-    immutable bool exit;
+    bool multiThreaded;
+    string[] tests;
+    bool debugOutput;
+    bool list;
+    bool exit;
 };
 
 /**
