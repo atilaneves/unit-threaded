@@ -81,9 +81,11 @@ generate a source file automatically. Simply pass in the desired
 directories to scan as command-line arguments. It automatically
 generates a file, executes it with rdmd, and print the result.
 Use the -h option to get help on the command. To try it out,
-run `rdmd utils/dtest.d example/tests/pass`. You can also pass it
-`example/tests/fail` or `example/tests`. More information can
-be found [here](utils/dtest.md).
+run `rdmd utils/dtest.d -t example/tests/pass`. You can also pass it
+`-t example/tests/fail` or `-t example/tests`. More information can
+be found [here](utils/dtest.md). I suggest compiling it and running
+it with an alias that calls it with `-u` set to the correct directory
+for maximum ease of use.
 
 There is support for debug prints in the tests with the `-d` switch.
 This is only supported in single-threaded mode (`-s`). Setting `-d`
