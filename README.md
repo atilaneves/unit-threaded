@@ -41,7 +41,8 @@ stil being able to run them
 The library is all in the `unit_threaded` package. There are two
 example programs in the [`example`](example/) folder, one with passing
 unit tests and the other failing, to show what the output looks like
-in each case.
+in each case. Because of the way D packages work, they must be run
+from the top-level directory of the repository.
 
 The built-in D unittest blocks are included automatically, as seen in
 the output of both example programs
@@ -67,7 +68,6 @@ classes need only override the appropriate functions(s).
 Don't like the algorithm for registering tests? Not a problem. The
 attributes `@UnitTest` and `@DontTest` can be used to opt-in or
 opt-out. These are used in the examples.
-
 Tests can also be hidden with the `@HiddenTest` attribute. This means
 that particular test doesn't get run by default but can still be run
 by passing its name as a command-line argument.
@@ -80,7 +80,9 @@ called [`dtest`](utils/dtest.d) can be used to
 generate a source file automatically. Simply pass in the desired
 directories to scan as command-line arguments. It automatically
 generates a file, executes it with rdmd, and print the result.
-Use the -h option to get help on the command.
+Use the -h option to get help on the command. To try it out,
+run `rdmd utils/dtest.d example/tests/pass`. You can also pass it
+`example/tests/fail` or `example/tests`.
 
 There is support for debug prints in the tests with the `-d` switch.
 This is only supported in single-threaded mode (`-s`). Setting `-d`
