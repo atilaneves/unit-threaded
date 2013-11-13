@@ -3,8 +3,10 @@
     "description": "Multi-threaded unit test framework",
     "authors": ["Atila Neves"],
     "homepage": "https://github.com/atilaneves/unit-threaded",
+    "copyright": "Copyright © 2013, Atila Neves",
     "license": "BSD 3-clause",
     "sourcePaths": ["unit_threaded"],
     "importPaths": ["."],
-    "targetType": "library"
+    "targetType": "library",
+    "dependencies": {}
 }
