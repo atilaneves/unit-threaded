@@ -1,6 +1,4 @@
-//for D before 2.064
-
-module unit_threaded.all;
+module unit_threaded;
 
 public import unit_threaded.check;
 public import unit_threaded.testcase;
