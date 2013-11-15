@@ -58,3 +58,29 @@ private void nothrowFunc() nothrow {
 unittest {
     assert(true); //unit test block that always passes
 }
+
+private class MyClass {
+    int i;
+    double d;
+    this(int i, double d) {
+        this.i = i;
+        this.d = d;
+    }
+    override string toString() const {
+        import std.conv;
+        return text("MyClass(", i, ", ", d, ")");
+    }
+}
+
+void testEqualClass() {
+    const foo = new MyClass(2, 3.0);
+    const bar = new MyClass(2, 3.0);
+    const baz = new MyClass(3, 3.0);
+
+    checkEqual(foo, bar);
+    checkEqual(bar, foo);
+    checkNotEqual(foo, baz);
+    checkNotEqual(bar, baz);
+    checkNotEqual(baz, foo);
+    checkNotEqual(baz, bar);
+}

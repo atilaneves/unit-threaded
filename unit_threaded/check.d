@@ -27,9 +27,15 @@ void checkFalse(in bool condition, in string file = __FILE__, in ulong line = __
 }
 
 void checkEqual(T, U)(in T value, in U expected, in string file = __FILE__, in ulong line = __LINE__)
-if(is(typeof(value != expected) == bool)) {
+if(is(typeof(value != expected) == bool) && !is(T == class)) {
     if(value != expected) failEqual(value, expected, file, line);
 }
+
+void checkEqual(T)(in T value, in T expected, in string file = __FILE__, in ulong line = __LINE__)
+if(is(T == class)) {
+    if(value.tupleof != expected.tupleof) failEqual(value, expected, file, line);
+}
+
 
 void checkNotEqual(T, U)(in T value, in U expected, in string file = __FILE__, in ulong line = __LINE__)
 if(is(typeof(value == expected) == bool)) {
