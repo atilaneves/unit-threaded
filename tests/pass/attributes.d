@@ -1,4 +1,4 @@
-module example.tests.pass.attributes;
+module tests.pass.attributes;
 
 import unit_threaded.all;
 

@@ -1,4 +1,4 @@
-module example.tests.pass.register;
+module tests.pass.register;
 
 import unit_threaded.all;
 

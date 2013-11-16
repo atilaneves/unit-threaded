@@ -1,4 +1,4 @@
-module example.tests.pass.normal;
+module tests.pass.normal;
 
 import unit_threaded.all;
 

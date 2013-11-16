@@ -1,4 +1,4 @@
-module example.tests.pass.delayed;
+module tests.pass.delayed;
 
 import unit_threaded.all;
 import core.thread;

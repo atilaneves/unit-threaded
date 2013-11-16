@@ -6,12 +6,12 @@ import std.stdio;
 int main(string[] args) {
     writeln("Unit-threaded examples: Failing\n");
     //no import needed, passing them as strings
-    return runTests!("example.tests.fail.normal",
-                     "example.tests.fail.delayed",
-                     "example.tests.fail.priv",
-                     "example.tests.pass.normal",
-                     "example.tests.pass.delayed",
-                     "example.tests.pass.attributes",
-                     "example.tests.pass.register",
-                     "example.tests.pass.io")(args);
+    return runTests!("tests.fail.normal",
+                     "tests.fail.delayed",
+                     "tests.fail.priv",
+                     "tests.pass.normal",
+                     "tests.pass.delayed",
+                     "tests.pass.attributes",
+                     "tests.pass.register",
+                     "tests.pass.io")(args);
 }

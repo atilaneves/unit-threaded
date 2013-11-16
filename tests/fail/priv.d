@@ -1,4 +1,4 @@
-module example.tests.fail.priv;
+module tests.fail.priv;
 
 import unit_threaded.all;
 
