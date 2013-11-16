@@ -1,6 +1,6 @@
 {
     "name": "unit-threaded",
-    "description": "Multi-threaded unit test framework",
+    "description": "Advanced multi-threaded unit testing framework with minimal to no boilerplate",
     "authors": ["Atila Neves"],
     "homepage": "https://github.com/atilaneves/unit-threaded",
     "copyright": "Copyright © 2013, Atila Neves",
