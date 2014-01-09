@@ -58,10 +58,10 @@ private bool isWantedTest(in TestData data, in string[] testsToRun) {
 
 private bool isWantedTest(in string name, in string[] testsToRun) {
     if(!testsToRun.length) return true;
-    foreach(testToRun; testsToRun) {
-        if(startsWith(name, testToRun)) return true; //even if hidden
-    }
-    return false;
+    //the name can match exactly to run one specific test,
+    //or it can match a package name to run all tests in that package
+    return testsToRun.any!(t => t == name ||
+                           (name.length > t.length && name.startsWith(t) && name[t.length .. $].canFind(".")));
 }
 
 private class FunctionTestCase: TestCase {
@@ -131,8 +131,14 @@ private bool moduleUnitTester() {
 
 
 unittest {
+    //existing, wanted
+    assert(isWantedTest(TestData("tests.server.testSubscribe"), ["tests"]));
+    assert(isWantedTest(TestData("tests.server.testSubscribe"), ["tests."]));
+    assert(isWantedTest(TestData("tests.server.testSubscribe"), ["tests.server.testSubscribe"]));
+    assert(!isWantedTest(TestData("tests.server.testSubscribe"), ["tests.server.testSubscribeWithMessage"]));
+    assert(!isWantedTest(TestData("tests.stream.testMqttInTwoPackets"), ["tests.server"]));
+    assert(isWantedTest(TestData("tests.server.testSubscribe"), ["tests.server"]));
     assert(isWantedTest(TestData("pass_tests.testEqual"), ["pass_tests"]));
-    assert(isWantedTest(TestData("pass_tests.testEqual"), ["pass_tests."]));
     assert(isWantedTest(TestData("pass_tests.testEqual"), ["pass_tests.testEqual"]));
     assert(isWantedTest(TestData("pass_tests.testEqual"), []));
     assert(!isWantedTest(TestData("pass_tests.testEqual"), ["pass_tests.foo"]));

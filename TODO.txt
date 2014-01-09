@@ -1,2 +1,1 @@
-. Make sure that if there is a test testFooBar and testFoo, then trying to run testFoo doesn't run both
 . Mocking support
