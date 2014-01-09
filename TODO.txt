@@ -1,0 +1,3 @@
+. Make sure any writeln in tested code is printed in order
+. Make sure that if there is a test testFooBar and testFoo, then trying to run testFoo doesn't run both
+. Mocking support
