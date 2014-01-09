@@ -84,3 +84,18 @@ void testEqualClass() {
     checkNotEqual(baz, foo);
     checkNotEqual(baz, bar);
 }
+
+
+private struct Pair {
+    string s;
+    int i;
+}
+
+void testPairAA() {
+    auto map = [Pair("foo", 5): 105];
+    checkEqual([Pair("foo", 5): 105], map);
+    checkEqual(map.dup, map);
+    auto pair = Pair("foo", 5);
+    auto othermap = [pair: 105];
+    checkEqual(map, othermap);
+}
