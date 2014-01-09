@@ -36,7 +36,7 @@ void addToOutput(ref string output, in string msg) {
  * will get printed out immediately and may overlap with other output.
  */
 void writelnUt(T...)(T args) {
-    if(_debugOutput) WriterThread.get().writeln(args);
+    if(_debugOutput) writeln(args);
 }
 
 /**
