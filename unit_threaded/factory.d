@@ -33,7 +33,7 @@ TestCase[] createTests(MODULES...)(in string[] testsToRun = []) if(MODULES.lengt
     }
 
     foreach(test; builtinTests) { //builtInTests defined below
-        if(isWantedTest(test.getPath(), testsToRun)) tests ~= test;
+        if(isWantedTest(TestData(test.getPath(), false /*hidden*/), testsToRun)) tests ~= test;
     }
 
     return tests;
@@ -52,16 +52,13 @@ private TestCase createTestCase(TestData data) {
 }
 
 private bool isWantedTest(in TestData data, in string[] testsToRun) {
-    if(!testsToRun.length) return !data.hidden; //"all tests (except hidden)"
-    return isWantedTest(data.name, testsToRun);
-}
-
-private bool isWantedTest(in string name, in string[] testsToRun) {
-    if(!testsToRun.length) return true;
-    //the name can match exactly to run one specific test,
-    //or it can match a package name to run all tests in that package
-    return testsToRun.any!(t => t == name ||
-                           (name.length > t.length && name.startsWith(t) && name[t.length .. $].canFind(".")));
+    if(!testsToRun.length) return !data.hidden; //all tests except the hidden ones
+    bool matchesExactly(in string t) { return t == data.name; }
+    bool matchesPackage(in string t) { //runs all tests in package if it matches
+        with(data) return !hidden && name.length > t.length &&
+                       name.startsWith(t) && name[t.length .. $].canFind(".");
+    }
+    return testsToRun.any!(t => matchesExactly(t) || matchesPackage(t));
 }
 
 private class FunctionTestCase: TestCase {
@@ -142,7 +139,8 @@ unittest {
     assert(isWantedTest(TestData("pass_tests.testEqual"), ["pass_tests.testEqual"]));
     assert(isWantedTest(TestData("pass_tests.testEqual"), []));
     assert(!isWantedTest(TestData("pass_tests.testEqual"), ["pass_tests.foo"]));
-    assert(!isWantedTest("example.tests.pass.normal.unittest",
+    assert(!isWantedTest(TestData("example.tests.pass.normal.unittest"),
                          ["example.tests.pass.io.TestFoo"]));
-    assert(isWantedTest("example.tests.pass.normal.unittest", []));
+    assert(isWantedTest(TestData("example.tests.pass.normal.unittest"), []));
+    assert(!isWantedTest(TestData("tests.pass.attributes.testHidden", true /*hidden*/), ["tests.pass"]));
 }
