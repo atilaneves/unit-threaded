@@ -2,3 +2,5 @@
 main
 *.a
 dtest
+.dub
+__test__library__
