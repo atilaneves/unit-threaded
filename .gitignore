@@ -4,3 +4,4 @@ main
 dtest
 .dub
 __test__library__
+unit-threaded
