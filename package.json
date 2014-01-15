@@ -6,8 +6,16 @@
     "copyright": "Copyright © 2013, Atila Neves",
     "license": "BSD 3-clause",
     "sourcePaths": ["unit_threaded"],
-    "testPaths": ["tests/pass"],
     "importPaths": ["."],
     "targetType": "library",
-    "dependencies": {}
+    "dependencies": {},
+    "configurations": [
+        { "name": "library",
+          "sourcePaths": ["unit_threaded"],
+          "importPaths": ["."]},
+        { "name": "unittest",
+          "targetType": "executable",
+          "sourcePaths": ["tests/pass"],
+          "mainSourceFile": "example/example_pass.d"}
+    ]
 }
