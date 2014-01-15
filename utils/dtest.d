@@ -27,6 +27,11 @@ int main(string[] args) {
     if(options.help) return 0;
 
     writeFile(options, findModuleNames(options.dirs));
+    if(options.fileNameSpecified) {
+        auto rdmdArgs = getRdmdArgs(options);
+        writeRdmdArgsOutString(rdmdArgs);
+        return 0;
+    }
     immutable rdmd = executeRdmd(options);
     writeln(rdmd.output);
 
@@ -36,6 +41,7 @@ int main(string[] args) {
 private struct Options {
     //dtest options
     bool verbose;
+    bool fileNameSpecified;
     string fileName;
     string[] dirs;
     string[] includes;
@@ -116,7 +122,11 @@ EOS");
 
     }
 
-    if(!options.fileName) options.fileName = createFileName(); //random filename
+    if(options.fileName) {
+        options.fileNameSpecified = true;
+    } else {
+        options.fileName = createFileName(); //random filename
+    }
     if(!options.dirs) options.dirs = ["tests"];
     options.args = args[1..$];
     if(options.verbose) writeln(__FILE__, ": finding all test cases in ", options.dirs);
@@ -180,12 +190,20 @@ private void printFile(in Options options, File file) {
     file.rewind();
 }
 
-private auto executeRdmd(in Options options) {
+private auto getRdmdArgs(in Options options) {
     const testIncludeDirs = options.dirs ~ options.unit_threaded ? [options.unit_threaded] : [];
     const testIncludes = array(map!(a => "-I" ~ a)(testIncludeDirs));
     const moreIncludes = array(map!(a => "-I" ~ a)(options.includes));
     const includes = testIncludes ~ moreIncludes;
-    auto rdmdArgs = [ "rdmd" ] ~ includes ~ options.fileName ~ options.getRunnerArgs() ~ options.args;
-    if(options.verbose) writeln("Executing: ", join(rdmdArgs, ", "));
+    return [ "rdmd" ] ~ includes ~ options.fileName ~ options.getRunnerArgs() ~ options.args;
+}
+
+private auto writeRdmdArgsOutString(string[] args) {
+    return writeln("Execute unit test binary with: ", join(args, " "));
+}
+
+private auto executeRdmd(in Options options) {
+    auto rdmdArgs = getRdmdArgs(options);
+    if(options.verbose) writeRdmdArgsOutString(rdmdArgs);
     return execute(rdmdArgs);
 }
