@@ -64,9 +64,35 @@ private:
 
     this() {
         _tid = spawn(&threadWriter);
+        _escCodes = [ "red": "\033[31;1m",
+                      "green": "\033[32;1m",
+                      "cancel": "\033[0;;m" ];
+
+        version(Posix) {
+            import core.sys.posix.unistd;
+            _useEscCodes = isatty(stdout.fileno()) != 0;
+        }
     }
 
+    /**
+     * Generates coloured output on POSIX systems
+     */
+    string green(in string msg) const {
+        return escCode("green") ~ msg ~ escCode("cancel");
+    }
+
+    string red(in string msg) const {
+        return escCode("red") ~ msg ~ escCode("cancel");
+    }
+
+    string escCode(in string code) const {
+        return _useEscCodes ? _escCodes[code] : "";
+    }
+
+
     Tid _tid;
+    string[string] _escCodes;
+    bool _useEscCodes;
 
     static bool _instantiated; // Thread local
     __gshared WriterThread _instance;
