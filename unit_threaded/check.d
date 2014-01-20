@@ -39,7 +39,12 @@ if(is(T == class)) {
 
 void checkNotEqual(T, U)(in T value, in U expected, in string file = __FILE__, in ulong line = __LINE__)
 if(is(typeof(value == expected) == bool)) {
-    if(value == expected) failEqual(value, expected, file, line);
+    if(value == expected) {
+        throw new UnitTestException(getOutputPrefix(file, line) ~
+                                    "Value " ~ to!string(value) ~
+                                    " is not supposed to be equal to " ~
+                                    to!string(expected) ~ "\n");
+    }
 }
 
 void checkNull(T)(in T value, in string file = __FILE__, in ulong line = __LINE__) {
