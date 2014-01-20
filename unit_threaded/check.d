@@ -18,13 +18,11 @@ class UnitTestException: Exception {
     }
 }
 
-void checkTrue(E)(lazy E conditionExpr, in string file = __FILE__, in ulong line = __LINE__) {
-    bool condition = conditionExpr();
+void checkTrue(E)(lazy E condition, in string file = __FILE__, in ulong line = __LINE__) {
     if(!condition) failEqual(condition, true, file, line);
 }
 
-void checkFalse(E)(lazy E conditionExpr, in string file = __FILE__, in ulong line = __LINE__) {
-    bool condition = conditionExpr();
+void checkFalse(E)(lazy E condition, in string file = __FILE__, in ulong line = __LINE__) {
     if(condition) failEqual(condition, false, file, line);
 }
 
