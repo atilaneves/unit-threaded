@@ -33,6 +33,7 @@ int runTests(MODULES...)(string[] args) {
 
     if(options.exit) return 0;
     if(options.debugOutput) enableDebugOutput();
+    if(options.forceEscCodes) forceEscCodes();
 
     immutable success = runTests!MODULES(options);
     return success ? 0 : 1;

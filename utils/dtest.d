@@ -54,7 +54,7 @@ private struct Options {
     bool single;
     bool list;
     string[] getRunnerArgs() const {
-        string[] args = [];
+        auto args = ["--esccodes"];
         if(single) args ~= "--single";
         if(debugOutput) args ~= "--debug";
         if(list) args ~= "--list";

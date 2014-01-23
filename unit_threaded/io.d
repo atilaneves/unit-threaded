@@ -10,6 +10,7 @@ import std.conv;
 
 
 private shared(bool) _debugOutput = false; ///whether or not to print debug messages
+private shared(bool) _forceEscCodes = false; ///whether or not to use ANSI escape codes anyway
 
 
 package void enableDebugOutput() {
@@ -22,6 +23,10 @@ package bool isDebugOutputEnabled() {
     synchronized {
         return _debugOutput;
     }
+}
+
+package void forceEscCodes() {
+    _forceEscCodes = true;
 }
 
 void addToOutput(ref string output, in string msg) {
@@ -106,7 +111,7 @@ private:
 
         version(Posix) {
             import core.sys.posix.unistd;
-            _useEscCodes = isatty(stdout.fileno()) != 0;
+            _useEscCodes = _forceEscCodes || isatty(stdout.fileno()) != 0;
         }
     }
 
