@@ -1,7 +1,7 @@
 module unit_threaded.testsuite;
 
 import unit_threaded.testcase;
-import unit_threaded.writer_thread;
+import unit_threaded.io;
 import std.datetime;
 import std.parallelism;
 import std.concurrency;
