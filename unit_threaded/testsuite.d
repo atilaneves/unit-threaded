@@ -60,7 +60,7 @@ private:
 
     void innerLoop(TestCase test) {
         immutable result = test();
-        if(result.failed) {
+        if(result.failures) {
             addFailure(test.getPath());
         }
         utWrite(result.output);

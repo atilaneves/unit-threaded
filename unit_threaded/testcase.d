@@ -8,8 +8,8 @@ import std.string;
 import std.conv;
 
 struct TestResult {
-    immutable bool failed;
-    immutable string output;
+    int failures;
+    string output;
 }
 
 /**
@@ -38,15 +38,12 @@ private:
     string _output;
 
     bool check(T = Exception, E)(lazy E expression) {
-        setStatus(collectExceptionMsg!T(expression));
-        return !_failed;
-    }
-
-    void setStatus(in string msg) {
+        const msg = chomp(collectExceptionMsg!T(expression));
         if(msg) {
             _failed = true;
-            print(chomp(msg));
+            print(msg);
         }
+        return !_failed;
     }
 
     void print(in string msg) {
