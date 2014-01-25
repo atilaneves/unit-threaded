@@ -26,7 +26,8 @@ class TestCase {
         check(test());
         check(shutdown());
         if(_failed) print("\n\n");
-        return TestResult(_failed, _output);
+        utWrite(_output);
+        return _failed ? [getPath()] : [];
     }
 
     void setup() { } ///override to run before test()

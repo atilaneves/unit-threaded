@@ -54,15 +54,7 @@ private:
     string[] _failures;
     StopWatch _stopWatch;
 
-    void addFailure(in string testPath) nothrow {
-        _failures ~= testPath;
-    }
-
     void innerLoop(TestCase test) {
-        immutable result = test();
-        if(result.failures) {
-            addFailure(test.getPath());
-        }
-        utWrite(result.output);
+        _failures ~= test();
     }
 }
