@@ -20,14 +20,10 @@ struct TestSuite {
     double run(in bool multiThreaded = true) {
         _stopWatch.start();
 
-        immutable redirectIo = multiThreaded;
-
-        void innerLoop(TestCase test) { _failures ~= test(); }
-
         if(multiThreaded) {
-            foreach(test; taskPool.parallel(_tests)) innerLoop(test);
+            foreach(test; parallel(_tests)) _failures ~= test();
         } else {
-            foreach(test; _tests) innerLoop(test);
+            foreach(test; _tests) _failures ~= test();
         }
 
         if(_failures) utWriteln("");
@@ -53,6 +49,7 @@ struct TestSuite {
     }
 
 private:
+
     TestCase[] _tests;
     string[] _failures;
     StopWatch _stopWatch;
