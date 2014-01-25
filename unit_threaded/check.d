@@ -1,16 +1,11 @@
 module unit_threaded.check;
 
-@safe
-
 import std.exception;
 import std.conv;
 import std.algorithm;
 import std.traits;
 
-//attributes
-enum UnitTest; //opt-in to registration
-enum DontTest; //opt-out of registration
-enum HiddenTest; //hide test. Not run by default but can be run.
+public import unit_threaded.attrs;
 
 class UnitTestException: Exception {
     this(string msg) {
