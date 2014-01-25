@@ -6,6 +6,7 @@ import unit_threaded.io;
 import std.exception;
 import std.string;
 import std.conv;
+import std.algorithm;
 
 struct TestResult {
     int failures;
@@ -20,7 +21,7 @@ class TestCase {
         return this.classinfo.name;
     }
 
-    final auto opCall() {
+    string[] opCall() {
         collectOutput();
         printToScreen();
         return _failed ? [getPath()] : [];
@@ -59,4 +60,18 @@ private:
     void print(in string msg) {
         addToOutput(_output, msg);
     }
+}
+
+class CompositeTestCase: TestCase {
+    this(TestCase[] tests) {
+        _tests = tests;
+    }
+
+    override string[] opCall() {
+        return _tests.map!"a()".reduce!"a ~ b";
+    }
+
+private:
+
+    TestCase[] _tests;
 }

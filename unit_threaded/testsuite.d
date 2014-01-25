@@ -39,7 +39,7 @@ struct TestSuite {
     }
 
     @property ulong numTestsRun() const {
-        return _tests.map!(a => a.numTestsRun).reduce!"a+b";
+        return _tests.map!"a.numTestsRun".reduce!"a+b";
     }
 
     @property ulong numFailures() const pure nothrow {
