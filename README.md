@@ -93,6 +93,11 @@ without `-s` will trigger a warning followed by the forceful use of
 `-s`.  TestCases and test functions can print debug output with the
 function `writelnUt` available [here](unit_threaded/io.d).
 
+Since code under test might not be thread-safe, the `@SingleThreaded`
+attribute can be used on a test. This causes all tests in the same
+module that have this attribute to be executed sequentially so they
+don't interleave with one another.
+
 Related Projects
 ----------------
 - [dunit](https://github.com/linkrope/dunit):
