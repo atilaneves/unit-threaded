@@ -21,13 +21,21 @@ class TestCase {
     }
 
     final auto opCall() {
+        collectOutput();
+        printToScreen();
+        return _failed ? [getPath()] : [];
+    }
+
+    final auto collectOutput() {
         print(getPath() ~ ":\n");
         check(setup());
         check(test());
         check(shutdown());
         if(_failed) print("\n\n");
+    }
+
+    void printToScreen() const {
         utWrite(_output);
-        return _failed ? [getPath()] : [];
     }
 
     void setup() { } ///override to run before test()
