@@ -115,8 +115,3 @@ unittest {
     auto actual = map!(a => a.name)(getTestFunctions!(unit_threaded.tests.module_with_tests)());
     assertEqual(array(actual), expected);
 }
-
-// unittest {
-//     assert(HasHiddenAttr!("unit_threaded.tests.module_with_tests", withHidden));
-//     assert(!HasHiddenAttr!("unit_threaded.tests.module_with_tests", withoutHidden));
-// }
