@@ -63,6 +63,10 @@ package void utWritelnRed(T...)(T args) {
     WriterThread.get().writelnRed(args);
 }
 
+package void utWriteRed(T...)(T args) {
+    WriterThread.get().writeRed(args);
+}
+
 
 /**
  * Thread to output to stdout
@@ -94,6 +98,10 @@ class WriterThread {
 
     void writelnRed(T...)(T args) {
         _tid.send(red(text(args) ~ "\n"));
+    }
+
+    void writeRed(T...)(T args) {
+        _tid.send(red(text(args)));
     }
 
     void join() {

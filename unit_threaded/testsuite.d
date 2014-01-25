@@ -28,7 +28,9 @@ struct TestSuite {
 
         if(_failures) utWriteln("");
         foreach(failure; _failures) {
-            utWriteln("Test ", failure, " failed.");
+            utWrite("Test ", failure, " ");
+            utWriteRed("failed");
+            utWriteln(".");
         }
         if(_failures) writeln("");
 
