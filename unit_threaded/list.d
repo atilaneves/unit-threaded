@@ -21,9 +21,10 @@ private template HasAttribute(alias mod, string T, alias A) {
  */
 alias void function() TestFunction;
 struct TestData {
-    immutable string name;
-    immutable bool hidden;
-    const TestFunction test; //only used for functions, null for classes
+    string name;
+    bool hidden;
+    TestFunction test; //only used for functions, null for classes
+    bool singleThreaded;
 }
 
 /**
@@ -38,7 +39,10 @@ auto getTestClassNames(alias mod)() pure nothrow {
                   !HasAttribute!(mod, klass, DontTest) &&
                   (__traits(hasMember, mixin(klass), "test") ||
                    HasAttribute!(mod, klass, UnitTest))) {
-            classes ~= TestData(fullyQualifiedName!mod ~ "." ~ klass, HasAttribute!(mod, klass, HiddenTest));
+            classes ~= TestData(fullyQualifiedName!mod ~ "." ~ klass,
+                                HasAttribute!(mod, klass, HiddenTest),
+                                null, //TestFunction
+                                HasAttribute!(mod, klass, SingleThreaded));
         }
     }
 

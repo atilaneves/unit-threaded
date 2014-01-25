@@ -13,7 +13,7 @@ import std.algorithm;
  * Responsible for running tests
  */
 struct TestSuite {
-    this(TestCase[] tests) {
+    this(bool[TestCase] tests) {
         _tests = tests;
     }
 
@@ -21,9 +21,9 @@ struct TestSuite {
         _stopWatch.start();
 
         if(multiThreaded) {
-            foreach(test; parallel(_tests)) _failures ~= test();
+            foreach(test; parallel(_tests.keys)) _failures ~= test();
         } else {
-            foreach(test; _tests) _failures ~= test();
+            foreach(test; _tests.keys) _failures ~= test();
         }
 
         if(_failures) utWriteln("");
@@ -39,7 +39,7 @@ struct TestSuite {
     }
 
     @property ulong numTestsRun() const {
-        return _tests.map!"a.numTestsRun".reduce!"a+b";
+        return _tests.keys.map!"a.numTestsRun".reduce!"a+b";
     }
 
     @property ulong numFailures() const pure nothrow {
@@ -52,7 +52,7 @@ struct TestSuite {
 
 private:
 
-    TestCase[] _tests;
+    bool[TestCase] _tests;
     string[] _failures;
     StopWatch _stopWatch;
 }

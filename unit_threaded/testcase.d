@@ -62,14 +62,17 @@ private:
     }
 }
 
-class CompositeTestCase(Ts...): TestCase {
-    this() {
-        foreach(T; Ts) _tests ~= new T;
-    }
+class CompositeTestCase: TestCase {
+    void add(TestCase t) { _tests ~= t;}
 
+    void opOpAssign(string op : "~")(TestCase t) {
+        add(t);
+    }
     override string[] opCall() {
         return _tests.map!"a()".reduce!"a ~ b";
     }
+
+    override void test() { assert(false); }
 
     override ulong numTestsRun() const {
         return _tests.length;

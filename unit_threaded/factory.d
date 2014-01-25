@@ -10,6 +10,7 @@ import std.traits;
 import std.typetuple;
 import std.exception;
 import std.algorithm;
+import std.array;
 import std.string;
 import core.runtime;
 
@@ -24,32 +25,49 @@ static this() {
  * Creates tests cases from the given modules.
  * If testsToRun is empty, it means run all tests.
  */
-TestCase[] createTests(MODULES...)(in string[] testsToRun = []) if(MODULES.length > 0) {
-    TestCase[] tests;
+auto createTests(MODULES...)(in string[] testsToRun = []) if(MODULES.length > 0) {
+    bool[TestCase] tests;
     foreach(data; getTestClassesAndFunctions!MODULES()) {
         if(!isWantedTest(data, testsToRun)) continue;
         auto test = createTestCase(data);
-        if(test !is null) tests ~= test; //can be null if abtract base class
+        if(test !is null) tests[test] = true; //can be null if abtract base class
     }
 
     foreach(test; builtinTests) { //builtInTests defined below
-        if(isWantedTest(TestData(test.getPath(), false /*hidden*/), testsToRun)) tests ~= test;
+        if(isWantedTest(TestData(test.getPath(), false /*hidden*/), testsToRun)) tests[test] = true;
     }
 
     return tests;
 }
 
-private TestCase createTestCase(TestData data) {
-    auto testCase = data.test is null ?
-        cast(TestCase) Object.factory(data.name):
-        new FunctionTestCase(data);
 
+private TestCase createTestCase(TestData data) {
+    TestCase createImpl(TestData data) {
+        return data.test is null ?
+            cast(TestCase) Object.factory(data.name):
+            new FunctionTestCase(data);
+    }
+
+    static CompositeTestCase[string] composites;
+    if(data.singleThreaded) {
+        const moduleName = getModuleName(data.name);
+        if(moduleName !in composites) composites[moduleName] = new CompositeTestCase;
+        composites[moduleName] ~= createImpl(data);
+        return composites[moduleName];
+    }
+
+    auto testCase = createImpl(data);
     if(data.test !is null) {
         assert(testCase !is null, "Could not create FunctionTestCase object for function " ~ data.name);
     }
 
     return testCase;
 }
+
+private string getModuleName(in string name) {
+    return name.splitter(".").array[0 .. $ -1].reduce!((a, b) => a ~ "." ~ b);
+}
+
 
 private bool isWantedTest(in TestData data, in string[] testsToRun) {
     if(!testsToRun.length) return !data.hidden; //all tests except the hidden ones
@@ -143,4 +161,11 @@ unittest {
                          ["example.tests.pass.io.TestFoo"]));
     assert(isWantedTest(TestData("example.tests.pass.normal.unittest"), []));
     assert(!isWantedTest(TestData("tests.pass.attributes.testHidden", true /*hidden*/), ["tests.pass"]));
+}
+
+
+
+unittest {
+    import unit_threaded.asserts;
+    assertEqual(getModuleName("tests.fail.composite.Test1"), "tests.fail.composite");
 }
