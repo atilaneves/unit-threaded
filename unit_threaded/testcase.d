@@ -57,18 +57,22 @@ private:
         return !_failed;
     }
 
-    void print(in string msg) {
+    protected void print(in string msg) {
         addToOutput(_output, msg);
     }
 }
 
-class CompositeTestCase: TestCase {
+class CompositeTestCase(T...): TestCase {
     this(TestCase[] tests) {
         _tests = tests;
     }
 
     override string[] opCall() {
         return _tests.map!"a()".reduce!"a ~ b";
+    }
+
+    override ulong numTestsRun() const {
+        return _tests.length;
     }
 
 private:

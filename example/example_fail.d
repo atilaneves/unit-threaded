@@ -9,6 +9,7 @@ int main(string[] args) {
     return runTests!("tests.fail.normal",
                      "tests.fail.delayed",
                      "tests.fail.priv",
+                     "tests.fail.composite",
                      "tests.pass.normal",
                      "tests.pass.delayed",
                      "tests.pass.attributes",
