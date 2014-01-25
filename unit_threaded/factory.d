@@ -48,8 +48,8 @@ private TestCase createTestCase(TestData data) {
             new FunctionTestCase(data);
     }
 
-    static CompositeTestCase[string] composites;
     if(data.singleThreaded) {
+        static CompositeTestCase[string] composites;
         const moduleName = getModuleName(data.name);
         if(moduleName !in composites) composites[moduleName] = new CompositeTestCase;
         composites[moduleName] ~= createImpl(data);

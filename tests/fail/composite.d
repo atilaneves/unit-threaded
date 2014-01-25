@@ -51,3 +51,13 @@ class Test6: TestCase {
         checkEqual(2 + 3, 5);
     }
 }
+
+@SingleThreaded
+void testFunction1() {
+    checkTrue(true);
+}
+
+@SingleThreaded
+void testFunction2() {
+    checkTrue(false);
+}

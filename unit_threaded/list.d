@@ -64,7 +64,8 @@ auto getTestFunctions(alias mod)() pure nothrow {
             enum funcAddr = "&" ~ funcName;
 
             mixin(`functions ~= TestData("` ~ funcName ~ `", ` ~
-                  HasAttribute!(mod, moduleMember, HiddenTest).stringof ~ ", " ~ funcAddr ~ ");");
+                  HasAttribute!(mod, moduleMember, HiddenTest).stringof ~ ", " ~ funcAddr ~
+                  ", " ~  HasAttribute!(mod, moduleMember, SingleThreaded).stringof ~ ");");
 
         }
     }
