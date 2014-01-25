@@ -104,6 +104,7 @@ Related Projects
   xUnit Testing Framework for D
 - [DMocks-revived](https://github.com/QAston/DMocks-revived):
   a mock-object framework that allows to mock interfaces or classes
+- [deject](https://github.com/bgertzfield/deject): automatic dependency injection
 - [specd](https://github.com/jostly/specd):
   a unit testing framework inspired by [specs2](http://etorreborre.github.io/specs2/) and [ScalaTest](http://www.scalatest.org)
 - [DUnit](https://github.com/kalekold/dunit):
