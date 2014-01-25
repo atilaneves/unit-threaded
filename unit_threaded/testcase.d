@@ -57,14 +57,14 @@ private:
         return !_failed;
     }
 
-    protected void print(in string msg) {
+    void print(in string msg) {
         addToOutput(_output, msg);
     }
 }
 
-class CompositeTestCase(T...): TestCase {
-    this(TestCase[] tests) {
-        _tests = tests;
+class CompositeTestCase(Ts...): TestCase {
+    this() {
+        foreach(T; Ts) _tests ~= new T;
     }
 
     override string[] opCall() {
