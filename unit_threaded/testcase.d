@@ -33,6 +33,7 @@ class TestCase {
     void setup() { } ///override to run before test()
     void shutdown() { } ///override to run after test()
     abstract void test();
+    ulong numTestsRun() const { return 1; }
 
 private:
     bool _failed;

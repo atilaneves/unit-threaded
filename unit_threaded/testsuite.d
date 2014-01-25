@@ -7,6 +7,7 @@ import std.parallelism;
 import std.concurrency;
 import std.stdio;
 import std.conv;
+import std.algorithm;
 
 /**
  * Responsible for running tests
@@ -37,8 +38,8 @@ struct TestSuite {
         return _stopWatch.peek().seconds();
     }
 
-    @property ulong numTestsRun() const pure nothrow {
-        return _tests.length;
+    @property ulong numTestsRun() const {
+        return _tests.map!(a => a.numTestsRun).reduce!"a+b";
     }
 
     @property ulong numFailures() const pure nothrow {
