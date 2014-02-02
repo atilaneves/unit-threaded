@@ -8,11 +8,8 @@
     "sourcePaths": ["unit_threaded"],
     "importPaths": ["."],
     "targetType": "library",
-    "dependencies": {},
     "configurations": [
-        { "name": "library",
-          "sourcePaths": ["unit_threaded"],
-          "importPaths": ["."]},
+        { "name": "library" },
         { "name": "unittest",
           "targetType": "executable",
           "sourcePaths": ["tests/pass"],
