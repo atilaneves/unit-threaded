@@ -21,8 +21,6 @@ import std.getopt;
  * the filename is the 1st element, the others are directories.
  */
 int main(string[] args) {
-    enforce(args.length >= 2, text("Usage: ", __FILE__, " <dir>..."));
-
     const options = getOptions(args);
     if(options.help) return 0;
 
@@ -79,7 +77,26 @@ private Options getOptions(string[] args) {
         );
 
     if(options.help) {
+        printHelp();
+        return options;
+    }
 
+    if(!options.unit_threaded) {
+        writeln("Path to unit_threaded library not specified with -u, might fail");
+    }
+
+    if(options.fileName) {
+        options.fileNameSpecified = true;
+    } else {
+        options.fileName = createFileName(); //random filename
+    }
+    if(!options.dirs) options.dirs = ["tests"];
+    options.args = args[1..$];
+    if(options.verbose) writeln(__FILE__, ": finding all test cases in ", options.dirs);
+    return options;
+}
+
+private void printHelp() {
         writeln(q"EOS
 
 Usage: dtest [options] [test1] [test2]...
@@ -119,18 +136,6 @@ Usage: dtest [options] [test1] [test2]...
     dtest -u<PATH_TO_UNIT_THREADED> -t mydir mydir.foo mydir.bar
 
 EOS");
-
-    }
-
-    if(options.fileName) {
-        options.fileNameSpecified = true;
-    } else {
-        options.fileName = createFileName(); //random filename
-    }
-    if(!options.dirs) options.dirs = ["tests"];
-    options.args = args[1..$];
-    if(options.verbose) writeln(__FILE__, ": finding all test cases in ", options.dirs);
-    return options;
 }
 
 private string createFileName() {
