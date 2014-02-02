@@ -16,6 +16,7 @@
         { "name": "unittest",
           "targetType": "executable",
           "sourcePaths": ["tests/pass"],
-          "mainSourceFile": "example/example_pass.d"}
+          "sourceFiles": ["example/example_pass.d"]
+        }
     ]
 }
