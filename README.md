@@ -4,7 +4,7 @@ unit-threaded
 
 
 ###**Warning**: With dmd 2.064.2 and the gold linker on Linux 64-bit this code crashes.
-**On Linux, use ld.bfd, dmd 2.063 or dmd from git head. No problem on Windows.**
+**On Linux, use one of ld.bfd, dmd 2.063 or dmd 2.065. No problem on Windows.**
 
 Multi-threaded unit test framework for D. Based on similar work for
 [C++11](https://bitbucket.org/atilaneves/unit-thread).
