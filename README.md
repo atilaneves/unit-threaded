@@ -23,7 +23,7 @@ for larger projects it lacks some functionality:
 So I wrote this library in and for a language with built-in support
 for unit tests. Its goals are:
 
-1. To run concurrently (by default) for maximal speed and turnaround
+1. To run in parallel (by default) for maximal speed and turnaround
 for TDD
 2. To make it easy to write tests (functions as test cases)
 3. No test registration. Tests are discovered with D's compile-time
