@@ -111,5 +111,3 @@ Related Projects
   a unit testing framework inspired by [specs2](http://etorreborre.github.io/specs2/) and [ScalaTest](http://www.scalatest.org)
 - [DUnit](https://github.com/kalekold/dunit):
   a toolkit of test assertions and a template mixin to enable mocking
-- [unit-threaded](https://github.com/atilaneves/unit-threaded):
-  a multi-threaded unit testing framework
