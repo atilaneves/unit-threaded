@@ -77,17 +77,14 @@ Since D packages are just directories and there the compiler can't
 read the filesystem at compile-time, there is no way to automatically
 add all tests in a package.  To mitigate this and avoid having to
 manually write the name of all the modules containing tests, a utility
-called [`dtest`](utils/dtest.d) can be used to
+called [`dtest`](https://github.com/atilaneves/dtest) can be used to
 generate a source file automatically. Simply pass in the desired
 directories to scan as command-line arguments. It automatically
-generates a file, executes it with rdmd, and print the result.
+generates a file, executes it with rdmd, and prints the result.
 Use the -h option to get help on the command. To try it out,
-run `rdmd utils/dtest.d -t tests/pass` to run the passing tests,
-`rdmd utils/dtest.d -t tests/fail` to run the failing tests,
-or simply `rdmd utils/dtest.d` to run all of them. More information can
-be found [here](utils/dtest.md). I suggest compiling it and running
-it with an alias that calls it with `-u` set to the correct directory
-for maximum ease of use.
+run `dtest -t tests/pass` to run the passing tests,
+`dtest -t tests/fail` to run the failing tests,
+or simply `dtest` to run all of them.
 
 There is support for debug prints in the tests with the `-d` switch.
 This is only supported in single-threaded mode (`-s`). Setting `-d`
