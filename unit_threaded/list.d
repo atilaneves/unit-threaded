@@ -93,7 +93,7 @@ private template IsTestFunction(alias mod, alias T) {
 private auto addModule(string[] elements, string mod = "unit_threaded.tests.module_with_tests") nothrow {
     import std.algorithm;
     import std.array;
-    return array(map!(a => mod ~ "." ~ a)(elements));
+    return elements.map!(a => mod ~ "." ~ a).array;
 }
 
 import unit_threaded.tests.module_with_tests; //defines tests and non-tests
