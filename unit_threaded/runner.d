@@ -40,13 +40,12 @@ int runTests(MODULES...)(string[] args) {
 }
 
 private auto getTestNames(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
-    return map!(a => a.name)(getTestClassesAndFunctions!MOD_SYMBOLS());
+    return getTestClassesAndFunctions!MOD_SYMBOLS().map!(a => a.name);
 }
 
 private auto getTestNames(MOD_STRINGS...)() if(allSatisfy!(isSomeString, typeof(MOD_STRINGS))) {
     mixin(getImportTestsCompileString!MOD_STRINGS()); //e.g. import foo, bar, baz;
-    mixin("return map!(a => a.name)(getTestClassesAndFunctions!(" ~
-          getModulesCompileString!MOD_STRINGS() ~ ")());");
+    mixin("return getTestClassesAndFunctions!(" ~ getModulesCompileString!MOD_STRINGS() ~ ").map!(a => a.name);");
 }
 
 /**
@@ -56,7 +55,7 @@ bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, 
     WriterThread.get(); //make sure this is up
     //sleep to give WriterThread some time to set up. Otherwise,
     //tests with output could write to stdout in the meanwhile
-    Thread.sleep(dur!"msecs"(5));
+    Thread.sleep(5.dur!"msecs");
 
     auto tests = createTests!MOD_SYMBOLS(options.tests);
     if(!tests) {
@@ -108,5 +107,5 @@ private string getModulesCompileString(MOD_STRINGS...)() {
     import std.array;
     string[] modules;
     foreach(mod; MOD_STRINGS) modules ~= mod;
-    return join(modules, ", ");
+    return modules.join(", ");
 }
