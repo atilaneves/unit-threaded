@@ -80,7 +80,7 @@ private template IsTestFunction(alias mod, alias T) {
     enum minSize = prefix.length + 1;
 
     static if(isSomeFunction!(mixin(T)) &&
-              T.length >= minSize && T[0 .. prefix.length] == "test" &&
+              T.length >= minSize && T[0 .. prefix.length] == prefix &&
               isUpper(T[prefix.length])) {
         enum IsTestFunction = true;
     } else {
