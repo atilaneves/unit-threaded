@@ -104,7 +104,7 @@ unittest {
     import std.algorithm;
     import std.array;
     const expected = addModule([ "FooTest", "BarTest", "Blergh"]);
-    const actual = array(map!(a => a.name)(getTestClassNames!(unit_threaded.tests.module_with_tests)()));
+    const actual = getTestClassNames!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
     assertEqual(actual, expected);
 }
 
@@ -117,6 +117,6 @@ unittest {
     import std.algorithm;
     import std.array;
     auto expected = addModule([ "testFoo", "testBar", "funcThatShouldShowUpCosOfAttr" ]);
-    auto actual = map!(a => a.name)(getTestFunctions!(unit_threaded.tests.module_with_tests)());
-    assertEqual(array(actual), expected);
+    auto actual = getTestFunctions!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
+    assertEqual(actual, expected);
 }
