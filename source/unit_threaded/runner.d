@@ -40,7 +40,7 @@ int runTests(MODULES...)(string[] args) {
 }
 
 private auto getTestNames(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
-    return map!(a => a.name)(getTestClassesAndFunctions!MOD_SYMBOLS());
+    return getTestClassesAndFunctions!MOD_SYMBOLS.map!(a => a.name);
 }
 
 private auto getTestNames(MOD_STRINGS...)() if(allSatisfy!(isSomeString, typeof(MOD_STRINGS))) {
@@ -108,5 +108,5 @@ private string getModulesCompileString(MOD_STRINGS...)() {
     import std.array;
     string[] modules;
     foreach(mod; MOD_STRINGS) modules ~= mod;
-    return join(modules, ", ");
+    return modules.join(", ");
 }
