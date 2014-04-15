@@ -1,1 +1,4 @@
 . Mocking support
+. Add quotes around string values when they fail
+. Show hidden tests
+. Expected to fail tests
