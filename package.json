@@ -5,8 +5,6 @@
     "homepage": "https://github.com/atilaneves/unit-threaded",
     "copyright": "Copyright © 2013, Atila Neves",
     "license": "BSD 3-clause",
-    "sourcePaths": ["unit_threaded"],
-    "importPaths": ["."],
     "targetType": "library",
     "configurations": [
         { "name": "library" },
