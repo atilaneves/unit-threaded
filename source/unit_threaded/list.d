@@ -13,7 +13,6 @@ private template HasAttribute(alias mod, string T, alias A) {
     } else {
         enum HasAttribute = false;
     }
-
 }
 
 /**
