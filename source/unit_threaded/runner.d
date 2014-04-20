@@ -74,8 +74,9 @@ bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, 
     }
 
     utWriteln("\nTime taken: ", elapsed, " seconds");
-    utWriteln(suite.numTestsRun, " test(s) run, ",
-              suite.numFailures, " failed.\n");
+    utWrite(suite.numTestsRun, " test(s) run, ", suite.numFailures);
+    utWriteRed(" failed");
+    utWriteln(".\n");
 
     if(!suite.passed) {
         utWritelnRed("Unit tests failed!\n");
