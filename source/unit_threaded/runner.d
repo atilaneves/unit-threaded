@@ -74,8 +74,18 @@ bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, 
     }
 
     utWriteln("\nTime taken: ", elapsed, " seconds");
-    utWrite(suite.numTestsRun, " test(s) run, ", suite.numFailures);
-    utWriteRed(" failed");
+    utWrite(suite.numTestsRun, " test(s) run, ");
+    const failuresStr = text(suite.numFailures, " failed");
+    if(suite.numFailures) {
+        utWriteRed(failuresStr);
+    } else {
+        utWrite(failuresStr);
+    }
+    const numHidden = getTestClassesAndFunctions!MOD_SYMBOLS.filter!(a => a.hidden).count;
+    if(numHidden) {
+        utWrite(", ");
+        utWriteYellow(numHidden, " hidden");
+    }
     utWriteln(".\n");
 
     if(!suite.passed) {

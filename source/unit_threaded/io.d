@@ -67,6 +67,10 @@ package void utWriteRed(T...)(T args) {
     WriterThread.get().writeRed(args);
 }
 
+package void utWriteYellow(T...)(T args) {
+    WriterThread.get().writeYellow(args);
+}
+
 
 /**
  * Thread to output to stdout
@@ -104,6 +108,10 @@ class WriterThread {
         _tid.send(red(text(args)));
     }
 
+    void writeYellow(T...)(T args) {
+        _tid.send(yellow(text(args)));
+    }
+
     void join() {
         _tid.send(thisTid); //tell it to join
         receiveOnly!Tid(); //wait for it to join
@@ -115,6 +123,7 @@ private:
         _tid = spawn(&threadWriter);
         _escCodes = [ "red": "\033[31;1m",
                       "green": "\033[32;1m",
+                      "yellow": "\033[33;1m",
                       "cancel": "\033[0;;m" ];
 
         version(Posix) {
@@ -132,6 +141,10 @@ private:
 
     string red(in string msg) const {
         return escCode("red") ~ msg ~ escCode("cancel");
+    }
+
+    string yellow(in string msg) const {
+        return escCode("yellow") ~ msg ~ escCode("cancel");
     }
 
     string escCode(in string code) const {
