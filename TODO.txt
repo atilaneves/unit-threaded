@@ -4,3 +4,4 @@
 . Expected to fail tests
 . Stack trace for unexpected exceptions
 . staticEquals, staticTrue, ... with cucumber features
+. Bug: an enum at file scope prevents compilation
