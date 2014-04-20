@@ -41,6 +41,9 @@ void someFun() {
     assert(0, "Never going to happen");
 }
 
+void testString() {
+    checkEqual("foo", "bar");
+}
 
 unittest {
     assert(false, "unittest block that always fails");

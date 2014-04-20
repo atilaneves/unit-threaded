@@ -114,9 +114,18 @@ private void failEqual(T, U)(in T value, in U expected, in string file, in ulong
 }
 
 private string getOutput(T, U)(in T value, in U expected, in string file, in ulong line) {
+    auto valueStr = value.to!string;
+    static if(is(T == string)) {
+        valueStr = `"` ~ valueStr ~ `"`;
+    }
+    auto expectedStr = expected.to!string;
+        static if(is(U == string)) {
+        expectedStr = `"` ~ expectedStr ~ `"`;
+    }
+
     return getOutputPrefix(file, line) ~
-        "Value " ~ to!string(value) ~
-        " is not the expected " ~ to!string(expected) ~ "\n";
+        "Value " ~ valueStr ~
+        " is not the expected " ~ expectedStr ~ "\n";
 }
 
 private string getOutputPrefix(in string file, in ulong line) {
