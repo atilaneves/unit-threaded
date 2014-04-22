@@ -48,7 +48,7 @@ private:
     bool _failed;
     string _output;
 
-    bool check(T = Exception, E)(lazy E expression) {
+    bool check(E)(lazy E expression) {
         try {
             expression();
         } catch(UnitTestException ex) {
@@ -80,7 +80,7 @@ class CompositeTestCase: TestCase {
         return _tests.map!"a()".reduce!"a ~ b";
     }
 
-    override void test() { assert(false); }
+    override void test() { assert(false, "CompositeTestCase.test should never be called"); }
 
     override ulong numTestsRun() const {
         return _tests.length;
@@ -89,4 +89,26 @@ class CompositeTestCase: TestCase {
 private:
 
     TestCase[] _tests;
+}
+
+
+class ShouldFailTestCase: TestCase {
+    this(TestCase testCase) {
+        this.testCase = testCase;
+    }
+
+    override string getPath() const pure nothrow {
+        return this.testCase.getPath;
+    }
+
+    override void test() {
+        const ex = collectException!Exception(testCase.test());
+        if(ex is null) {
+            throw new Exception("Test " ~ testCase.getPath() ~ " was expected to fail but did not");
+        }
+    }
+
+private:
+
+    TestCase testCase;
 }

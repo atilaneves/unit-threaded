@@ -7,7 +7,7 @@ class CustomException: Exception {
     this(string msg) { super(msg); }
 }
 
-@HiddenTest
+@HiddenTest!("Don't want to pollute the output")
 void testCustomException() {
     throw new CustomException("This should have a stack trace in the output");
 }

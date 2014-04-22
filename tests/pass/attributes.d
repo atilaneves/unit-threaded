@@ -25,14 +25,26 @@ class TestThatWontRun: TestCase {
     }
 }
 
-@HiddenTest
-class HiddenTest: TestCase {
+@HiddenTest!""
+class MyHiddenTest: TestCase {
     override void test() {
         checkNotNull(null); //hidden by default, fails if explicitly run
     }
 }
 
-@HiddenTest
+@HiddenTest!""
 void testHidden() {
     checkNotNull(null); //hidden by default, fails if explicitly run
+}
+
+
+@ShouldFail!"Bug id 12345"
+void testShouldFail() {
+    checkEqual(3, 4);
+}
+
+
+@ShouldFail!"Bug id 12345"
+void testShouldFailWithOtherException() {
+    throw new Exception("This should not be seen");
 }

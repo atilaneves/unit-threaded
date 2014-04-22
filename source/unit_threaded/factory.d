@@ -56,6 +56,10 @@ private TestCase createTestCase(TestData data) {
         return composites[moduleName];
     }
 
+    if(data.shouldFail) {
+        return new ShouldFailTestCase(createImpl(data));
+    }
+
     auto testCase = createImpl(data);
     if(data.test !is null) {
         assert(testCase !is null, "Could not create FunctionTestCase object for function " ~ data.name);
@@ -135,8 +139,9 @@ private bool moduleUnitTester() {
                 mod.unitTest()();
             } else {
                 enum hidden = false;
+                enum shouldFail = false;
                 builtinTests ~=
-                    new BuiltinTestCase(TestData(mod.name ~ ".unittest", hidden, mod.unitTest));
+                    new BuiltinTestCase(TestData(mod.name ~ ".unittest", hidden, shouldFail, mod.unitTest));
             }
         }
     }

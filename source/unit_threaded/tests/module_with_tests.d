@@ -23,6 +23,6 @@ version(unittest) {
     class NotATest { void tes() { } }
     class AlsoNotATest { void testosterone() { } }
 
-    @HiddenTest void withHidden() {}
+    @HiddenTest!"" void withHidden() {}
     void withoutHidden() { }
 }

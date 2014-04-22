@@ -15,6 +15,34 @@ private template HasAttribute(alias mod, string T, alias A) {
     }
 }
 
+
+private template HasHidden(alias mod, string member) {
+    mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
+    alias attrs = Filter!(isAHiddenStruct, __traits(getAttributes, mixin(member)));
+    static assert(attrs.length == 0 || attrs.length == 1,
+                  "Maximum number of HiddenTest attributes is 1");
+    static if(attrs.length == 0) {
+        //this is here to allow for HiddenTest without a string param
+        enum HasHidden = false;
+    } else {
+        enum HasHidden = true;
+    }
+}
+
+private template HasShouldFail(alias mod, string member) {
+    mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
+    alias attrs = Filter!(isAShouldFailStruct, __traits(getAttributes, mixin(member)));
+    static assert(attrs.length == 0 || attrs.length == 1,
+                  "Maximum number of ShouldFail attributes is 1");
+    static if(attrs.length == 0) {
+        //this is here to allow for ShouldFail without a string param
+        enum HasShouldFail = false;
+    } else {
+        enum HasShouldFail = true;
+    }
+}
+
+
 /**
  * Common data for test functions and test classes
  */
@@ -22,6 +50,7 @@ alias void function() TestFunction;
 struct TestData {
     string name;
     bool hidden;
+    bool shouldFail;
     TestFunction test; //only used for functions, null for classes
     bool singleThreaded;
 }
@@ -50,7 +79,8 @@ auto getTestClassNames(alias mod)() pure nothrow {
 
                 static if(!hasDontTest && (hasTestMethod || hasUnitTest)) {
                     classes ~= TestData(fullyQualifiedName!mod ~ "." ~ klass,
-                                        HasAttribute!(mod, klass, HiddenTest),
+                                        HasHidden!(mod, klass),
+                                        HasShouldFail!(mod, klass),
                                         null, //TestFunction
                                         HasAttribute!(mod, klass, SingleThreaded));
                 }
@@ -86,8 +116,10 @@ auto getTestFunctions(alias mod)() pure nothrow {
                 enum funcAddr = "&" ~ funcName;
 
                 mixin(`functions ~= TestData("` ~ funcName ~ `", ` ~
-                      HasAttribute!(mod, moduleMember, HiddenTest).stringof ~ ", " ~ funcAddr ~
-                      ", " ~  HasAttribute!(mod, moduleMember, SingleThreaded).stringof ~ ");");
+                      HasHidden!(mod, moduleMember).stringof ~ ", " ~
+                      HasShouldFail!(mod, moduleMember).stringof ~ ", " ~
+                      funcAddr ~ ", " ~
+                      HasAttribute!(mod, moduleMember, SingleThreaded).stringof ~ ");");
             }
         }
     }
