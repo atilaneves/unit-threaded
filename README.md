@@ -72,15 +72,15 @@ opt-out. These are used in the examples.
 Tests can also be hidden with the `@HiddenTest` attribute. This means
 that particular test doesn't get run by default but can still be run
 by passing its name as a command-line argument. `HiddenTest` takes
-compile-time string to list the reason why the test is hidden. This
-is usually a bug id.
+a compile-time string to list the reason why the test is hidden. This
+would usually be a bug id but can be anything the user wants.
 
 Similarly, `@ShouldFail` is used to decorate a test that is
 expected to fail, an also requires a compile-time string.
 `@ShouldFail` should be preferred to `@HiddenTest`. If the
-relevant bug is or not-yet-implemented functionality is done,
+relevant bug is fixed or not-yet-implemented functionality is done,
 the test will then fail, which makes them harder to sweep
-under the carpet.
+under the carpet and forget about.
 
 Since D packages are just directories and there the compiler can't
 read the filesystem at compile-time, there is no way to automatically
