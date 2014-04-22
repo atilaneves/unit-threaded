@@ -11,12 +11,13 @@ class UnitTestException: Exception {
     this(string msg, in string file, in ulong line) {
         super(getOutputPrefix(file, line) ~ msg);
     }
-}
 
-package string getOutputPrefix(in string file, in ulong line) {
-    return "    " ~ file ~ ":" ~ line.to!string ~ " - ";
-}
+private:
 
+    string getOutputPrefix(in string file, in ulong line) {
+        return "    " ~ file ~ ":" ~ line.to!string ~ " - ";
+    }
+}
 
 void checkTrue(E)(lazy E condition, in string file = __FILE__, in ulong line = __LINE__) {
     if(!condition) failEqual(condition, true, file, line);
