@@ -91,9 +91,10 @@ generate a source file automatically. Simply pass in the desired
 directories to scan as command-line arguments. It automatically
 generates a file, executes it with rdmd, and prints the result.
 Use the -h option to get help on the command. To try it out,
-run `dtest -t tests/pass` to run the passing tests,
-`dtest -t tests/fail` to run the failing tests,
-or simply `dtest` to run all of them.
+run `dtest -usource -t tests/pass` to run the passing tests,
+`dtest -usource -t tests/fail` to run the failing tests,
+or simply `dtest` to run all of them. You can also run
+either example file with `rdmd -Isource example/<filename>`.
 
 There is support for debug prints in the tests with the `-d` switch.
 This is only supported in single-threaded mode (`-s`). Setting `-d`
