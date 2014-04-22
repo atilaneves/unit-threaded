@@ -49,12 +49,20 @@ private:
     string _output;
 
     bool check(T = Exception, E)(lazy E expression) {
-        const msg = chomp(collectExceptionMsg!T(expression));
-        if(msg) {
-            _failed = true;
-            print(msg);
+        try {
+            expression();
+        } catch(UnitTestException ex) {
+            fail(ex.msg);
+        } catch(Exception ex) {
+            fail("\n    " ~ ex.toString());
         }
+
         return !_failed;
+    }
+
+    void fail(in string msg) {
+        _failed = true;
+        print(msg);
     }
 
     void print(in string msg) {

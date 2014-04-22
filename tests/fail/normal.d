@@ -41,8 +41,12 @@ void someFun() {
     assert(0, "Never going to happen");
 }
 
-void testString() {
+void testStringEqual() {
     checkEqual("foo", "bar");
+}
+
+void testStringNotEqual() {
+    checkNotEqual("foo", "foo");
 }
 
 unittest {

@@ -8,10 +8,15 @@ import std.traits;
 public import unit_threaded.attrs;
 
 class UnitTestException: Exception {
-    this(string msg) {
-        super(msg);
+    this(string msg, in string file, in ulong line) {
+        super(getOutputPrefix(file, line) ~ msg);
     }
 }
+
+package string getOutputPrefix(in string file, in ulong line) {
+    return "    " ~ file ~ ":" ~ line.to!string ~ " - ";
+}
+
 
 void checkTrue(E)(lazy E condition, in string file = __FILE__, in ulong line = __LINE__) {
     if(!condition) failEqual(condition, true, file, line);
@@ -35,26 +40,33 @@ if(is(T == class)) {
 void checkNotEqual(T, U)(in T value, in U expected, in string file = __FILE__, in ulong line = __LINE__)
 if(is(typeof(value == expected) == bool)) {
     if(value == expected) {
-        throw new UnitTestException(getOutputPrefix(file, line) ~
-                                    "Value " ~ to!string(value) ~
-                                    " is not supposed to be equal to " ~
-                                    to!string(expected) ~ "\n");
+        auto valueStr = value.to!string;
+        static if(is(T == string)) {
+            valueStr = `"` ~ valueStr ~ `"`;
+        }
+        auto expectedStr = expected.to!string;
+        static if(is(U == string)) {
+            expectedStr = `"` ~ expectedStr ~ `"`;
+        }
+
+        const msg = "Value " ~ valueStr ~ " is not supposed to be equal to " ~ expectedStr ~ "\n";
+        throw new UnitTestException(msg, file, line);
     }
 }
 
 void checkNull(T)(in T value, in string file = __FILE__, in ulong line = __LINE__) {
-    if(value !is null) fail(getOutputPrefix(file, line) ~ "Value is null");
+    if(value !is null) fail("Value is null", file, line);
 }
 
 void checkNotNull(T)(in T value, in string file = __FILE__, in ulong line = __LINE__) {
-    if(value is null) fail(getOutputPrefix(file, line) ~ "Value is null");
+    if(value is null) fail("Value is null", file, line);
 }
 
 void checkIn(T, U)(in T value, in U container, in string file = __FILE__, in ulong line = __LINE__)
     if(isAssociativeArray!U)
 {
     if(value !in container) {
-        fail(getOutputPrefix(file, line) ~ "Value " ~ to!string(value) ~ " not in " ~ to!string(container));
+        fail("Value " ~ to!string(value) ~ " not in " ~ to!string(container), file, line);
     }
 }
 
@@ -62,7 +74,7 @@ void checkIn(T, U)(in T value, in U container, in string file = __FILE__, in ulo
     if(!isAssociativeArray!U)
 {
     if(!find(container, value)) {
-        fail(getOutputPrefix(file, line) ~ "Value " ~ to!string(value) ~ " not in " ~ to!string(container));
+        fail("Value " ~ to!string(value) ~ " not in " ~ to!string(container), file, line);
     }
 }
 
@@ -70,7 +82,7 @@ void checkNotIn(T, U)(in T value, in U container, in string file = __FILE__, in 
     if(isAssociativeArray!U)
 {
     if(value in container) {
-        fail(getOutputPrefix(file, line) ~ "Value " ~ to!string(value) ~ " in " ~ to!string(container));
+        fail("Value " ~ to!string(value) ~ " in " ~ to!string(container), file, line);
     }
 }
 
@@ -78,16 +90,16 @@ void checkNotIn(T, U)(in T value, in U container, in string file = __FILE__, in 
     if(!isAssociativeArray!U)
 {
     if(find(container, value).length > 0) {
-        fail(getOutputPrefix(file, line) ~ "Value " ~ to!string(value) ~ " in " ~ to!string(container));
+        fail("Value " ~ to!string(value) ~ " in " ~ to!string(container), file, line);
     }
 }
 
 void checkThrown(T: Throwable = Exception, E)(lazy E expr, in string file = __FILE__, in ulong line = __LINE__) {
-    if(!threw!T(expr)) fail(getOutputPrefix(file, line) ~ "Expression did not throw");
+    if(!threw!T(expr)) fail("Expression did not throw", file, line);
 }
 
 void checkNotThrown(T: Throwable = Exception, E)(lazy E expr, in string file = __FILE__, in ulong line = __LINE__) {
-    if(threw!T(expr)) fail(getOutputPrefix(file, line) ~ "Expression threw");
+    if(threw!T(expr)) fail("Expression threw", file, line);
 }
 
 private bool threw(T: Throwable, E)(lazy E expr) {
@@ -102,18 +114,14 @@ private bool threw(T: Throwable, E)(lazy E expr) {
 
 
 void utFail(in string output, in string file, in ulong line) {
-    fail(getOutputPrefix(file, line) ~ output);
+    fail(output, file, line);
 }
 
-private void fail(in string output) {
-    throw new UnitTestException(output);
+private void fail(in string output, in string file, in ulong line) {
+    throw new UnitTestException(output, file, line);
 }
 
 private void failEqual(T, U)(in T value, in U expected, in string file, in ulong line) {
-    throw new UnitTestException(getOutput(value, expected, file, line));
-}
-
-private string getOutput(T, U)(in T value, in U expected, in string file, in ulong line) {
     auto valueStr = value.to!string;
     static if(is(T == string)) {
         valueStr = `"` ~ valueStr ~ `"`;
@@ -123,15 +131,9 @@ private string getOutput(T, U)(in T value, in U expected, in string file, in ulo
         expectedStr = `"` ~ expectedStr ~ `"`;
     }
 
-    return getOutputPrefix(file, line) ~
-        "Value " ~ valueStr ~
-        " is not the expected " ~ expectedStr ~ "\n";
+    const msg = "Value " ~ valueStr ~ " is not the expected " ~ expectedStr ~ "\n";
+    throw new UnitTestException(msg, file, line);
 }
-
-private string getOutputPrefix(in string file, in ulong line) {
-    return "    " ~ file ~ ":" ~ to!string(line) ~ " - ";
-}
-
 
 private void assertCheck(E)(lazy E expression) {
     assertNotThrown!UnitTestException(expression);
