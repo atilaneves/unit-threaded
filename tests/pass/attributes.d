@@ -2,6 +2,8 @@ module tests.pass.attributes;
 
 import unit_threaded.all;
 
+enum myEnumNum = "foo.bar"; //there was a bug that made this not compile
+enum myOtherEnumNum;
 
 @UnitTest
 void funcAttributes() {

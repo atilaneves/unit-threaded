@@ -33,15 +33,28 @@ struct TestData {
 auto getTestClassNames(alias mod)() pure nothrow {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
     TestData[] classes;
+
     foreach(klass; __traits(allMembers, mod)) {
-        static if(__traits(compiles, mixin(klass)) && !isSomeFunction!(mixin(klass)) &&
-                  !HasAttribute!(mod, klass, DontTest) &&
-                  (__traits(hasMember, mixin(klass), "test") ||
-                   HasAttribute!(mod, klass, UnitTest))) {
-            classes ~= TestData(fullyQualifiedName!mod ~ "." ~ klass,
-                                HasAttribute!(mod, klass, HiddenTest),
-                                null, //TestFunction
-                                HasAttribute!(mod, klass, SingleThreaded));
+
+        enum notPrivate = __traits(compiles, mixin(klass)); //only way I know to check if private
+        enum compiles = __traits(compiles, isAggregateType!(mixin(klass)));
+
+        static if(notPrivate && compiles) {
+
+            enum isAggregate = isAggregateType!(mixin(klass));
+
+            static if(isAggregate) {
+                enum hasDontTest = HasAttribute!(mod, klass, DontTest);
+                enum hasUnitTest = HasAttribute!(mod, klass, UnitTest);
+                enum hasTestMethod = __traits(hasMember, mixin(klass), "test");
+
+                static if(!hasDontTest && (hasTestMethod || hasUnitTest)) {
+                    classes ~= TestData(fullyQualifiedName!mod ~ "." ~ klass,
+                                        HasAttribute!(mod, klass, HiddenTest),
+                                        null, //TestFunction
+                                        HasAttribute!(mod, klass, SingleThreaded));
+                }
+            }
         }
     }
 
@@ -56,16 +69,26 @@ auto getTestFunctions(alias mod)() pure nothrow {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
     TestData[] functions;
     foreach(moduleMember; __traits(allMembers, mod)) {
-        static if(__traits(compiles, mixin(moduleMember)) && !HasAttribute!(mod, moduleMember, DontTest) &&
-                  (IsTestFunction!(mod, moduleMember) ||
-                   (isSomeFunction!(mixin(moduleMember)) && HasAttribute!(mod, moduleMember, UnitTest)))) {
-            enum funcName = fullyQualifiedName!mod ~ "." ~ moduleMember;
-            enum funcAddr = "&" ~ funcName;
 
-            mixin(`functions ~= TestData("` ~ funcName ~ `", ` ~
-                  HasAttribute!(mod, moduleMember, HiddenTest).stringof ~ ", " ~ funcAddr ~
-                  ", " ~  HasAttribute!(mod, moduleMember, SingleThreaded).stringof ~ ");");
+        enum notPrivate = __traits(compiles, mixin(moduleMember));
+        enum compiles = __traits(compiles, HasAttribute!(mod, moduleMember, DontTest));
 
+        static if(notPrivate && compiles) {
+
+            enum hasDontTest = HasAttribute!(mod, moduleMember, DontTest);
+            enum hasUnitTest = HasAttribute!(mod, moduleMember, UnitTest);
+            enum isFunction = isSomeFunction!(mixin(moduleMember));
+
+            static if(!hasDontTest &&
+                      (IsTestFunction!(mod, moduleMember) || (isFunction && hasUnitTest))) {
+
+                enum funcName = fullyQualifiedName!mod ~ "." ~ moduleMember;
+                enum funcAddr = "&" ~ funcName;
+
+                mixin(`functions ~= TestData("` ~ funcName ~ `", ` ~
+                      HasAttribute!(mod, moduleMember, HiddenTest).stringof ~ ", " ~ funcAddr ~
+                      ", " ~  HasAttribute!(mod, moduleMember, SingleThreaded).stringof ~ ");");
+            }
         }
     }
 
