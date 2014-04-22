@@ -1,4 +1,2 @@
 . Mocking support
-. Expected to fail tests
-. Stack trace for unexpected exceptions
 . staticEquals?
