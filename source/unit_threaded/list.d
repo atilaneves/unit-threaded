@@ -104,7 +104,7 @@ private template isTestFunction(alias mod, string moduleMember) {
  * Finds all test classes (classes implementing a test() function)
  * in the given module
  */
-auto getTestClassNames(alias mod)() pure nothrow {
+auto getTestClasses(alias mod)() pure nothrow {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
     TestData[] testData;
     foreach(moduleMember; __traits(allMembers, mod)) {
@@ -173,7 +173,7 @@ unittest {
     import std.algorithm;
     import std.array;
     const expected = addModule([ "FooTest", "BarTest", "Blergh"]);
-    const actual = array(map!(a => a.name)(getTestClassNames!(unit_threaded.tests.module_with_tests)()));
+    const actual = array(map!(a => a.name)(getTestClasses!(unit_threaded.tests.module_with_tests)()));
     assertEqual(actual, expected);
 }
 
