@@ -102,17 +102,17 @@ bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, 
  * Runs all tests in passed-in modules. Modules are strings.
  */
 bool runTests(MOD_STRINGS...)(in Options options) if(allSatisfy!(isSomeString, typeof(MOD_STRINGS))) {
-    mixin(getImportTestsCompileString!MOD_STRINGS()); //e.g. import foo, bar, baz;
-    static immutable runStr = getRunTestsCompileString!MOD_STRINGS();
-    mixin(getRunTestsCompileString!MOD_STRINGS()); //e.g. runTests!(foo, bar, baz)();
+    mixin(getImportTestsCompileString!MOD_STRINGS); //e.g. import foo, bar, baz;
+    enum runStr = getRunTestsCompileString!MOD_STRINGS;
+    mixin(getRunTestsCompileString!MOD_STRINGS); //e.g. runTests!(foo, bar, baz)();
 }
 
 private string getImportTestsCompileString(MOD_STRINGS...)() {
-    return "import " ~ getModulesCompileString!MOD_STRINGS() ~ ";";
+    return "import " ~ getModulesCompileString!MOD_STRINGS ~ ";";
 }
 
 private string getRunTestsCompileString(MOD_STRINGS...)() {
-    return "return runTests!(" ~ getModulesCompileString!MOD_STRINGS() ~ ")(options);";
+    return "return runTests!(" ~ getModulesCompileString!MOD_STRINGS ~ ")(options);";
 }
 
 private string getModulesCompileString(MOD_STRINGS...)() {
