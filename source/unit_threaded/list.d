@@ -100,18 +100,14 @@ private template isTestFunction(alias mod, string moduleMember) {
     }
 }
 
-/**
- * Finds all test classes (classes implementing a test() function)
- * in the given module
- */
-auto getTestClasses(alias mod)() pure nothrow {
+private auto getTestCases(alias mod, alias pred)() pure nothrow {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
     TestData[] testData;
     foreach(moduleMember; __traits(allMembers, mod)) {
 
         enum notPrivate = __traits(compiles, mixin(moduleMember)); //only way I know to check if private
 
-        static if(notPrivate && isTestClass!(mod, moduleMember)) {
+        static if(notPrivate && pred!(mod, moduleMember)) {
             static if(!HasAttribute!(mod, moduleMember, DontTest)) {
                 testData ~= createTestData!(mod, moduleMember);
             }
@@ -121,25 +117,21 @@ auto getTestClasses(alias mod)() pure nothrow {
     return testData;
 }
 
+
+/**
+ * Finds all test classes (classes implementing a test() function)
+ * in the given module
+ */
+auto getTestClasses(alias mod)() pure nothrow {
+    return getTestCases!(mod, isTestClass);
+}
+
 /**
  * Finds all test functions in the given module.
  * Returns an array of TestData structs
  */
 auto getTestFunctions(alias mod)() pure nothrow {
-    mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
-    TestData[] testData;
-    foreach(moduleMember; __traits(allMembers, mod)) {
-
-        enum notPrivate = __traits(compiles, mixin(moduleMember));
-
-        static if(notPrivate && isTestFunction!(mod, moduleMember)) {
-            static if(!HasAttribute!(mod, moduleMember, DontTest)) {
-                testData ~= createTestData!(mod, moduleMember);
-            }
-        }
-    }
-
-    return testData;
+    return getTestCases!(mod, isTestFunction);
 }
 
 private template hasTestPrefix(alias mod, alias T) {
