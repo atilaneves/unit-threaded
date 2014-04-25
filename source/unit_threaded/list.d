@@ -76,8 +76,9 @@ auto getTestClassNames(alias mod)() pure nothrow {
                 enum hasDontTest = HasAttribute!(mod, klass, DontTest);
                 enum hasUnitTest = HasAttribute!(mod, klass, UnitTest);
                 enum hasTestMethod = __traits(hasMember, mixin(klass), "test");
+                enum isTestClass = hasTestMethod || hasUnitTest;
 
-                static if(!hasDontTest && (hasTestMethod || hasUnitTest)) {
+                static if(isTestClass && !hasDontTest) {
                     classes ~= TestData(fullyQualifiedName!mod ~ "." ~ klass,
                                         HasHidden!(mod, klass),
                                         HasShouldFail!(mod, klass),
