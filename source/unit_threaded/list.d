@@ -84,26 +84,31 @@ auto getTestClassNames(alias mod)() pure nothrow {
 
         enum notPrivate = __traits(compiles, mixin(moduleMember)); //only way I know to check if private
 
-        static if(notPrivate) {
-
-            static if(__traits(compiles, isAggregateType!(mixin(moduleMember)))) {
-                enum isAggregate = isAggregateType!(mixin(moduleMember));
-
-                static if(isAggregate) {
-                    enum hasUnitTest = HasAttribute!(mod, moduleMember, UnitTest);
-                    enum hasTestMethod = __traits(hasMember, mixin(moduleMember), "test");
-                    enum isTestClass = hasTestMethod || hasUnitTest;
-                    enum hasDontTest = HasAttribute!(mod, moduleMember, DontTest);
-
-                    static if(isTestClass && !hasDontTest) {
-                    testData ~= createTestData!(mod, moduleMember);
-                    }
-                }
+        static if(notPrivate && isTestClass!(mod, moduleMember)) {
+            static if(!HasAttribute!(mod, moduleMember, DontTest)) {
+                testData ~= createTestData!(mod, moduleMember);
             }
         }
     }
 
     return testData;
+}
+
+private template isTestClass(alias mod, string moduleMember) {
+    mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
+    static if(__traits(compiles, isAggregateType!(mixin(moduleMember)))) {
+        static if(isAggregateType!(mixin(moduleMember))) {
+
+            enum hasUnitTest = HasAttribute!(mod, moduleMember, UnitTest);
+            enum hasTestMethod = __traits(hasMember, mixin(moduleMember), "test");
+
+            enum isTestClass = hasTestMethod || hasUnitTest;
+        } else {
+            enum isTestClass = false;
+        }
+    } else {
+        enum isTestClass = false;
+    }
 }
 
 /**
@@ -118,12 +123,10 @@ auto getTestFunctions(alias mod)() pure nothrow {
         enum notPrivate = __traits(compiles, mixin(moduleMember));
 
         static if(notPrivate) {
-
-            enum isFunction = isSomeFunction!(mixin(moduleMember));
-            static if(isFunction) {
+            static if(isSomeFunction!(mixin(moduleMember))) {
 
                 enum hasUnitTest = HasAttribute!(mod, moduleMember, UnitTest);
-                enum isTestFunction = hasTestPrefix!(mod, moduleMember) || (isFunction && hasUnitTest);
+                enum isTestFunction = hasTestPrefix!(mod, moduleMember) || hasUnitTest;
                 enum hasDontTest = HasAttribute!(mod, moduleMember, DontTest);
 
                 static if(isTestFunction && !hasDontTest) {
