@@ -45,8 +45,8 @@ private auto getTestNames(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString, typeof
 
 private auto getTestNames(MOD_STRINGS...)() if(allSatisfy!(isSomeString, typeof(MOD_STRINGS))) {
     mixin(getImportTestsCompileString!MOD_STRINGS()); //e.g. import foo, bar, baz;
-    mixin("return map!(a => a.name)(getTestClassesAndFunctions!(" ~
-          getModulesCompileString!MOD_STRINGS() ~ ")());");
+    enum mod_symbols = getModulesCompileString!MOD_STRINGS; //e.g. foo, bar, baz
+    mixin("return getTestClassesAndFunctions!(" ~ mod_symbols ~ ").map!(a => a.name);");
 }
 
 /**
