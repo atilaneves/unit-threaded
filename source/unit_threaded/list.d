@@ -55,41 +55,46 @@ struct TestData {
     bool singleThreaded;
 }
 
+
+private auto createTestData(alias mod, string moduleMember)() pure nothrow {
+    return TestData(fullyQualifiedName!mod ~ "." ~ moduleMember,
+                    HasHidden!(mod, moduleMember),
+                    HasShouldFail!(mod, moduleMember),
+                    null, //TestFunction
+                    HasAttribute!(mod, moduleMember, SingleThreaded));
+}
+
 /**
  * Finds all test classes (classes implementing a test() function)
  * in the given module
  */
 auto getTestClassNames(alias mod)() pure nothrow {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
-    TestData[] classes;
+    TestData[] testData;
 
-    foreach(klass; __traits(allMembers, mod)) {
+    foreach(moduleMember; __traits(allMembers, mod)) {
 
-        enum notPrivate = __traits(compiles, mixin(klass)); //only way I know to check if private
-        enum compiles = __traits(compiles, isAggregateType!(mixin(klass)));
+        enum notPrivate = __traits(compiles, mixin(moduleMember)); //only way I know to check if private
+        enum compiles = __traits(compiles, isAggregateType!(mixin(moduleMember)));
 
         static if(notPrivate && compiles) {
 
-            enum isAggregate = isAggregateType!(mixin(klass));
+            enum isAggregate = isAggregateType!(mixin(moduleMember));
 
             static if(isAggregate) {
-                enum hasDontTest = HasAttribute!(mod, klass, DontTest);
-                enum hasUnitTest = HasAttribute!(mod, klass, UnitTest);
-                enum hasTestMethod = __traits(hasMember, mixin(klass), "test");
+                enum hasDontTest = HasAttribute!(mod, moduleMember, DontTest);
+                enum hasUnitTest = HasAttribute!(mod, moduleMember, UnitTest);
+                enum hasTestMethod = __traits(hasMember, mixin(moduleMember), "test");
                 enum isTestClass = hasTestMethod || hasUnitTest;
 
                 static if(isTestClass && !hasDontTest) {
-                    classes ~= TestData(fullyQualifiedName!mod ~ "." ~ klass,
-                                        HasHidden!(mod, klass),
-                                        HasShouldFail!(mod, klass),
-                                        null, //TestFunction
-                                        HasAttribute!(mod, klass, SingleThreaded));
+                    testData ~= createTestData!(mod, moduleMember);
                 }
             }
         }
     }
 
-    return classes;
+    return testData;
 }
 
 /**
@@ -98,7 +103,7 @@ auto getTestClassNames(alias mod)() pure nothrow {
  */
 auto getTestFunctions(alias mod)() pure nothrow {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
-    TestData[] functions;
+    TestData[] testData;
     foreach(moduleMember; __traits(allMembers, mod)) {
 
         enum notPrivate = __traits(compiles, mixin(moduleMember));
@@ -112,7 +117,7 @@ auto getTestFunctions(alias mod)() pure nothrow {
             enum isTestFunction = hasTestPrefix!(mod, moduleMember) || (isFunction && hasUnitTest);
 
             static if(isTestFunction && !hasDontTest) {
-                functions ~= TestData(fullyQualifiedName!mod ~ "." ~ moduleMember,
+                testData ~= TestData(fullyQualifiedName!mod ~ "." ~ moduleMember,
                                       HasHidden!(mod, moduleMember),
                                       HasShouldFail!(mod, moduleMember),
                                       &__traits(getMember, mod, moduleMember),
@@ -121,7 +126,7 @@ auto getTestFunctions(alias mod)() pure nothrow {
         }
     }
 
-    return functions;
+    return testData;
 }
 
 private template hasTestPrefix(alias mod, alias T) {
