@@ -60,8 +60,16 @@ private auto createTestData(alias mod, string moduleMember)() pure nothrow {
     return TestData(fullyQualifiedName!mod ~ "." ~ moduleMember,
                     HasHidden!(mod, moduleMember),
                     HasShouldFail!(mod, moduleMember),
-                    null, //TestFunction
+                    getTestFunction!(mod, moduleMember),
                     HasAttribute!(mod, moduleMember, SingleThreaded));
+}
+
+private TestFunction getTestFunction(alias mod, string moduleMember)() {
+    static if(__traits(compiles, &__traits(getMember, mod, moduleMember))) {
+        return &__traits(getMember, mod, moduleMember);
+    } else {
+        return null;
+    }
 }
 
 /**
@@ -117,11 +125,7 @@ auto getTestFunctions(alias mod)() pure nothrow {
             enum isTestFunction = hasTestPrefix!(mod, moduleMember) || (isFunction && hasUnitTest);
 
             static if(isTestFunction && !hasDontTest) {
-                testData ~= TestData(fullyQualifiedName!mod ~ "." ~ moduleMember,
-                                      HasHidden!(mod, moduleMember),
-                                      HasShouldFail!(mod, moduleMember),
-                                      &__traits(getMember, mod, moduleMember),
-                                      HasAttribute!(mod, moduleMember, SingleThreaded));
+                testData ~= createTestData!(mod, moduleMember);
             }
         }
     }
