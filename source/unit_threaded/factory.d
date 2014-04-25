@@ -102,7 +102,7 @@ private class FunctionTestCase: TestCase {
 }
 
 package auto getTestClassesAndFunctions(MODULES...)() {
-    return getAllTests!(q{getTestClassNames}, MODULES)() ~
+    return getAllTests!(q{getTestClasses}, MODULES)() ~
            getAllTests!(q{getTestFunctions}, MODULES)();
 }
 
