@@ -108,14 +108,10 @@ auto getTestFunctions(alias mod)() pure nothrow {
             enum hasDontTest = HasAttribute!(mod, moduleMember, DontTest);
             enum hasUnitTest = HasAttribute!(mod, moduleMember, UnitTest);
             enum isFunction = isSomeFunction!(mixin(moduleMember));
+            enum isTestFunction = hasTestPrefix!(mod, moduleMember) || (isFunction && hasUnitTest);
 
-            static if(!hasDontTest &&
-                      (IsTestFunction!(mod, moduleMember) || (isFunction && hasUnitTest))) {
-
-                enum funcName = fullyQualifiedName!mod ~ "." ~ moduleMember;
-                enum funcAddr = "&" ~ funcName;
-
-                functions ~= TestData(funcName ,
+            static if(isTestFunction && !hasDontTest) {
+                functions ~= TestData(fullyQualifiedName!mod ~ "." ~ moduleMember,
                                       HasHidden!(mod, moduleMember),
                                       HasShouldFail!(mod, moduleMember),
                                       &__traits(getMember, mod, moduleMember),
@@ -127,7 +123,7 @@ auto getTestFunctions(alias mod)() pure nothrow {
     return functions;
 }
 
-private template IsTestFunction(alias mod, alias T) {
+private template hasTestPrefix(alias mod, alias T) {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
 
     enum prefix = "test";
@@ -136,9 +132,9 @@ private template IsTestFunction(alias mod, alias T) {
     static if(isSomeFunction!(mixin(T)) &&
               T.length >= minSize && T[0 .. prefix.length] == "test" &&
               isUpper(T[prefix.length])) {
-        enum IsTestFunction = true;
+        enum hasTestPrefix = true;
     } else {
-        enum IsTestFunction = false;
+        enum hasTestPrefix = false;
     }
 }
 
@@ -163,8 +159,8 @@ unittest {
 }
 
 unittest {
-    static assert(IsTestFunction!(unit_threaded.tests.module_with_tests, "testFoo"));
-    static assert(!IsTestFunction!(unit_threaded.tests.module_with_tests, "funcThatShouldShowUpCosOfAttr"));
+    static assert(hasTestPrefix!(unit_threaded.tests.module_with_tests, "testFoo"));
+    static assert(!hasTestPrefix!(unit_threaded.tests.module_with_tests, "funcThatShouldShowUpCosOfAttr"));
 }
 
 unittest {
