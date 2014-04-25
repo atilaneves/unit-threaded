@@ -57,47 +57,20 @@ struct TestData {
 
 
 private auto createTestData(alias mod, string moduleMember)() pure nothrow {
+    TestFunction getTestFunction(alias mod, string moduleMember)() {
+    //returns a function pointer for test functions, null for test classes
+        static if(__traits(compiles, &__traits(getMember, mod, moduleMember))) {
+            return &__traits(getMember, mod, moduleMember);
+        } else {
+            return null;
+        }
+    }
+
     return TestData(fullyQualifiedName!mod ~ "." ~ moduleMember,
                     HasHidden!(mod, moduleMember),
                     HasShouldFail!(mod, moduleMember),
                     getTestFunction!(mod, moduleMember),
                     HasAttribute!(mod, moduleMember, SingleThreaded));
-}
-
-//returns a function pointer for test functions, null for test classes
-private TestFunction getTestFunction(alias mod, string moduleMember)() {
-    static if(__traits(compiles, &__traits(getMember, mod, moduleMember))) {
-        return &__traits(getMember, mod, moduleMember);
-    } else {
-        return null;
-    }
-}
-
-private template isTestClass(alias mod, string moduleMember) {
-    mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
-    static if(__traits(compiles, isAggregateType!(mixin(moduleMember)))) {
-        static if(isAggregateType!(mixin(moduleMember))) {
-
-            enum hasUnitTest = HasAttribute!(mod, moduleMember, UnitTest);
-            enum hasTestMethod = __traits(hasMember, mixin(moduleMember), "test");
-
-            enum isTestClass = hasTestMethod || hasUnitTest;
-        } else {
-            enum isTestClass = false;
-        }
-    } else {
-        enum isTestClass = false;
-    }
-}
-
-private template isTestFunction(alias mod, string moduleMember) {
-    mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
-    static if(isSomeFunction!(mixin(moduleMember))) {
-        enum isTestFunction = hasTestPrefix!(mod, moduleMember) ||
-            HasAttribute!(mod, moduleMember, UnitTest);
-    } else {
-        enum isTestFunction = false;
-    }
 }
 
 private auto getTestCases(alias mod, alias pred)() pure nothrow {
@@ -126,6 +99,23 @@ auto getTestClasses(alias mod)() pure nothrow {
     return getTestCases!(mod, isTestClass);
 }
 
+private template isTestClass(alias mod, string moduleMember) {
+    mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
+    static if(__traits(compiles, isAggregateType!(mixin(moduleMember)))) {
+        static if(isAggregateType!(mixin(moduleMember))) {
+
+            enum hasUnitTest = HasAttribute!(mod, moduleMember, UnitTest);
+            enum hasTestMethod = __traits(hasMember, mixin(moduleMember), "test");
+
+            enum isTestClass = hasTestMethod || hasUnitTest;
+        } else {
+            enum isTestClass = false;
+        }
+    } else {
+        enum isTestClass = false;
+    }
+}
+
 /**
  * Finds all test functions in the given module.
  * Returns an array of TestData structs
@@ -133,6 +123,17 @@ auto getTestClasses(alias mod)() pure nothrow {
 auto getTestFunctions(alias mod)() pure nothrow {
     return getTestCases!(mod, isTestFunction);
 }
+
+private template isTestFunction(alias mod, string moduleMember) {
+    mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
+    static if(isSomeFunction!(mixin(moduleMember))) {
+        enum isTestFunction = hasTestPrefix!(mod, moduleMember) ||
+            HasAttribute!(mod, moduleMember, UnitTest);
+    } else {
+        enum isTestFunction = false;
+    }
+}
+
 
 private template hasTestPrefix(alias mod, alias T) {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
