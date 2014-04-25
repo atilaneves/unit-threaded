@@ -73,6 +73,33 @@ private TestFunction getTestFunction(alias mod, string moduleMember)() {
     }
 }
 
+private template isTestClass(alias mod, string moduleMember) {
+    mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
+    static if(__traits(compiles, isAggregateType!(mixin(moduleMember)))) {
+        static if(isAggregateType!(mixin(moduleMember))) {
+
+            enum hasUnitTest = HasAttribute!(mod, moduleMember, UnitTest);
+            enum hasTestMethod = __traits(hasMember, mixin(moduleMember), "test");
+
+            enum isTestClass = hasTestMethod || hasUnitTest;
+        } else {
+            enum isTestClass = false;
+        }
+    } else {
+        enum isTestClass = false;
+    }
+}
+
+private template isTestFunction(alias mod, string moduleMember) {
+    mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
+    static if(isSomeFunction!(mixin(moduleMember))) {
+        enum isTestFunction = hasTestPrefix!(mod, moduleMember) ||
+            HasAttribute!(mod, moduleMember, UnitTest);
+    } else {
+        enum isTestFunction = false;
+    }
+}
+
 /**
  * Finds all test classes (classes implementing a test() function)
  * in the given module
@@ -94,23 +121,6 @@ auto getTestClassNames(alias mod)() pure nothrow {
     return testData;
 }
 
-private template isTestClass(alias mod, string moduleMember) {
-    mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
-    static if(__traits(compiles, isAggregateType!(mixin(moduleMember)))) {
-        static if(isAggregateType!(mixin(moduleMember))) {
-
-            enum hasUnitTest = HasAttribute!(mod, moduleMember, UnitTest);
-            enum hasTestMethod = __traits(hasMember, mixin(moduleMember), "test");
-
-            enum isTestClass = hasTestMethod || hasUnitTest;
-        } else {
-            enum isTestClass = false;
-        }
-    } else {
-        enum isTestClass = false;
-    }
-}
-
 /**
  * Finds all test functions in the given module.
  * Returns an array of TestData structs
@@ -122,16 +132,9 @@ auto getTestFunctions(alias mod)() pure nothrow {
 
         enum notPrivate = __traits(compiles, mixin(moduleMember));
 
-        static if(notPrivate) {
-            static if(isSomeFunction!(mixin(moduleMember))) {
-
-                enum hasUnitTest = HasAttribute!(mod, moduleMember, UnitTest);
-                enum isTestFunction = hasTestPrefix!(mod, moduleMember) || hasUnitTest;
-                enum hasDontTest = HasAttribute!(mod, moduleMember, DontTest);
-
-                static if(isTestFunction && !hasDontTest) {
-                    testData ~= createTestData!(mod, moduleMember);
-                }
+        static if(notPrivate && isTestFunction!(mod, moduleMember)) {
+            static if(!HasAttribute!(mod, moduleMember, DontTest)) {
+                testData ~= createTestData!(mod, moduleMember);
             }
         }
     }
