@@ -100,7 +100,7 @@ There is support for debug prints in the tests with the `-d` switch.
 This is only supported in single-threaded mode (`-s`). Setting `-d`
 without `-s` will trigger a warning followed by the forceful use of
 `-s`.  TestCases and test functions can print debug output with the
-function `writelnUt` available [here](unit_threaded/io.d).
+function `writelnUt` available [here](source/unit_threaded/io.d).
 
 Since code under test might not be thread-safe, the `@SingleThreaded`
 attribute can be used on a test. This causes all tests in the same
