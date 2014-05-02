@@ -102,18 +102,19 @@ private class FunctionTestCase: TestCase {
 }
 
 package auto getTestClassesAndFunctions(MODULES...)() {
+    auto getAllTests(string expr, MODULES...)() pure nothrow {
+        //tests is whatever type expr returns
+        ReturnType!(mixin(expr ~ q{!(MODULES[0])})) tests;
+        foreach(mod; TypeTuple!MODULES) {
+            tests ~= mixin(expr ~ q{!mod()}); //e.g. tests ~= getTestClasses!mod
+        }
+        return assumeUnique(tests);
+    }
+
     return getAllTests!(q{getTestClasses}, MODULES)() ~
            getAllTests!(q{getTestFunctions}, MODULES)();
 }
 
-private auto getAllTests(string expr, MODULES...)() pure nothrow {
-    //tests is whatever type expr returns
-    ReturnType!(mixin(expr ~ q{!(MODULES[0])})) tests;
-    foreach(mod; TypeTuple!MODULES) {
-        tests ~= mixin(expr ~ q{!mod()});
-    }
-    return assumeUnique(tests);
-}
 
 
 private TestCase[] builtinTests; //built-in unittest blocks
