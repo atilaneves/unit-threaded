@@ -54,7 +54,7 @@ private:
         } catch(UnitTestException ex) {
             fail(ex.msg);
         } catch(Exception ex) {
-            fail("\n    " ~ ex.toString());
+            fail("\n    " ~ ex.toString() ~ "\n");
         }
 
         return !_failed;
