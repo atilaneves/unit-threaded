@@ -153,7 +153,7 @@ private template hasTestPrefix(alias mod, alias T) {
 private auto addModule(string[] elements, string mod = "unit_threaded.tests.module_with_tests") nothrow {
     import std.algorithm;
     import std.array;
-    return array(map!(a => mod ~ "." ~ a)(elements));
+    return elements.map!(a => mod ~ "." ~ a).array;
 }
 
 import unit_threaded.tests.module_with_tests; //defines tests and non-tests
@@ -164,7 +164,7 @@ unittest {
     import std.algorithm;
     import std.array;
     const expected = addModule([ "FooTest", "BarTest", "Blergh"]);
-    const actual = array(map!(a => a.name)(getTestClasses!(unit_threaded.tests.module_with_tests)()));
+    const actual = getTestClasses!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
     assertEqual(actual, expected);
 }
 
@@ -176,7 +176,14 @@ unittest {
 unittest {
     import std.algorithm;
     import std.array;
-    auto expected = addModule([ "testFoo", "testBar", "funcThatShouldShowUpCosOfAttr" ]);
-    auto actual = map!(a => a.name)(getTestFunctions!(unit_threaded.tests.module_with_tests)());
-    assertEqual(array(actual), expected);
+    const expected = addModule([ "testFoo", "testBar", "funcThatShouldShowUpCosOfAttr" ]);
+    const actual = getTestFunctions!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
+    assertEqual(actual, expected);
+}
+
+
+unittest {
+    const expected = addModule(["foo", "bar"]);
+    const actual = getBuiltinTests!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
+    assertEqual(actual, expected);
 }

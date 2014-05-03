@@ -141,8 +141,8 @@ private bool moduleUnitTester() {
             } else {
                 enum hidden = false;
                 enum shouldFail = false;
-                builtinTests ~=
-                    new BuiltinTestCase(TestData(mod.name ~ ".unittest", hidden, shouldFail, mod.unitTest));
+                const data = TestData(mod.name ~ ".unittest", hidden, shouldFail, mod.unitTest);
+                builtinTests ~= new BuiltinTestCase(data);
             }
         }
     }
