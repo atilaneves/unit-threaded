@@ -44,7 +44,7 @@ void addToOutput(ref string output, in string msg) {
  */
 void writelnUt(T...)(T args) {
     import std.stdio;
-    if(_debugOutput) writeln(args);
+    if(_debugOutput) writeln("    ", args);
 }
 
 package void utWrite(T...)(T args) {
