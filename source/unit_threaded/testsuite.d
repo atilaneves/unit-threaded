@@ -3,11 +3,16 @@ module unit_threaded.testsuite;
 import unit_threaded.testcase;
 import unit_threaded.io;
 import std.datetime;
-import std.parallelism;
+import std.parallelism: taskPool;
 import std.concurrency;
 import std.stdio;
 import std.conv;
 import std.algorithm;
+
+
+auto runTest(TestCase test) {
+    return test();
+}
 
 /**
  * Responsible for running tests
@@ -21,7 +26,7 @@ struct TestSuite {
         _stopWatch.start();
 
         if(multiThreaded) {
-            foreach(test; parallel(_tests.keys)) _failures ~= test();
+            _failures = reduce!q{a ~ b}(_failures, taskPool.amap!runTest(_tests.keys));
         } else {
             foreach(test; _tests.keys) _failures ~= test();
         }
