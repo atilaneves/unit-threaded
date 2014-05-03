@@ -15,6 +15,7 @@ struct TestData {
     bool shouldFail;
     TestFunction test; //only used for functions, null for classes
     bool singleThreaded;
+    bool builtin;
 }
 
 /**
@@ -46,9 +47,10 @@ auto getBuiltinTests(alias mod)() pure nothrow {
         enum hidden = false;
         enum shouldFail = false;
         enum singleThreaded = false;
+        enum builtin = true;
         try {
             testData ~= TestData(fullyQualifiedName!mod ~ ".unittest" ~ (++index).to!string,
-                                 hidden, shouldFail, &test, singleThreaded);
+                                 hidden, shouldFail, &test, singleThreaded, builtin);
         } catch(Throwable) {
             assert(false, text("Error converting ", index, " to string"));
         }

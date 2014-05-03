@@ -39,9 +39,8 @@ auto createTests(MODULES...)(in string[] testsToRun = []) if(MODULES.length > 0)
 
 private TestCase createTestCase(TestData data) {
     TestCase createImpl(TestData data) {
-        return data.test is null ?
-            cast(TestCase) Object.factory(data.name):
-            new FunctionTestCase(data);
+        if(data.test is null) return cast(TestCase) Object.factory(data.name);
+        return data.builtin ? new BuiltinTestCase(data) : new FunctionTestCase(data);
     }
 
     if(data.singleThreaded) {
@@ -58,7 +57,7 @@ private TestCase createTestCase(TestData data) {
 
     auto testCase = createImpl(data);
     if(data.test !is null) {
-        assert(testCase !is null, "Could not create FunctionTestCase object for function " ~ data.name);
+        assert(testCase !is null, "Could not create TestCase object for test " ~ data.name);
     }
 
     return testCase;
