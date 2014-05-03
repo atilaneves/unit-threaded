@@ -100,6 +100,10 @@ without `-s` will trigger a warning followed by the forceful use of
 `-s`.  TestCases and test functions can print debug output with the
 function `writelnUt` available [here](source/unit_threaded/io.d).
 
+Tests can be run in random order. To do so, use the `-r` option.
+A seed will be printed so that the same run can be repeated by
+using the `--seed` option. This implies running in a single thread.
+
 Since code under test might not be thread-safe, the `@SingleThreaded`
 attribute can be used on a test. This causes all tests in the same
 module that have this attribute to be executed sequentially so they
