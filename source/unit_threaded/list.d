@@ -37,7 +37,7 @@ auto getTestFunctions(alias mod)() pure nothrow {
  * Finds all built-in unittest blocks in the given module.
  * @return An array of TestData structs
  */
-auto getBuiltinTests(alias mod)() pure {
+auto getBuiltinTests(alias mod)() pure nothrow {
     import std.conv;
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
     TestData[] testData;
@@ -46,8 +46,12 @@ auto getBuiltinTests(alias mod)() pure {
         enum hidden = false;
         enum shouldFail = false;
         enum singleThreaded = false;
-        testData ~= TestData(fullyQualifiedName!mod ~ ".unittest" ~ (++index).to!string,
-                             hidden, shouldFail, &test, singleThreaded);
+        try {
+            testData ~= TestData(fullyQualifiedName!mod ~ ".unittest" ~ (++index).to!string,
+                                 hidden, shouldFail, &test, singleThreaded);
+        } catch(Throwable) {
+            assert(false, text("Error converting ", index, " to string"));
+        }
     }
     return testData;
 }

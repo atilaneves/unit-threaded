@@ -111,8 +111,9 @@ package auto getAllTestCases(MODULES...)() {
         return assumeUnique(tests);
     }
 
-    return getAllTestsWithFunc!(q{getTestClasses}, MODULES)() ~
-           getAllTestsWithFunc!(q{getTestFunctions}, MODULES)();
+    return getAllTestsWithFunc!(q{getTestClasses}, MODULES) ~
+           getAllTestsWithFunc!(q{getTestFunctions}, MODULES) ~
+           getAllTestsWithFunc!(q{getBuiltinTests}, MODULES);
 }
 
 
