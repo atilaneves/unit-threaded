@@ -27,7 +27,7 @@ shared static this() {
  */
 auto createTests(MODULES...)(in string[] testsToRun = []) if(MODULES.length > 0) {
     bool[TestCase] tests;
-    foreach(data; getTestClassesAndFunctions!MODULES()) {
+    foreach(data; getAllTestCases!MODULES()) {
         if(!isWantedTest(data, testsToRun)) continue;
         auto test = createTestCase(data);
         if(test !is null) tests[test] = true; //can be null if abtract base class
@@ -101,8 +101,8 @@ private class FunctionTestCase: TestCase {
     private TestFunction _func;
 }
 
-package auto getTestClassesAndFunctions(MODULES...)() {
-    auto getAllTests(string expr, MODULES...)() pure nothrow {
+package auto getAllTestCases(MODULES...)() {
+    auto getAllTestsWithFunc(string expr, MODULES...)() pure nothrow {
         //tests is whatever type expr returns
         ReturnType!(mixin(expr ~ q{!(MODULES[0])})) tests;
         foreach(mod; TypeTuple!MODULES) {
@@ -111,8 +111,8 @@ package auto getTestClassesAndFunctions(MODULES...)() {
         return assumeUnique(tests);
     }
 
-    return getAllTests!(q{getTestClasses}, MODULES)() ~
-           getAllTests!(q{getTestFunctions}, MODULES)();
+    return getAllTestsWithFunc!(q{getTestClasses}, MODULES)() ~
+           getAllTestsWithFunc!(q{getTestFunctions}, MODULES)();
 }
 
 
