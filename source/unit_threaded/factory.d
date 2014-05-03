@@ -17,7 +17,7 @@ import core.runtime;
 /**
  * Replace the D runtime's normal unittest block tester with our own
  */
-static this() {
+shared static this() {
     Runtime.moduleUnitTester = &moduleUnitTester;
 }
 
