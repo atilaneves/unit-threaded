@@ -5,6 +5,59 @@ import std.uni;
 import std.typetuple;
 import unit_threaded.check; //enum labels
 
+/**
+ * Common data for test functions and test classes
+ */
+alias void function() TestFunction;
+struct TestData {
+    string name;
+    bool hidden;
+    bool shouldFail;
+    TestFunction test; //only used for functions, null for classes
+    bool singleThreaded;
+    bool builtin;
+}
+
+/**
+ * Finds all test classes (classes implementing a test() function)
+ * in the given module
+ */
+auto getTestClasses(alias mod)() pure nothrow {
+    return getTestCases!(mod, isTestClass);
+}
+
+/**
+ * Finds all test functions in the given module.
+ * Returns an array of TestData structs
+ */
+auto getTestFunctions(alias mod)() pure nothrow {
+    return getTestCases!(mod, isTestFunction);
+}
+
+/**
+ * Finds all built-in unittest blocks in the given module.
+ * @return An array of TestData structs
+ */
+auto getBuiltinTests(alias mod)() pure nothrow {
+    import std.conv;
+    mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
+    TestData[] testData;
+    int index;
+    foreach(test; __traits(getUnitTests, mod)) {
+        enum hidden = false;
+        enum shouldFail = false;
+        enum singleThreaded = false;
+        enum builtin = true;
+        try {
+            testData ~= TestData(fullyQualifiedName!mod ~ ".unittest" ~ (++index).to!string,
+                                 hidden, shouldFail, &test, singleThreaded, builtin);
+        } catch(Throwable) {
+            assert(false, text("Error converting ", index, " to string"));
+        }
+    }
+    return testData;
+}
+
 private template HasAttribute(alias mod, string T, alias A) {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
     enum index = staticIndexOf!(A, __traits(getAttributes, mixin(T)));
@@ -41,36 +94,6 @@ private template HasShouldFail(alias mod, string member) {
 }
 
 
-/**
- * Common data for test functions and test classes
- */
-alias void function() TestFunction;
-struct TestData {
-    string name;
-    bool hidden;
-    bool shouldFail;
-    TestFunction test; //only used for functions, null for classes
-    bool singleThreaded;
-}
-
-
-private auto createTestData(alias mod, string moduleMember)() pure nothrow {
-    TestFunction getTestFunction(alias mod, string moduleMember)() {
-    //returns a function pointer for test functions, null for test classes
-        static if(__traits(compiles, &__traits(getMember, mod, moduleMember))) {
-            return &__traits(getMember, mod, moduleMember);
-        } else {
-            return null;
-        }
-    }
-
-    return TestData(fullyQualifiedName!mod ~ "." ~ moduleMember,
-                    HasHidden!(mod, moduleMember),
-                    HasShouldFail!(mod, moduleMember),
-                    getTestFunction!(mod, moduleMember),
-                    HasAttribute!(mod, moduleMember, SingleThreaded));
-}
-
 private auto getTestCases(alias mod, alias pred)() pure nothrow {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
     TestData[] testData;
@@ -88,13 +111,21 @@ private auto getTestCases(alias mod, alias pred)() pure nothrow {
     return testData;
 }
 
+private auto createTestData(alias mod, string moduleMember)() pure nothrow {
+    TestFunction getTestFunction(alias mod, string moduleMember)() {
+    //returns a function pointer for test functions, null for test classes
+        static if(__traits(compiles, &__traits(getMember, mod, moduleMember))) {
+            return &__traits(getMember, mod, moduleMember);
+        } else {
+            return null;
+        }
+    }
 
-/**
- * Finds all test classes (classes implementing a test() function)
- * in the given module
- */
-auto getTestClasses(alias mod)() pure nothrow {
-    return getTestCases!(mod, isTestClass);
+    return TestData(fullyQualifiedName!mod ~ "." ~ moduleMember,
+                    HasHidden!(mod, moduleMember),
+                    HasShouldFail!(mod, moduleMember),
+                    getTestFunction!(mod, moduleMember),
+                    HasAttribute!(mod, moduleMember, SingleThreaded));
 }
 
 private template isTestClass(alias mod, string moduleMember) {
@@ -114,13 +145,6 @@ private template isTestClass(alias mod, string moduleMember) {
     }
 }
 
-/**
- * Finds all test functions in the given module.
- * Returns an array of TestData structs
- */
-auto getTestFunctions(alias mod)() pure nothrow {
-    return getTestCases!(mod, isTestFunction);
-}
 
 private template isTestFunction(alias mod, string moduleMember) {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
@@ -131,7 +155,6 @@ private template isTestFunction(alias mod, string moduleMember) {
         enum isTestFunction = false;
     }
 }
-
 
 private template hasTestPrefix(alias mod, alias T) {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
@@ -149,22 +172,19 @@ private template hasTestPrefix(alias mod, alias T) {
 }
 
 
-//helper function for the unittest blocks below
-private auto addModule(string[] elements, string mod = "unit_threaded.tests.module_with_tests") nothrow {
-    import std.algorithm;
-    import std.array;
-    return array(map!(a => mod ~ "." ~ a)(elements));
-}
-
 import unit_threaded.tests.module_with_tests; //defines tests and non-tests
 import unit_threaded.asserts;
+import std.algorithm;
+import std.array;
 
+//helper function for the unittest blocks below
+private auto addModPrefix(string[] elements, string mod = "unit_threaded.tests.module_with_tests") nothrow {
+    return elements.map!(a => mod ~ "." ~ a).array;
+}
 
 unittest {
-    import std.algorithm;
-    import std.array;
-    const expected = addModule([ "FooTest", "BarTest", "Blergh"]);
-    const actual = array(map!(a => a.name)(getTestClasses!(unit_threaded.tests.module_with_tests)()));
+    const expected = addModPrefix([ "FooTest", "BarTest", "Blergh"]);
+    const actual = getTestClasses!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
     assertEqual(actual, expected);
 }
 
@@ -174,9 +194,14 @@ unittest {
 }
 
 unittest {
-    import std.algorithm;
-    import std.array;
-    auto expected = addModule([ "testFoo", "testBar", "funcThatShouldShowUpCosOfAttr" ]);
-    auto actual = map!(a => a.name)(getTestFunctions!(unit_threaded.tests.module_with_tests)());
-    assertEqual(array(actual), expected);
+    const expected = addModPrefix([ "testFoo", "testBar", "funcThatShouldShowUpCosOfAttr" ]);
+    const actual = getTestFunctions!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
+    assertEqual(actual, expected);
+}
+
+
+unittest {
+    const expected = addModPrefix(["unittest1", "unittest2"]);
+    const actual = getBuiltinTests!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
+    assertEqual(actual, expected);
 }

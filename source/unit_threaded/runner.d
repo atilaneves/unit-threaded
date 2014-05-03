@@ -40,13 +40,13 @@ int runTests(MODULES...)(string[] args) {
 }
 
 private auto getTestNames(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
-    return getTestClassesAndFunctions!MOD_SYMBOLS.map!(a => a.name);
+    return getAllTestCases!MOD_SYMBOLS.map!(a => a.name);
 }
 
 private auto getTestNames(MOD_STRINGS...)() if(allSatisfy!(isSomeString, typeof(MOD_STRINGS))) {
     mixin(getImportTestsCompileString!MOD_STRINGS()); //e.g. import foo, bar, baz;
     enum mod_symbols = getModulesCompileString!MOD_STRINGS; //e.g. foo, bar, baz
-    mixin("return getTestClassesAndFunctions!(" ~ mod_symbols ~ ").map!(a => a.name);");
+    mixin("return getAllTestCases!(" ~ mod_symbols ~ ").map!(a => a.name);");
 }
 
 /**
@@ -81,7 +81,7 @@ bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, 
     } else {
         utWrite(failuresStr);
     }
-    const numHidden = getTestClassesAndFunctions!MOD_SYMBOLS.filter!(a => a.hidden).count;
+    const numHidden = getAllTestCases!MOD_SYMBOLS.filter!(a => a.hidden).count;
     if(numHidden) {
         utWrite(", ");
         utWriteYellow(numHidden, " hidden");

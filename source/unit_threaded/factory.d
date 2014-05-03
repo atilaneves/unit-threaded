@@ -27,14 +27,10 @@ shared static this() {
  */
 auto createTests(MODULES...)(in string[] testsToRun = []) if(MODULES.length > 0) {
     bool[TestCase] tests;
-    foreach(data; getTestClassesAndFunctions!MODULES()) {
+    foreach(data; getAllTestCases!MODULES()) {
         if(!isWantedTest(data, testsToRun)) continue;
         auto test = createTestCase(data);
         if(test !is null) tests[test] = true; //can be null if abtract base class
-    }
-
-    foreach(test; builtinTests) { //builtInTests defined below
-        if(isWantedTest(TestData(test.getPath(), false /*hidden*/), testsToRun)) tests[test] = true;
     }
 
     return tests.keys.sort!((a, b) => a.getPath < b.getPath).array;
@@ -43,9 +39,8 @@ auto createTests(MODULES...)(in string[] testsToRun = []) if(MODULES.length > 0)
 
 private TestCase createTestCase(TestData data) {
     TestCase createImpl(TestData data) {
-        return data.test is null ?
-            cast(TestCase) Object.factory(data.name):
-            new FunctionTestCase(data);
+        if(data.test is null) return cast(TestCase) Object.factory(data.name);
+        return data.builtin ? new BuiltinTestCase(data) : new FunctionTestCase(data);
     }
 
     if(data.singleThreaded) {
@@ -62,7 +57,7 @@ private TestCase createTestCase(TestData data) {
 
     auto testCase = createImpl(data);
     if(data.test !is null) {
-        assert(testCase !is null, "Could not create FunctionTestCase object for function " ~ data.name);
+        assert(testCase !is null, "Could not create TestCase object for test " ~ data.name);
     }
 
     return testCase;
@@ -83,26 +78,9 @@ private bool isWantedTest(in TestData data, in string[] testsToRun) {
     return testsToRun.any!(t => matchesExactly(t) || matchesPackage(t));
 }
 
-private class FunctionTestCase: TestCase {
-    this(immutable TestData data) pure nothrow {
-        _name = data.name;
-        _func = data.test;
-    }
 
-    override void test() {
-        _func();
-    }
-
-    override string getPath() const pure nothrow {
-        return _name;
-    }
-
-    private string _name;
-    private TestFunction _func;
-}
-
-package auto getTestClassesAndFunctions(MODULES...)() {
-    auto getAllTests(string expr, MODULES...)() pure nothrow {
+package auto getAllTestCases(MODULES...)() {
+    auto getAllTestsWithFunc(string expr, MODULES...)() pure nothrow {
         //tests is whatever type expr returns
         ReturnType!(mixin(expr ~ q{!(MODULES[0])})) tests;
         foreach(mod; TypeTuple!MODULES) {
@@ -111,38 +89,18 @@ package auto getTestClassesAndFunctions(MODULES...)() {
         return assumeUnique(tests);
     }
 
-    return getAllTests!(q{getTestClasses}, MODULES)() ~
-           getAllTests!(q{getTestFunctions}, MODULES)();
+    return getAllTestsWithFunc!(q{getTestClasses}, MODULES) ~
+           getAllTestsWithFunc!(q{getTestFunctions}, MODULES) ~
+           getAllTestsWithFunc!(q{getBuiltinTests}, MODULES);
 }
 
-
-
-private TestCase[] builtinTests; //built-in unittest blocks
-
-private class BuiltinTestCase: FunctionTestCase {
-    this(immutable TestData data) pure nothrow {
-        super(data);
-    }
-
-    override void test() {
-        try {
-            super.test();
-        } catch(Throwable t) {
-            utFail(t.msg, t.file, t.line);
-        }
-    }
-}
 
 private bool moduleUnitTester() {
+    //this is so unit-threaded's own tests run
     foreach(mod; ModuleInfo) {
         if(mod && mod.unitTest) {
             if(startsWith(mod.name, "unit_threaded.")) {
                 mod.unitTest()();
-            } else {
-                enum hidden = false;
-                enum shouldFail = false;
-                builtinTests ~=
-                    new BuiltinTestCase(TestData(mod.name ~ ".unittest", hidden, shouldFail, mod.unitTest));
             }
         }
     }

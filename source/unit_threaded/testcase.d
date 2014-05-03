@@ -2,6 +2,7 @@ module unit_threaded.testcase;
 
 import unit_threaded.check;
 import unit_threaded.io;
+import unit_threaded.list: TestData, TestFunction;
 
 import std.exception;
 import std.string;
@@ -111,4 +112,36 @@ class ShouldFailTestCase: TestCase {
 private:
 
     TestCase testCase;
+}
+
+class FunctionTestCase: TestCase {
+    this(immutable TestData data) pure nothrow {
+        _name = data.name;
+        _func = data.test;
+    }
+
+    override void test() {
+        _func();
+    }
+
+    override string getPath() const pure nothrow {
+        return _name;
+    }
+
+    private string _name;
+    private TestFunction _func;
+}
+
+class BuiltinTestCase: FunctionTestCase {
+    this(immutable TestData data) pure nothrow {
+        super(data);
+    }
+
+    override void test() {
+        try {
+            super.test();
+        } catch(Throwable t) {
+            utFail(t.msg, t.file, t.line);
+        }
+    }
 }

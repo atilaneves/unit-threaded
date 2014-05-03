@@ -50,5 +50,7 @@ void testStringNotEqual() {
 }
 
 unittest {
-    assert(false, "unittest block that always fails");
+    const str = "unittest block that always fails";
+    writelnUt(str);
+    assert(3 == 4, str);
 }

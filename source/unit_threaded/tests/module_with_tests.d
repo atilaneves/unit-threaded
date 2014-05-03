@@ -26,3 +26,14 @@ version(unittest) {
     @HiddenTest void withHidden() {}
     void withoutHidden() { }
 }
+
+
+unittest {
+    //1st block
+    assert(true);
+}
+
+unittest {
+    //2nd block
+    assert(true);
+}

@@ -56,12 +56,12 @@ private void nothrowFunc() nothrow {
 }
 
 unittest {
-    writelnUt("First unit test block");
+    writelnUt("First unit test block\n");
     assert(true); //unit test block that always passes
 }
 
 unittest {
-    writelnUt("Second unit test block");
+    writelnUt("Second unit test block\n");
     assert(true); //unit test block that always passes
 }
 
