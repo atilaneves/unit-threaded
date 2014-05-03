@@ -33,10 +33,6 @@ auto createTests(MODULES...)(in string[] testsToRun = []) if(MODULES.length > 0)
         if(test !is null) tests[test] = true; //can be null if abtract base class
     }
 
-    foreach(test; builtinTests) { //builtInTests defined below
-        if(isWantedTest(TestData(test.getPath(), false /*hidden*/), testsToRun)) tests[test] = true;
-    }
-
     return tests.keys.sort!((a, b) => a.getPath < b.getPath).array;
 }
 
@@ -100,20 +96,12 @@ package auto getAllTestCases(MODULES...)() {
 }
 
 
-
-private TestCase[] builtinTests; //built-in unittest blocks
-
-
 private bool moduleUnitTester() {
+    //this is so unit-threaded's own tests run
     foreach(mod; ModuleInfo) {
         if(mod && mod.unitTest) {
             if(startsWith(mod.name, "unit_threaded.")) {
                 mod.unitTest()();
-            } else {
-                enum hidden = false;
-                enum shouldFail = false;
-                const data = TestData(mod.name ~ ".unittest", hidden, shouldFail, mod.unitTest);
-                builtinTests ~= new BuiltinTestCase(data);
             }
         }
     }
