@@ -7,6 +7,9 @@ unit-threaded
 Multi-threaded unit test framework for D. Based on similar work for
 [C++11](https://bitbucket.org/atilaneves/unit-thread).
 
+Reasoning
+---------
+
 "But doesn't D have built-in `unittest` blocks"? Yes, and they're
 massively useful. Even short scripts can benefit from them with 0
 effort and setup. In fact, I use them to test this library. However,
@@ -36,6 +39,9 @@ under which tested code output is turned back on, as well as special
 writelnUt debug messages.
 8. Ability to temporarily hide tests from being run by default whilst
 stil being able to run them
+
+Usage
+-----
 
 The library is all in the `unit_threaded` package. There are two
 example programs in the [`example`](example/) folder, one with passing
