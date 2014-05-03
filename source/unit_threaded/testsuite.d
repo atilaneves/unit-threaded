@@ -35,7 +35,7 @@ struct TestSuite {
         if(_failures) writeln("");
 
         _stopWatch.stop();
-        return _stopWatch.peek().seconds();
+        return _stopWatch.peek().msecs() / 1000.0;
     }
 
     @property ulong numTestsRun() const {
