@@ -56,8 +56,15 @@ private void nothrowFunc() nothrow {
 }
 
 unittest {
+    writelnUt("First unit test block");
     assert(true); //unit test block that always passes
 }
+
+unittest {
+    writelnUt("Second unit test block");
+    assert(true); //unit test block that always passes
+}
+
 
 private class MyClass {
     int i;
