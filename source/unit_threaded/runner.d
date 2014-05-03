@@ -56,7 +56,7 @@ bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, 
     WriterThread.get(); //make sure this is up
     //sleep to give WriterThread some time to set up. Otherwise,
     //tests with output could write to stdout in the meanwhile
-    Thread.sleep(dur!"msecs"(5));
+    Thread.sleep(5.msecs);
 
     auto tests = createTests!MOD_SYMBOLS(options.tests);
     if(!tests) {
