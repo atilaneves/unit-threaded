@@ -83,23 +83,6 @@ private bool isWantedTest(in TestData data, in string[] testsToRun) {
     return testsToRun.any!(t => matchesExactly(t) || matchesPackage(t));
 }
 
-private class FunctionTestCase: TestCase {
-    this(immutable TestData data) pure nothrow {
-        _name = data.name;
-        _func = data.test;
-    }
-
-    override void test() {
-        _func();
-    }
-
-    override string getPath() const pure nothrow {
-        return _name;
-    }
-
-    private string _name;
-    private TestFunction _func;
-}
 
 package auto getAllTestCases(MODULES...)() {
     auto getAllTestsWithFunc(string expr, MODULES...)() pure nothrow {
@@ -120,19 +103,6 @@ package auto getAllTestCases(MODULES...)() {
 
 private TestCase[] builtinTests; //built-in unittest blocks
 
-private class BuiltinTestCase: FunctionTestCase {
-    this(immutable TestData data) pure nothrow {
-        super(data);
-    }
-
-    override void test() {
-        try {
-            super.test();
-        } catch(Throwable t) {
-            utFail(t.msg, t.file, t.line);
-        }
-    }
-}
 
 private bool moduleUnitTester() {
     foreach(mod; ModuleInfo) {
