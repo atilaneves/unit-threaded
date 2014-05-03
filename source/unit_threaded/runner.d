@@ -66,7 +66,7 @@ bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, 
     }
 
     auto suite = TestSuite(tests);
-    immutable elapsed = suite.run(options.multiThreaded);
+    immutable elapsed = suite.run(options);
 
     if(!suite.numTestsRun) {
         writeln("Did not run any tests!!!");

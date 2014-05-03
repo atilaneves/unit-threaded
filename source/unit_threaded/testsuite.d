@@ -2,6 +2,7 @@ module unit_threaded.testsuite;
 
 import unit_threaded.testcase;
 import unit_threaded.io;
+import unit_threaded.options;
 import std.datetime;
 import std.parallelism: taskPool;
 import std.concurrency;
@@ -18,33 +19,28 @@ auto runTest(TestCase test) {
  * Responsible for running tests
  */
 struct TestSuite {
-    this(bool[TestCase] tests) {
+    this(TestCase[] tests) {
         _tests = tests;
     }
 
-    double run(in bool multiThreaded = true) {
+    double run(in Options options) {
+        auto tests = getTests(options);
         _stopWatch.start();
 
-        if(multiThreaded) {
-            _failures = reduce!q{a ~ b}(_failures, taskPool.amap!runTest(_tests.keys));
+        if(options.multiThreaded) {
+            _failures = reduce!q{a ~ b}(_failures, taskPool.amap!runTest(tests));
         } else {
-            foreach(test; _tests.keys) _failures ~= test();
+            foreach(test; tests) _failures ~= test();
         }
 
-        if(_failures) utWriteln("");
-        foreach(failure; _failures) {
-            utWrite("Test ", failure, " ");
-            utWriteRed("failed");
-            utWriteln(".");
-        }
-        if(_failures) writeln("");
+        handleFailures();
 
         _stopWatch.stop();
         return _stopWatch.peek().msecs() / 1000.0;
     }
 
     @property ulong numTestsRun() const {
-        return _tests.keys.map!"a.numTestsRun".reduce!"a+b";
+        return _tests.map!"a.numTestsRun".reduce!"a+b";
     }
 
     @property ulong numFailures() const pure nothrow {
@@ -57,7 +53,28 @@ struct TestSuite {
 
 private:
 
-    bool[TestCase] _tests;
+    TestCase[] _tests;
     string[] _failures;
     StopWatch _stopWatch;
+
+    auto getTests(in Options options) {
+        auto tests = _tests;
+        if(options.random) {
+            import std.random;
+            auto generator = Random(options.seed);
+            tests.randomShuffle(generator);
+            utWriteln("Running tests in random order. To repeat this run, use --seed ", options.seed);
+        }
+        return tests;
+    }
+
+    void handleFailures() {
+        if(_failures) utWriteln("");
+        foreach(failure; _failures) {
+            utWrite("Test ", failure, " ");
+            utWriteRed("failed");
+            utWriteln(".");
+        }
+        if(_failures) writeln("");
+    }
 }

@@ -37,7 +37,7 @@ auto createTests(MODULES...)(in string[] testsToRun = []) if(MODULES.length > 0)
         if(isWantedTest(TestData(test.getPath(), false /*hidden*/), testsToRun)) tests[test] = true;
     }
 
-    return tests;
+    return tests.keys.sort!((a, b) => a.getPath < b.getPath).array;
 }
 
 
