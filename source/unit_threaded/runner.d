@@ -73,7 +73,7 @@ bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, 
         return false;
     }
 
-    utWriteln("\nTime taken: ", elapsed, " seconds");
+    utWriteln("\nTime taken: ", elapsed);
     utWrite(suite.numTestsRun, " test(s) run, ");
     const failuresStr = text(suite.numFailures, " failed");
     if(suite.numFailures) {

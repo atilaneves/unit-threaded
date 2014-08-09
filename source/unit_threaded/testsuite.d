@@ -23,7 +23,7 @@ struct TestSuite {
         _tests = tests;
     }
 
-    double run(in Options options) {
+    auto run(in Options options) {
         auto tests = getTests(options);
         _stopWatch.start();
 
@@ -36,7 +36,7 @@ struct TestSuite {
         handleFailures();
 
         _stopWatch.stop();
-        return _stopWatch.peek().msecs() / 1000.0;
+        return cast(Duration)_stopWatch.peek();
     }
 
     @property ulong numTestsRun() const {
