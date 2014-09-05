@@ -8,8 +8,9 @@ import std.traits;
 public import unit_threaded.attrs;
 
 class UnitTestException: Exception {
-    this(string msg, in string file, in ulong line) {
-        super(getOutputPrefix(file, line) ~ msg);
+    this(in string msgLines[], in string file, in ulong line) {
+        import std.array;
+        super(msgLines.map!(a => getOutputPrefix(file, line) ~ a).join("\n"));
     }
 
 private:
@@ -51,7 +52,7 @@ if(is(typeof(value == expected) == bool)) {
         }
 
         const msg = "Value " ~ valueStr ~ " is not supposed to be equal to " ~ expectedStr ~ "\n";
-        throw new UnitTestException(msg, file, line);
+        throw new UnitTestException([msg], file, line);
     }
 }
 
@@ -119,7 +120,7 @@ void utFail(in string output, in string file, in ulong line) {
 }
 
 private void fail(in string output, in string file, in ulong line) {
-    throw new UnitTestException(output, file, line);
+    throw new UnitTestException([output], file, line);
 }
 
 private void failEqual(T, U)(in T value, in U expected, in string file, in ulong line) {
@@ -132,7 +133,8 @@ private void failEqual(T, U)(in T value, in U expected, in string file, in ulong
         expectedStr = `"` ~ expectedStr ~ `"`;
     }
 
-    const msg = "Value " ~ valueStr ~ " is not the expected " ~ expectedStr ~ "\n";
+    const msg = ["Expected: " ~ expectedStr,
+                 "     Got: " ~ valueStr];
     throw new UnitTestException(msg, file, line);
 }
 

@@ -14,7 +14,7 @@ void testCustomException() {
 
 class NormalException: UnitTestException {
     this(string msg, in string file = __FILE__, in ulong line = __LINE__) {
-        super(msg, file, line);
+        super([msg], file, line);
     }
 }
 
