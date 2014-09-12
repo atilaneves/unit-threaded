@@ -7,9 +7,9 @@ class WrongTest: TestCase {
     override void test() {
         checkTrue(5 == 3);
         checkFalse(5 == 5);
-        checkEqual(5, 5);
-        checkNotEqual(5, 3);
-        checkEqual(5, 3);
+        5.shouldEqual(5);
+        5.shouldNotEqual(3);
+        5.shouldEqual(3);
     }
 }
 
@@ -32,7 +32,7 @@ void testTrue() {
 void testEqualVars() {
     immutable foo = 4;
     immutable bar = 6;
-    checkEqual(foo, bar);
+    foo.shouldEqual(bar);
 }
 
 void someFun() {
@@ -42,11 +42,11 @@ void someFun() {
 }
 
 void testStringEqual() {
-    checkEqual("foo", "bar");
+    "foo".shouldEqual("bar");
 }
 
 void testStringNotEqual() {
-    checkNotEqual("foo", "foo");
+    "foo".shouldNotEqual("foo");
 }
 
 unittest {

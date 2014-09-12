@@ -5,31 +5,31 @@ import unit_threaded.all;
 
 class IntEqualTest: TestCase {
     override void test() {
-        checkNotEqual(1, 5);
-        checkNotEqual(5, 1);
-        checkEqual(3, 3);
-        checkEqual(2, 2);
+        1.shouldNotEqual(5);
+        5.shouldNotEqual(1);
+        3.shouldEqual(3);
+        2.shouldEqual(2);
     }
 }
 
 class DoubleEqualTest: TestCase {
     override void test() {
-        checkNotEqual(1.0, 2.0);
-        checkEqual(2.0, 2.0);
-        checkEqual(2.0, 2.0);
+        shouldNotEqual(1.0, 2.0);
+        (2.0).shouldEqual(2.0);
+        (2.0).shouldEqual(2.0);
     }
 }
 
 void testEqual() {
-    checkEqual(1, 1);
+    1.shouldEqual(1);
     checkEqual(1.0, 1.0);
-    checkEqual("foo", "foo");
+    "foo".shouldEqual("foo");
 }
 
 void testNotEqual() {
-    checkNotEqual(3, 4);
+    3.shouldNotEqual(4);
     checkNotEqual(5.0, 6.0);
-    checkNotEqual("foo", "bar");
+    "foo".shouldNotEqual("bar");
 }
 
 
@@ -40,11 +40,11 @@ private class MyException: Exception {
 }
 
 void testThrown() {
-    checkThrown!MyException(throwFunc());
+    throwFunc.shouldThrow!MyException;
 }
 
 void testNotThrown() {
-    checkNotThrown(nothrowFunc());
+    nothrowFunc.shouldNotThrow;
 }
 
 private void throwFunc() {
@@ -84,12 +84,12 @@ void testEqualClass() {
     const bar = new MyClass(2, 3.0);
     const baz = new MyClass(3, 3.0);
 
-    checkEqual(foo, bar);
-    checkEqual(bar, foo);
-    checkNotEqual(foo, baz);
-    checkNotEqual(bar, baz);
-    checkNotEqual(baz, foo);
-    checkNotEqual(baz, bar);
+    foo.shouldEqual(bar);
+    bar.shouldEqual(foo);
+    foo.shouldNotEqual(baz);
+    bar.shouldNotEqual(baz);
+    baz.shouldNotEqual(foo);
+    baz.shouldNotEqual(bar);
 }
 
 
@@ -100,9 +100,9 @@ private struct Pair {
 
 void testPairAA() {
     auto map = [Pair("foo", 5): 105];
-    checkEqual([Pair("foo", 5): 105], map);
-    checkEqual(map.dup, map);
+    [Pair("foo", 5): 105].shouldEqual(map);
+    map.dup.shouldEqual(map);
     auto pair = Pair("foo", 5);
     auto othermap = [pair: 105];
-    checkEqual(map, othermap);
+    map.shouldEqual(othermap);
 }

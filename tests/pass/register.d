@@ -15,17 +15,17 @@ class BaseClass: TestCase {
 //will be registered since actually has 'test' method
 class DerivedClass: BaseClass{
     override void doTest() {
-        checkEqual(2, 2);
+        2.shouldEqual(2);
     }
 }
 
 private void testPrivate() {
     //private function, won't get run
-    checkNotNull(null); //won't run, can't fail
+    null.shouldNotBeNull; //won't run, can't fail
 }
 
 private class PrivateTest: TestCase {
     override void test() {
-        checkNotNull(null); //won't run, can't fail
+        null.shouldNotBeNull; //won't run, can't fail
     }
 }

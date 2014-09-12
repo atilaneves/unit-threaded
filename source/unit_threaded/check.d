@@ -84,7 +84,7 @@ void checkNotIn(T, U)(in T value, in U container, in string file = __FILE__, in 
     if(isAssociativeArray!U)
 {
     if(value in container) {
-        fail("Value " ~ to!string(value) ~ " in " ~ to!string(container), file, line);
+        fail("Value " ~ to!string(value) ~ " is in " ~ to!string(container), file, line);
     }
 }
 
@@ -92,7 +92,7 @@ void checkNotIn(T, U)(in T value, in U container, in string file = __FILE__, in 
     if(!isAssociativeArray!U)
 {
     if(find(container, value).length > 0) {
-        fail("Value " ~ to!string(value) ~ " in " ~ to!string(container), file, line);
+        fail("Value " ~ to!string(value) ~ " is in " ~ to!string(container), file, line);
     }
 }
 
