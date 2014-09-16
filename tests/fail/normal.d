@@ -54,3 +54,11 @@ unittest {
     writelnUt(str);
     assert(3 == 4, str);
 }
+
+void testIntArray() {
+    [1, 2, 4].shouldEqual([1, 2, 3]);
+}
+
+void testStringArray() {
+    ["foo", "baz", "badoooooooooooo!"].shouldEqual(["foo", "bar", "baz"]);
+}

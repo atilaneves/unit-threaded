@@ -124,19 +124,38 @@ private void fail(in string output, in string file, in ulong line) {
 }
 
 private void failEqual(T, U)(in T value, in U expected, in string file, in ulong line) {
-    auto valueStr = value.to!string;
-    static if(is(T == string)) {
-        valueStr = `"` ~ valueStr ~ `"`;
-    }
-    auto expectedStr = expected.to!string;
-        static if(is(U == string)) {
-        expectedStr = `"` ~ expectedStr ~ `"`;
+    static if(isArray!T) {
+        const msg = formatArray("Expected: ", expected) ~ formatArray("     Got: ", value);
+    } else {
+        const msg = ["Expected: " ~ formatValue(expected),
+                     "     Got: " ~ formatValue(value)];
     }
 
-    const msg = ["Expected: " ~ expectedStr,
-                 "     Got: " ~ valueStr];
     throw new UnitTestException(msg, file, line);
 }
+
+private string[] formatArray(T)(in string prefix, in T value) if(isArray!T) {
+    import std.range;
+    auto defaultLines = [prefix ~ value.to!string];
+
+    static if(!isArray!(ElementType!T)) return defaultLines;
+    else {
+        const maxElementSize = value.map!(a => a.length).reduce!max;
+        const tooBigForOneLine = (value.length > 5 && maxElementSize > 5) ||
+            maxElementSize > 10;
+        if(!tooBigForOneLine) return  defaultLines;
+        return [prefix ~ "["] ~ value.map!(a => "              " ~ formatValue(a) ~ ",").array ~ "          ]";
+    }
+}
+
+private auto formatValue(T)(T element) {
+    static if(isSomeString!T) {
+        return `"` ~ element.to!string ~ `"`;
+    } else {
+        return element.to!string;
+    }
+}
+
 
 private void assertCheck(E)(lazy E expression) {
     assertNotThrown!UnitTestException(expression);
