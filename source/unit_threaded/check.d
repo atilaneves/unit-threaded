@@ -124,7 +124,7 @@ private void fail(in string output, in string file, in ulong line) {
 }
 
 private void failEqual(T, U)(in T value, in U expected, in string file, in ulong line) {
-    static if(isArray!T) {
+    static if(isArray!T && !isSomeString!T) {
         const msg = formatArray("Expected: ", expected) ~ formatArray("     Got: ", value);
     } else {
         const msg = ["Expected: " ~ formatValue(expected),

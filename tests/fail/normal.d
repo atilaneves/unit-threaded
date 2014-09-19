@@ -45,6 +45,10 @@ void testStringEqual() {
     "foo".shouldEqual("bar");
 }
 
+void testStringEqualFails() {
+    "foo".shouldEqual("bar");
+}
+
 void testStringNotEqual() {
     "foo".shouldNotEqual("foo");
 }
