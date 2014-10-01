@@ -81,11 +81,18 @@ bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, 
     } else {
         utWrite(failuresStr);
     }
-    const numHidden = getAllTestCases!MOD_SYMBOLS.filter!(a => a.hidden).count;
-    if(numHidden) {
-        utWrite(", ");
-        utWriteYellow(numHidden, " hidden");
+
+    void printAbout(string attr)(in string msg) {
+        const num = getAllTestCases!MOD_SYMBOLS.filter!(a => mixin("a. " ~ attr)).count;
+        if(num) {
+            utWrite(", ");
+            utWriteYellow(num, " " ~ msg);
+        }
     }
+
+    printAbout!"hidden"("hidden");
+    printAbout!"shouldFail"("failing as expected");
+
     utWriteln(".\n");
 
     if(!suite.passed) {
