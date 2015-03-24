@@ -102,6 +102,7 @@ bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, 
 
     utWritelnGreen("OK!\n");
 
+    WriterThread.get().join();
     return true;
 }
 
