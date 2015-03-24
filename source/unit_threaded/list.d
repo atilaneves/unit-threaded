@@ -3,6 +3,7 @@ module unit_threaded.list;
 import std.traits;
 import std.uni;
 import std.typetuple;
+import std.exception: assumeUnique;
 import unit_threaded.check; //enum labels
 
 /**
@@ -17,6 +18,25 @@ struct TestData {
     bool singleThreaded;
     bool builtin;
 }
+
+/**
+ * Finds all test cases (functions, classes, built-in unittest blocks)
+ */
+package const(TestData)[] getAllTestCaseData(MODULES...)() {
+    auto getAllTestsWithFunc(string expr, MODULES...)() pure nothrow {
+        //tests is whatever type expr returns
+        ReturnType!(mixin(expr ~ q{!(MODULES[0])})) tests;
+        foreach(mod; TypeTuple!MODULES) {
+            tests ~= mixin(expr ~ q{!mod()}); //e.g. tests ~= getTestClasses!mod
+        }
+        return assumeUnique(tests);
+    }
+
+    return getAllTestsWithFunc!(q{getTestClasses}, MODULES) ~
+           getAllTestsWithFunc!(q{getTestFunctions}, MODULES) ~
+           getAllTestsWithFunc!(q{getBuiltinTests}, MODULES);
+}
+
 
 /**
  * Finds all test classes (classes implementing a test() function)

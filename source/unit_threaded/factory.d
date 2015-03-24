@@ -8,7 +8,6 @@ import unit_threaded.check;
 import std.stdio;
 import std.traits;
 import std.typetuple;
-import std.exception;
 import std.algorithm;
 import std.array;
 import std.string;
@@ -76,22 +75,6 @@ private bool isWantedTest(in TestData data, in string[] testsToRun) {
                        name.startsWith(t) && name[t.length .. $].canFind(".");
     }
     return testsToRun.any!(t => matchesExactly(t) || matchesPackage(t));
-}
-
-
-package const(TestData)[] getAllTestCaseData(MODULES...)() {
-    auto getAllTestsWithFunc(string expr, MODULES...)() pure nothrow {
-        //tests is whatever type expr returns
-        ReturnType!(mixin(expr ~ q{!(MODULES[0])})) tests;
-        foreach(mod; TypeTuple!MODULES) {
-            tests ~= mixin(expr ~ q{!mod()}); //e.g. tests ~= getTestClasses!mod
-        }
-        return assumeUnique(tests);
-    }
-
-    return getAllTestsWithFunc!(q{getTestClasses}, MODULES) ~
-           getAllTestsWithFunc!(q{getTestFunctions}, MODULES) ~
-           getAllTestsWithFunc!(q{getBuiltinTests}, MODULES);
 }
 
 
