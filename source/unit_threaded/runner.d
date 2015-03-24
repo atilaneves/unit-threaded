@@ -54,6 +54,8 @@ private auto getTestNames(MOD_STRINGS...)() if(allSatisfy!(isSomeString, typeof(
  */
 bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
     WriterThread.get(); //make sure this is up
+    scope(exit) WriterThread.get().join();
+
     //sleep to give WriterThread some time to set up. Otherwise,
     //tests with output could write to stdout in the meanwhile
     Thread.sleep(5.msecs);
@@ -102,7 +104,6 @@ bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, 
 
     utWritelnGreen("OK!\n");
 
-    WriterThread.get().join();
     return true;
 }
 
