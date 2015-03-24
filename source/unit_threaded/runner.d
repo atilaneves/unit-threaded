@@ -25,9 +25,11 @@ import core.thread;
  */
 int runTests(MODULES...)(string[] args) {
     const options = getOptions(args);
+    const testData = getAllTestCaseData!MODULES;
+
     if(options.list) {
         writeln("Listing tests:");
-        foreach(test; getTestNames!MODULES()) {
+        foreach(test; testData.map!(a => a.name)) {
             writeln(test);
         }
     }
@@ -38,16 +40,6 @@ int runTests(MODULES...)(string[] args) {
 
     immutable success = runTests!MODULES(options);
     return success ? 0 : 1;
-}
-
-private auto getTestNames(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
-    return getAllTestCaseData!MOD_SYMBOLS.map!(a => a.name);
-}
-
-private auto getTestNames(MOD_STRINGS...)() if(allSatisfy!(isSomeString, typeof(MOD_STRINGS))) {
-    mixin(getImportTestsCompileString!MOD_STRINGS()); //e.g. import foo, bar, baz;
-    enum mod_symbols = getModulesCompileString!MOD_STRINGS; //e.g. foo, bar, baz
-    mixin("return getAllTestCaseData!(" ~ mod_symbols ~ ").map!(a => a.name);");
 }
 
 /**
