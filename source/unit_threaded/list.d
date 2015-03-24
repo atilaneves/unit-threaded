@@ -3,7 +3,6 @@ module unit_threaded.list;
 import std.traits;
 import std.uni;
 import std.typetuple;
-import std.exception: assumeUnique;
 import unit_threaded.check; //enum labels
 
 /**
@@ -53,7 +52,7 @@ const(TestData)[] getAllTestCaseData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeStr
         foreach(mod; TypeTuple!MOD_SYMBOLS) {
             tests ~= mixin(expr ~ q{!mod()}); //e.g. tests ~= getTestClasses!mod
         }
-        return assumeUnique(tests);
+        return tests;
     }
 
     return getAllTestsWithFunc!(q{getTestClasses}, MOD_SYMBOLS) ~
