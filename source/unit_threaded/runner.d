@@ -100,19 +100,3 @@ bool runTests(in Options options, in TestData[] testData) {
     WriterThread.get().join();
     return true;
 }
-
-
-private string getImportTestsCompileString(MOD_STRINGS...)() {
-    return "import " ~ getModulesCompileString!MOD_STRINGS ~ ";";
-}
-
-private string getRunTestsCompileString(MOD_STRINGS...)() {
-    return "return runTests!(" ~ getModulesCompileString!MOD_STRINGS ~ ")(options);";
-}
-
-private string getModulesCompileString(MOD_STRINGS...)() {
-    import std.array;
-    string[] modules;
-    foreach(mod; MOD_STRINGS) modules ~= mod;
-    return modules.join(", ");
-}

@@ -25,18 +25,28 @@ struct TestData {
  * Template parameters are module strings
  */
 
-package const(TestData)[] getAllTestCaseData(MOD_STRINGS...)() if(allSatisfy!(isSomeString, typeof(MOD_STRINGS))) {
+const(TestData)[] getAllTestCaseData(MOD_STRINGS...)() if(allSatisfy!(isSomeString, typeof(MOD_STRINGS))) {
     mixin(getImportTestsCompileString!MOD_STRINGS()); //e.g. import foo, bar, baz;
     enum mod_symbols = getModulesCompileString!MOD_STRINGS; //e.g. foo, bar, baz
     mixin("return getAllTestCaseData!(" ~ mod_symbols ~ ");");
 }
 
+private string getImportTestsCompileString(MOD_STRINGS...)() {
+    return "import " ~ getModulesCompileString!MOD_STRINGS ~ ";";
+}
+
+private string getModulesCompileString(MOD_STRINGS...)() {
+    import std.array;
+    string[] modules;
+    foreach(mod; MOD_STRINGS) modules ~= mod;
+    return modules.join(", ");
+}
 
 /**
  * Finds all test cases (functions, classes, built-in unittest blocks)
  * Template parameters are module symbols
  */
-package const(TestData)[] getAllTestCaseData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
+const(TestData)[] getAllTestCaseData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
     auto getAllTestsWithFunc(string expr, MOD_SYMBOLS...)() pure nothrow {
         //tests is whatever type expr returns
         ReturnType!(mixin(expr ~ q{!(MOD_SYMBOLS[0])})) tests;
