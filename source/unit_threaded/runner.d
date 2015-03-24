@@ -38,26 +38,8 @@ int runTests(MODULES...)(string[] args) {
     if(options.debugOutput) enableDebugOutput();
     if(options.forceEscCodes) forceEscCodes();
 
-    immutable success = runTests!MODULES(options);
+    immutable success = runTests(options, testData);
     return success ? 0 : 1;
-}
-
-/**
- * Runs all tests in passed-in modules. Modules are strings.
- */
-bool runTests(MOD_STRINGS...)(in Options options) if(allSatisfy!(isSomeString, typeof(MOD_STRINGS))) {
-    mixin(getImportTestsCompileString!MOD_STRINGS); //e.g. import foo, bar, baz;
-    enum runStr = getRunTestsCompileString!MOD_STRINGS;
-    mixin(getRunTestsCompileString!MOD_STRINGS); //e.g. runTests!(foo, bar, baz)();
-}
-
-
-/**
- * Runs all tests in passed-in modules. Modules are symbols.
- */
-bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
-    const testData = getAllTestCaseData!MOD_SYMBOLS;
-    return runTests(options, testData);
 }
 
 
