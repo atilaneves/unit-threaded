@@ -40,32 +40,48 @@ int runTests(MODULES...)(string[] args) {
 }
 
 private auto getTestNames(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
-    return getAllTestCases!MOD_SYMBOLS.map!(a => a.name);
+    return getAllTestCaseData!MOD_SYMBOLS.map!(a => a.name);
 }
 
 private auto getTestNames(MOD_STRINGS...)() if(allSatisfy!(isSomeString, typeof(MOD_STRINGS))) {
     mixin(getImportTestsCompileString!MOD_STRINGS()); //e.g. import foo, bar, baz;
     enum mod_symbols = getModulesCompileString!MOD_STRINGS; //e.g. foo, bar, baz
-    mixin("return getAllTestCases!(" ~ mod_symbols ~ ").map!(a => a.name);");
+    mixin("return getAllTestCaseData!(" ~ mod_symbols ~ ").map!(a => a.name);");
 }
+
+/**
+ * Runs all tests in passed-in modules. Modules are strings.
+ */
+bool runTests(MOD_STRINGS...)(in Options options) if(allSatisfy!(isSomeString, typeof(MOD_STRINGS))) {
+    mixin(getImportTestsCompileString!MOD_STRINGS); //e.g. import foo, bar, baz;
+    enum runStr = getRunTestsCompileString!MOD_STRINGS;
+    mixin(getRunTestsCompileString!MOD_STRINGS); //e.g. runTests!(foo, bar, baz)();
+}
+
 
 /**
  * Runs all tests in passed-in modules. Modules are symbols.
  */
 bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
+    const testData = getAllTestCaseData!MOD_SYMBOLS;
+    return runTests(options, testData);
+}
+
+
+bool runTests(in Options options, in TestData[] testData) {
     WriterThread.get(); //make sure this is up
     //sleep to give WriterThread some time to set up. Otherwise,
     //tests with output could write to stdout in the meanwhile
     Thread.sleep(5.msecs);
 
-    auto tests = createTests!MOD_SYMBOLS(options.tests);
-    if(!tests) {
+    auto testCases = createTests(testData, options.tests);
+    if(!testCases) {
         utWritelnRed("Error! No tests to run for args: ");
         utWriteln(options.tests);
         return false;
     }
 
-    auto suite = TestSuite(tests);
+    auto suite = TestSuite(testCases);
     immutable elapsed = suite.run(options);
 
     if(!suite.numTestsRun) {
@@ -83,7 +99,7 @@ bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, 
     }
 
     void printAbout(string attr)(in string msg) {
-        const num = getAllTestCases!MOD_SYMBOLS.filter!(a => mixin("a. " ~ attr)).count;
+        const num = testData.filter!(a => mixin("a. " ~ attr)).count;
         if(num) {
             utWrite(", ");
             utWriteYellow(num, " " ~ msg);
@@ -106,14 +122,6 @@ bool runTests(MOD_SYMBOLS...)(in Options options) if(!anySatisfy!(isSomeString, 
     return true;
 }
 
-/**
- * Runs all tests in passed-in modules. Modules are strings.
- */
-bool runTests(MOD_STRINGS...)(in Options options) if(allSatisfy!(isSomeString, typeof(MOD_STRINGS))) {
-    mixin(getImportTestsCompileString!MOD_STRINGS); //e.g. import foo, bar, baz;
-    enum runStr = getRunTestsCompileString!MOD_STRINGS;
-    mixin(getRunTestsCompileString!MOD_STRINGS); //e.g. runTests!(foo, bar, baz)();
-}
 
 private string getImportTestsCompileString(MOD_STRINGS...)() {
     return "import " ~ getModulesCompileString!MOD_STRINGS ~ ";";

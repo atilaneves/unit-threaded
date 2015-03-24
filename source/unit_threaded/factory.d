@@ -25,9 +25,9 @@ shared static this() {
  * Creates tests cases from the given modules.
  * If testsToRun is empty, it means run all tests.
  */
-TestCase[] createTests(MODULES...)(in string[] testsToRun = []) if(MODULES.length > 0) {
+TestCase[] createTests(in TestData[] testData, in string[] testsToRun = []) {
     bool[TestCase] tests;
-    foreach(data; getAllTestCases!MODULES()) {
+    foreach(const data; testData) {
         if(!isWantedTest(data, testsToRun)) continue;
         auto test = createTestCase(data);
         if(test !is null) tests[test] = true; //can be null if abtract base class
@@ -79,7 +79,7 @@ private bool isWantedTest(in TestData data, in string[] testsToRun) {
 }
 
 
-package const(TestData)[] getAllTestCases(MODULES...)() {
+package const(TestData)[] getAllTestCaseData(MODULES...)() {
     auto getAllTestsWithFunc(string expr, MODULES...)() pure nothrow {
         //tests is whatever type expr returns
         ReturnType!(mixin(expr ~ q{!(MODULES[0])})) tests;
