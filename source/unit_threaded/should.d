@@ -33,3 +33,9 @@ unittest {
 
 alias shouldThrow = checkThrown;
 alias shouldNotThrow = checkNotThrown;
+
+alias shouldBeEmpty = checkEmpty;
+alias shouldNotBeEmpty = checkNotEmpty;
+
+alias shouldBeGreaterThan = checkGreaterThan;
+alias shouldBeSmallerThan = checkSmallerThan;
