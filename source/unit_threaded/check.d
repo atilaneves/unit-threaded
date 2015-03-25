@@ -9,7 +9,7 @@ import std.range;
 public import unit_threaded.attrs;
 
 class UnitTestException: Exception {
-    this(in string msgLines[], in string file, in ulong line) {
+    this(in string[] msgLines, in string file, in ulong line) {
         import std.array;
         super(msgLines.map!(a => getOutputPrefix(file, line) ~ a).join("\n"));
     }
