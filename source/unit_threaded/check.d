@@ -162,6 +162,11 @@ private void assertCheck(E)(lazy E expression) {
     assertNotThrown!UnitTestException(expression);
 }
 
+private void assertFail(E)(lazy E expression) {
+    assertThrown!UnitTestException(expression);
+}
+
+
 unittest {
     assertCheck(checkTrue(true));
     assertCheck(checkFalse(false));
@@ -242,9 +247,9 @@ unittest {
     assertCheck(checkEmpty(strings));
     assertCheck(checkEmpty(aa));
 
-    assertThrown!UnitTestException(checkNotEmpty(ints));
-    assertThrown!UnitTestException(checkNotEmpty(strings));
-    assertThrown!UnitTestException(checkNotEmpty(aa));
+    assertFail(checkNotEmpty(ints));
+    assertFail(checkNotEmpty(strings));
+    assertFail(checkNotEmpty(aa));
 
 
     ints ~= 1;
@@ -255,7 +260,7 @@ unittest {
     assertCheck(checkNotEmpty(strings));
     assertCheck(checkNotEmpty(aa));
 
-    assertThrown!UnitTestException(checkEmpty(ints));
-    assertThrown!UnitTestException(checkEmpty(strings));
-    assertThrown!UnitTestException(checkEmpty(aa));
+    assertFail(checkEmpty(ints));
+    assertFail(checkEmpty(strings));
+    assertFail(checkEmpty(aa));
 }
