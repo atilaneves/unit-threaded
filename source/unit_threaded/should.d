@@ -33,3 +33,6 @@ unittest {
 
 alias shouldThrow = checkThrown;
 alias shouldNotThrow = checkNotThrown;
+
+alias shouldBeEmpty = checkEmpty;
+alias shouldNotBeEmpty = checkNotEmpty;

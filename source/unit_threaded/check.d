@@ -4,6 +4,7 @@ import std.exception;
 import std.conv;
 import std.algorithm;
 import std.traits;
+import std.range;
 
 public import unit_threaded.attrs;
 
@@ -210,4 +211,51 @@ unittest {
     assertCheck(checkNotIn(3.5, [1.1, 2.2, 4.4]));
     assertCheck(checkIn("foo", ["foo": 1]));
     assertCheck(checkNotIn(1.0, [2.0: 1, 3.0: 2]));
+}
+
+
+void checkEmpty(R)(R rng, in string file = __FILE__, in ulong line = __LINE__) if(isInputRange!R) {
+    if(!rng.empty) fail("Range not empty", file, line);
+}
+
+void checkEmpty(T)(in T aa, in string file = __FILE__, in ulong line = __LINE__) if(isAssociativeArray!T) {
+    if(!aa.keys.empty) fail("AA not empty", file, line);
+}
+
+
+void checkNotEmpty(R)(R rng, in string file = __FILE__, in ulong line = __LINE__) if(isInputRange!R) {
+    if(rng.empty) fail("Range empty", file, line);
+}
+
+
+void checkNotEmpty(T)(in T aa, in string file = __FILE__, in ulong line = __LINE__) if(isAssociativeArray!T) {
+    if(aa.keys.empty) fail("AA empty", file, line);
+}
+
+
+unittest {
+    int[] ints;
+    string[] strings;
+    string[string] aa;
+
+    assertCheck(checkEmpty(ints));
+    assertCheck(checkEmpty(strings));
+    assertCheck(checkEmpty(aa));
+
+    assertThrown!UnitTestException(checkNotEmpty(ints));
+    assertThrown!UnitTestException(checkNotEmpty(strings));
+    assertThrown!UnitTestException(checkNotEmpty(aa));
+
+
+    ints ~= 1;
+    strings ~= "foo";
+    aa["foo"] = "bar";
+
+    assertCheck(checkNotEmpty(ints));
+    assertCheck(checkNotEmpty(strings));
+    assertCheck(checkNotEmpty(aa));
+
+    assertThrown!UnitTestException(checkEmpty(ints));
+    assertThrown!UnitTestException(checkEmpty(strings));
+    assertThrown!UnitTestException(checkEmpty(aa));
 }
