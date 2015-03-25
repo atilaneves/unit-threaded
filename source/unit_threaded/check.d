@@ -264,3 +264,22 @@ unittest {
     assertFail(checkEmpty(strings));
     assertFail(checkEmpty(aa));
 }
+
+
+void checkGreaterThan(T, U)(in T t, in U u, in string file = __FILE__, in ulong line = __LINE__) {
+    if(t <= u) fail(text(t, " is not > ", u), file, line);
+}
+
+void checkSmallerThan(T, U)(in T t, in U u, in string file = __FILE__, in ulong line = __LINE__) {
+    if(t >= u) fail(text(t, " is not < ", u), file, line);
+}
+
+unittest {
+    assertCheck(checkGreaterThan(7, 5));
+    assertFail(checkGreaterThan(5, 7));
+    assertFail(checkGreaterThan(7, 7));
+
+    assertCheck(checkSmallerThan(5, 7));
+    assertFail(checkSmallerThan(7, 5));
+    assertFail(checkSmallerThan(7, 7));
+}
