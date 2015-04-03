@@ -5,7 +5,7 @@ import unit_threaded.testsuite;
 import unit_threaded.io;
 import unit_threaded.options;
 import unit_threaded.testcase;
-import unit_threaded.list: getAllTestCaseData;
+import unit_threaded.reflection: getAllTestCaseData;
 
 import std.stdio;
 import std.traits;

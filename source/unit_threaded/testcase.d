@@ -2,7 +2,7 @@ module unit_threaded.testcase;
 
 import unit_threaded.check;
 import unit_threaded.io;
-import unit_threaded.list: TestData, TestFunction;
+import unit_threaded.reflection: TestData, TestFunction;
 
 import std.exception;
 import std.string;

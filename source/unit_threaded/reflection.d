@@ -1,4 +1,4 @@
-module unit_threaded.list;
+module unit_threaded.reflection;
 
 import std.traits;
 import std.uni;
