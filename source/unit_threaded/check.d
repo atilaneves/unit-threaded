@@ -8,6 +8,8 @@ import std.range;
 
 public import unit_threaded.attrs;
 
+@safe:
+
 class UnitTestException: Exception {
     this(in string[] msgLines, in string file, in ulong line) {
         import std.array;
@@ -16,7 +18,7 @@ class UnitTestException: Exception {
 
 private:
 
-    string getOutputPrefix(in string file, in ulong line) {
+    string getOutputPrefix(in string file, in ulong line) const {
         return "    " ~ file ~ ":" ~ line.to!string ~ " - ";
     }
 }
@@ -30,7 +32,7 @@ void checkFalse(E)(lazy E condition, in string file = __FILE__, in ulong line = 
 }
 
 void checkEqual(T, U)(in T value, in U expected, in string file = __FILE__, in ulong line = __LINE__)
-if(is(typeof(value != expected) == bool) && !is(T == class)) {
+  if(is(typeof(value != expected) == bool) && !is(T == class)) {
     if(value != expected) failEqual(value, expected, file, line);
 }
 
@@ -40,8 +42,9 @@ if(is(T == class)) {
 }
 
 
-void checkNotEqual(T, U)(in T value, in U expected, in string file = __FILE__, in ulong line = __LINE__)
-if(is(typeof(value == expected) == bool)) {
+//@trusted because of object.opEquals
+void checkNotEqual(T, U)(in T value, in U expected, in string file = __FILE__, in ulong line = __LINE__) @trusted
+  if(is(typeof(value == expected) == bool)) {
     if(value == expected) {
         auto valueStr = value.to!string;
         static if(is(T == string)) {
@@ -153,7 +156,7 @@ private auto formatValue(T)(T element) {
     static if(isSomeString!T) {
         return `"` ~ element.to!string ~ `"`;
     } else {
-        return element.to!string;
+        return () @trusted { return element.to!string; }();
     }
 }
 
@@ -224,7 +227,8 @@ void checkEmpty(R)(R rng, in string file = __FILE__, in ulong line = __LINE__) i
 }
 
 void checkEmpty(T)(in T aa, in string file = __FILE__, in ulong line = __LINE__) if(isAssociativeArray!T) {
-    if(!aa.keys.empty) fail("AA not empty", file, line);
+    //keys is @system
+    () @trusted { if(!aa.keys.empty) fail("AA not empty", file, line); }();
 }
 
 
@@ -234,7 +238,8 @@ void checkNotEmpty(R)(R rng, in string file = __FILE__, in ulong line = __LINE__
 
 
 void checkNotEmpty(T)(in T aa, in string file = __FILE__, in ulong line = __LINE__) if(isAssociativeArray!T) {
-    if(aa.keys.empty) fail("AA empty", file, line);
+    //keys is @system
+    () @trusted { if(aa.keys.empty) fail("AA empty", file, line); }();
 }
 
 

@@ -12,9 +12,10 @@ import std.stdio;
 
 int main(string[] args) {
     writeln("Unit-threaded examples: Passing\n");
-    return runTests!(tests.pass.normal,
-                     tests.pass.delayed,
-                     tests.pass.attributes,
-                     tests.pass.register,
-                     tests.pass.io)(args);
+    return args.runTests!(tests.pass.normal,
+                          tests.pass.delayed,
+                          tests.pass.attributes,
+                          tests.pass.register,
+                          tests.pass.io,
+                          );
 }
