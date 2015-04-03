@@ -2,6 +2,8 @@ module unit_threaded.asserts;
 
 import std.conv;
 
+@safe:
+
 /**
  * Helper to call the standard assert
  */

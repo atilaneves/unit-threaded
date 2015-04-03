@@ -1,6 +1,6 @@
 module tests.fail.delayed;
 
-import unit_threaded.all;
+import unit_threaded;
 import core.thread;
 
 

@@ -1,6 +1,6 @@
 module tests.fail.priv;
 
-import unit_threaded.all;
+import unit_threaded;
 
 
 /**

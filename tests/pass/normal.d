@@ -1,6 +1,6 @@
 module tests.pass.normal;
 
-import unit_threaded.all;
+import unit_threaded;
 
 
 class IntEqualTest: TestCase {

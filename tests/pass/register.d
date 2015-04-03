@@ -1,6 +1,6 @@
 module tests.pass.register;
 
-import unit_threaded.all;
+import unit_threaded;
 
 
 //won't be registered, impossible to instantiate

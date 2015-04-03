@@ -1,6 +1,6 @@
 module tests.fail.normal;
 
-import unit_threaded.all;
+import unit_threaded;
 
 
 class WrongTest: TestCase {

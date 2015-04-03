@@ -1,6 +1,6 @@
 module tests.pass.io;
 
-import unit_threaded.all;
+import unit_threaded;
 
 
 class TestIo: TestCase {

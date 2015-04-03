@@ -1,6 +1,6 @@
 module tests.pass.attributes;
 
-import unit_threaded.all;
+import unit_threaded;
 
 enum myEnumNum = "foo.bar"; //there was a bug that made this not compile
 enum myOtherEnumNum;
