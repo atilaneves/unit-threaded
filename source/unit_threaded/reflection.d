@@ -85,28 +85,9 @@ unittest {
  * @return An array of TestData structs
  */
 auto getBuiltinTests(alias mod)() pure nothrow {
-    import std.conv;
-    mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
     TestData[] testData;
-    int index;
-    foreach(test; __traits(getUnitTests, mod)) {
-
-        alias names = Filter!(isName, __traits(getAttributes, test));
-
-        static assert(names.length == 0 || names.length == 1, "Found multiple Name UDAs on unittest");
-        static if(names.length == 1) {
-            enum name = fullyQualifiedName!mod ~ "." ~ names[0].value;
-
-        } else {
-            string name;
-            try {
-                name = fullyQualifiedName!mod ~ ".unittest" ~ (++index).to!string;
-            } catch(Throwable) {
-                assert(false, text("Error converting ", index, " to string"));
-            }
-
-        }
-
+    foreach(index, test; __traits(getUnitTests, mod)) {
+        enum name = unittestName!(mod, test, index);
         enum hidden = false;
         enum shouldFail = false;
         enum singleThreaded = false;
@@ -114,6 +95,26 @@ auto getBuiltinTests(alias mod)() pure nothrow {
         testData ~= TestData(name, hidden, shouldFail, &test, singleThreaded, builtin);
     }
     return testData;
+}
+
+private string unittestName(alias mod, alias test, int index)() @safe nothrow {
+    import std.conv;
+    mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
+
+    alias names = Filter!(isName, __traits(getAttributes, test));
+    static assert(names.length == 0 || names.length == 1, "Found multiple Name UDAs on unittest");
+    enum prefix = fullyQualifiedName!mod ~ ".";
+
+    static if(names.length == 1) {
+        return  prefix ~ names[0].value;
+    } else {
+        string name;
+        try {
+            return prefix ~ "unittest" ~ (index).to!string;
+        } catch(Exception) {
+            assert(false, text("Error converting ", index, " to string"));
+        }
+    }
 }
 
 private template HasAttribute(alias mod, string member, alias A) {
@@ -259,7 +260,7 @@ unittest {
 
 
 unittest {
-    const expected = addModPrefix(["unittest1", "unittest2"]);
+    const expected = addModPrefix(["unittest0", "unittest1"]);
     const actual = getBuiltinTests!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
     assertEqual(actual, expected);
 }
