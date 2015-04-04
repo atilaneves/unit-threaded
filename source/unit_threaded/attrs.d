@@ -14,6 +14,11 @@ struct ShouldFail {
     string reason;
 }
 
+/**
+ * Utility to allow checking UDAs for types
+ * regardless of whether the template parameter
+ * is or has a type
+ */
 package template TypeOf(alias T) {
     static if(__traits(compiles, typeof(T))) {
         alias TypeOf = typeof(T);
@@ -22,13 +27,8 @@ package template TypeOf(alias T) {
     }
 }
 
-package template isAHiddenStruct(alias T) {
-    enum isAHiddenStruct = is(TypeOf!T == HiddenTest);
-}
-
-package template isAShouldFailStruct(alias T) {
-    enum isAShouldFailStruct = is(TypeOf!T == ShouldFail);
-}
+package enum isHiddenTest(alias T) = is(TypeOf!T == HiddenTest);
+package enum isShouldFail(alias T) = is(TypeOf!T == ShouldFail);
 
 struct Name {
     string value;
