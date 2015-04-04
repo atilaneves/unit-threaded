@@ -23,16 +23,12 @@ struct TestData {
  * Finds all test cases (functions, classes, built-in unittest blocks)
  * Template parameters are module strings
  */
-
 const(TestData)[] getAllTestCaseData(MOD_STRINGS...)() if(allSatisfy!(isSomeString, typeof(MOD_STRINGS))) {
-    mixin(getImportTestsCompileString!MOD_STRINGS()); //e.g. import foo, bar, baz;
-    enum mod_symbols = getModulesCompileString!MOD_STRINGS; //e.g. foo, bar, baz
-    mixin("return getAllTestCaseData!(" ~ mod_symbols ~ ");");
+    enum modulesString = getModulesCompileString!MOD_STRINGS; //e.g. foo, bar, baz
+    mixin("import " ~ modulesString ~ ";");
+    mixin("return getAllTestCaseData!(" ~ modulesString ~ ");");
 }
 
-private string getImportTestsCompileString(MOD_STRINGS...)() {
-    return "import " ~ getModulesCompileString!MOD_STRINGS ~ ";";
-}
 
 private string getModulesCompileString(MOD_STRINGS...)() {
     import std.array;
