@@ -13,7 +13,7 @@ struct TestData {
     string name;
     bool hidden;
     bool shouldFail;
-    TestFunction test; //only used for functions, null for classes
+    TestFunction test; ///only used for functions, null for classes
     bool singleThreaded;
     bool builtin;
 }
@@ -23,10 +23,10 @@ struct TestData {
  * Finds all test cases (functions, classes, built-in unittest blocks)
  * Template parameters are module strings
  */
-const(TestData)[] getAllTestCaseData(MOD_STRINGS...)() if(allSatisfy!(isSomeString, typeof(MOD_STRINGS))) {
+const(TestData)[] allTestCaseData(MOD_STRINGS...)() if(allSatisfy!(isSomeString, typeof(MOD_STRINGS))) {
     enum modulesString = getModulesCompileString!MOD_STRINGS; //e.g. foo, bar, baz
     mixin("import " ~ modulesString ~ ";");
-    mixin("return getAllTestCaseData!(" ~ modulesString ~ ");");
+    mixin("return allTestCaseData!(" ~ modulesString ~ ");");
 }
 
 
@@ -41,8 +41,8 @@ private string getModulesCompileString(MOD_STRINGS...)() {
  * Finds all test cases (functions, classes, built-in unittest blocks)
  * Template parameters are module symbols
  */
-const(TestData)[] getAllTestCaseData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
-    auto getAllTestsWithFunc(string expr, MOD_SYMBOLS...)() pure nothrow {
+const(TestData)[] allTestCaseData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
+    auto allTestsWithFunc(string expr, MOD_SYMBOLS...)() pure nothrow {
         //tests is whatever type expr returns
         ReturnType!(mixin(expr ~ q{!(MOD_SYMBOLS[0])})) tests;
         foreach(mod; TypeTuple!MOD_SYMBOLS) {
@@ -51,9 +51,9 @@ const(TestData)[] getAllTestCaseData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeStr
         return tests;
     }
 
-    return getAllTestsWithFunc!(q{getTestClasses}, MOD_SYMBOLS) ~
-           getAllTestsWithFunc!(q{getTestFunctions}, MOD_SYMBOLS) ~
-           getAllTestsWithFunc!(q{getBuiltinTests}, MOD_SYMBOLS);
+    return allTestsWithFunc!(q{getTestClasses}, MOD_SYMBOLS) ~
+           allTestsWithFunc!(q{getTestFunctions}, MOD_SYMBOLS) ~
+           allTestsWithFunc!(q{getBuiltinTests}, MOD_SYMBOLS);
 }
 
 
@@ -117,13 +117,13 @@ private string unittestName(alias mod, alias test, int index)() @safe nothrow {
     }
 }
 
-private template HasAttribute(alias mod, string member, alias A) {
+private template HasTypeAttribute(alias mod, string member, alias A) {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
     enum index = staticIndexOf!(A, __traits(getAttributes, mixin(member)));
     static if(index >= 0) {
-        enum HasAttribute = true;
+        enum HasTypeAttribute = true;
     } else {
-        enum HasAttribute = false;
+        enum HasTypeAttribute = false;
     }
 }
 
@@ -161,7 +161,7 @@ private auto getTestCases(alias mod, alias pred)() pure nothrow {
         enum notPrivate = __traits(compiles, mixin(moduleMember)); //only way I know to check if private
 
         static if(notPrivate && pred!(mod, moduleMember)) {
-            static if(!HasAttribute!(mod, moduleMember, DontTest)) {
+            static if(!HasTypeAttribute!(mod, moduleMember, DontTest)) {
                 testData ~= createTestData!(mod, moduleMember);
             }
         }
@@ -184,7 +184,7 @@ private auto createTestData(alias mod, string moduleMember)() pure nothrow {
                     HasHidden!(mod, moduleMember),
                     HasShouldFail!(mod, moduleMember),
                     getTestFunction!(mod, moduleMember),
-                    HasAttribute!(mod, moduleMember, SingleThreaded));
+                    HasTypeAttribute!(mod, moduleMember, SingleThreaded));
 }
 
 private template isTestClass(alias mod, string moduleMember) {
@@ -192,7 +192,7 @@ private template isTestClass(alias mod, string moduleMember) {
     static if(__traits(compiles, isAggregateType!(mixin(moduleMember)))) {
         static if(isAggregateType!(mixin(moduleMember))) {
 
-            enum hasUnitTest = HasAttribute!(mod, moduleMember, UnitTest);
+            enum hasUnitTest = HasTypeAttribute!(mod, moduleMember, UnitTest);
             enum hasTestMethod = __traits(hasMember, mixin(moduleMember), "test");
 
             enum isTestClass = hasTestMethod || hasUnitTest;
@@ -209,7 +209,7 @@ private template isTestFunction(alias mod, string moduleMember) {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
     static if(isSomeFunction!(mixin(moduleMember))) {
         enum isTestFunction = hasTestPrefix!(mod, moduleMember) ||
-            HasAttribute!(mod, moduleMember, UnitTest);
+            HasTypeAttribute!(mod, moduleMember, UnitTest);
     } else {
         enum isTestFunction = false;
     }
