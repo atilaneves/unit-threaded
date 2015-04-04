@@ -29,3 +29,7 @@ package template isAHiddenStruct(alias T) {
 package template isAShouldFailStruct(alias T) {
     enum isAShouldFailStruct = is(TypeOf!T == ShouldFail);
 }
+
+struct Name {
+    string value;
+}

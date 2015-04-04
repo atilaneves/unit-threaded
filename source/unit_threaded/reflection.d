@@ -73,6 +73,13 @@ auto getTestFunctions(alias mod)() pure nothrow {
     return getTestCases!(mod, isTestFunction);
 }
 
+private enum isName(alias T) = is(typeof(T)) && is(typeof(T) == Name);
+
+unittest {
+    static assert(isName!(Name()));
+    static assert(!isName!Name);
+}
+
 /**
  * Finds all built-in unittest blocks in the given module.
  * @return An array of TestData structs
@@ -83,23 +90,35 @@ auto getBuiltinTests(alias mod)() pure nothrow {
     TestData[] testData;
     int index;
     foreach(test; __traits(getUnitTests, mod)) {
+
+        alias names = Filter!(isName, __traits(getAttributes, test));
+
+        static assert(names.length == 0 || names.length == 1, "Found multiple Name UDAs on unittest");
+        static if(names.length == 1) {
+            enum name = fullyQualifiedName!mod ~ "." ~ names[0].value;
+
+        } else {
+            string name;
+            try {
+                name = fullyQualifiedName!mod ~ ".unittest" ~ (++index).to!string;
+            } catch(Throwable) {
+                assert(false, text("Error converting ", index, " to string"));
+            }
+
+        }
+
         enum hidden = false;
         enum shouldFail = false;
         enum singleThreaded = false;
         enum builtin = true;
-        try {
-            testData ~= TestData(fullyQualifiedName!mod ~ ".unittest" ~ (++index).to!string,
-                                 hidden, shouldFail, &test, singleThreaded, builtin);
-        } catch(Throwable) {
-            assert(false, text("Error converting ", index, " to string"));
-        }
+        testData ~= TestData(name, hidden, shouldFail, &test, singleThreaded, builtin);
     }
     return testData;
 }
 
-private template HasAttribute(alias mod, string T, alias A) {
+private template HasAttribute(alias mod, string member, alias A) {
     mixin("import " ~ fullyQualifiedName!mod ~ ";"); //so it's visible
-    enum index = staticIndexOf!(A, __traits(getAttributes, mixin(T)));
+    enum index = staticIndexOf!(A, __traits(getAttributes, mixin(member)));
     static if(index >= 0) {
         enum HasAttribute = true;
     } else {
