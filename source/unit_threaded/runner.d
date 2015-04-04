@@ -5,7 +5,7 @@ import unit_threaded.testsuite;
 import unit_threaded.io;
 import unit_threaded.options;
 import unit_threaded.testcase;
-import unit_threaded.reflection: getAllTestCaseData;
+import unit_threaded.reflection: allTestCaseData;
 
 import std.stdio;
 import std.traits;
@@ -24,7 +24,7 @@ import core.thread;
  * Returns: integer suitable for program return code.
  */
 int runTests(MODULES...)(string[] args) {
-    const testData = getAllTestCaseData!MODULES;
+    const testData = allTestCaseData!MODULES;
     return runTests(testData, args);
 }
 
