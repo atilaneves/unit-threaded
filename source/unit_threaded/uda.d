@@ -5,7 +5,7 @@ import std.typetuple;
 
 /**
  * For the given module, return true if this module's member has
- * a UDA with a value that the predicate returns true to, false otherwise
+ * the given UDA. UDAs can be types or values.
  */
 template HasAttribute(alias module_, string member, alias attribute) {
     mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
