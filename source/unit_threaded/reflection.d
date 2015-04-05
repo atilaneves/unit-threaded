@@ -2,7 +2,6 @@ module unit_threaded.reflection;
 
 import unit_threaded.attrs;
 import unit_threaded.uda;
-import std.uni: isUpper;
 import std.traits;
 import std.typetuple;
 
@@ -181,13 +180,14 @@ private template isTestFunction(alias module_, string moduleMember) {
 }
 
 private template hasTestPrefix(alias module_, string member) {
+    import std.uni: isUpper;
     mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
 
     enum prefix = "test";
     enum minSize = prefix.length + 1;
 
     static if(isSomeFunction!(mixin(member)) &&
-              member.length >= minSize && member[0 .. prefix.length] == "test" &&
+              member.length >= minSize && member[0 .. prefix.length] == prefix &&
               isUpper(member[prefix.length])) {
         enum hasTestPrefix = true;
     } else {
