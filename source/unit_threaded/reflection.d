@@ -136,7 +136,7 @@ private auto getTestCases(alias module_, alias pred)() pure nothrow {
 }
 
 private auto createTestData(alias module_, string moduleMember)() pure nothrow {
-    TestFunction getTestFunction(alias module_, string moduleMember)() {
+    TestFunction getTestFunction() {
         //returns a function pointer for test functions, null for test classes
         static if(__traits(compiles, &__traits(getMember, module_, moduleMember))) {
             return &__traits(getMember, module_, moduleMember);
@@ -148,7 +148,7 @@ private auto createTestData(alias module_, string moduleMember)() pure nothrow {
     return TestData(fullyQualifiedName!module_ ~ "." ~ moduleMember,
                     HasAttribute!(module_, moduleMember, HiddenTest),
                     HasAttribute!(module_, moduleMember, ShouldFail),
-                    getTestFunction!(module_, moduleMember),
+                    getTestFunction,
                     HasAttribute!(module_, moduleMember, SingleThreaded));
 }
 
