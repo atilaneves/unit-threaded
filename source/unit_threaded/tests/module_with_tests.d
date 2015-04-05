@@ -1,5 +1,7 @@
 module unit_threaded.tests.module_with_tests;
 
+import unit_threaded.attrs;
+
 version(unittest) {
     import unit_threaded.check;
 
@@ -35,5 +37,10 @@ unittest {
 
 unittest {
     //2nd block
+    assert(true);
+}
+
+@Name("myUnitTest")
+unittest {
     assert(true);
 }

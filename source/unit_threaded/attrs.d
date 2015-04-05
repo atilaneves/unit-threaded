@@ -19,7 +19,7 @@ struct ShouldFail {
  * regardless of whether the template parameter
  * is or has a type
  */
-package template TypeOf(alias T) {
+private template TypeOf(alias T) {
     static if(__traits(compiles, typeof(T))) {
         alias TypeOf = typeof(T);
     } else {
@@ -30,6 +30,9 @@ package template TypeOf(alias T) {
 package enum isHiddenTest(alias T) = is(TypeOf!T == HiddenTest);
 package enum isShouldFail(alias T) = is(TypeOf!T == ShouldFail);
 
+/**
+ * Associate a name with a unittest block
+ */
 struct Name {
     string value;
 }

@@ -1,9 +1,10 @@
 module unit_threaded.reflection;
 
+import unit_threaded.attrs;
+import unit_threaded.uda_utils;
+import std.uni: isUpper;
 import std.traits;
-import std.uni;
 import std.typetuple;
-import unit_threaded.check; //enum labels
 
 /**
  * Common data for test functions and test classes
@@ -119,39 +120,6 @@ private string unittestName(alias module_, alias test, int index)() @safe nothro
 }
 
 
-/**
- * For the given module, return a boolean if this module's member has
- * an UDA that is the type designated by attribute
- */
-private template HasTypeAttribute(alias module_, string member, alias attribute) {
-    mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
-    enum index = staticIndexOf!(attribute, __traits(getAttributes, mixin(member)));
-    static if(index >= 0) {
-        enum HasTypeAttribute = true;
-    } else {
-        enum HasTypeAttribute = false;
-    }
-}
-
-/**
- * For the given module, return a boolean if this module's member has
- * a UDA with a value that the predicate returns true to
- */
-private template HasValueAttribute(alias module_, string member, alias predicate) {
-    mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
-    alias attrs = Filter!(predicate, __traits(getAttributes, mixin(member)));
-    static assert(attrs.length == 0 || attrs.length == 1,
-                  text("Maximum number of attributes is 1 for ", predicate));
-    static if(attrs.length == 0) {
-        enum HasValueAttribute = false;
-    } else {
-        enum HasValueAttribute = true;
-    }
-}
-
-private enum HasHidden(alias module_, string member) = HasValueAttribute!(module_, member, isHiddenTest);
-private enum HasShouldFail(alias module_, string member) = HasValueAttribute!(module_, member, isShouldFail);
-
 private auto getTestCases(alias module_, alias pred)() pure nothrow {
     mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
     TestData[] testData;
@@ -178,6 +146,9 @@ private auto createTestData(alias module_, string moduleMember)() pure nothrow {
             return null;
         }
     }
+
+     enum HasHidden(alias module_, string member) = HasValueAttribute!(module_, member, isHiddenTest);
+     enum HasShouldFail(alias module_, string member) = HasValueAttribute!(module_, member, isShouldFail);
 
     return TestData(fullyQualifiedName!module_ ~ "." ~ moduleMember,
                     HasHidden!(module_, moduleMember),
@@ -259,7 +230,7 @@ unittest {
 
 
 unittest {
-    const expected = addModPrefix(["unittest0", "unittest1"]);
+    const expected = addModPrefix(["unittest0", "unittest1", "myUnitTest"]);
     const actual = getBuiltinTests!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
     assertEqual(actual, expected);
 }
