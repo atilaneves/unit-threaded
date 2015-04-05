@@ -87,9 +87,30 @@ unittest {
  * @return An array of TestData structs
  */
 auto getUnitTests(alias module_)() pure nothrow {
+
+    string unittestName(alias test, int index)() @safe nothrow {
+        import std.conv;
+        mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
+
+        alias names = Filter!(isName, __traits(getAttributes, test));
+        static assert(names.length == 0 || names.length == 1, "Found multiple Name UDAs on unittest");
+        enum prefix = fullyQualifiedName!module_ ~ ".";
+
+        static if(names.length == 1) {
+            return prefix ~ names[0].value;
+        } else {
+            string name;
+            try {
+                return prefix ~ "unittest" ~ (index).to!string;
+            } catch(Exception) {
+                assert(false, text("Error converting ", index, " to string"));
+            }
+        }
+    }
+
     TestData[] testData;
     foreach(index, test; __traits(getUnitTests, module_)) {
-        enum name = unittestName!(module_, test, index);
+        enum name = unittestName!(test, index);
         enum hidden = false;
         enum shouldFail = false;
         enum singleThreaded = false;
@@ -99,25 +120,6 @@ auto getUnitTests(alias module_)() pure nothrow {
     return testData;
 }
 
-private string unittestName(alias module_, alias test, int index)() @safe nothrow {
-    import std.conv;
-    mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
-
-    alias names = Filter!(isName, __traits(getAttributes, test));
-    static assert(names.length == 0 || names.length == 1, "Found multiple Name UDAs on unittest");
-    enum prefix = fullyQualifiedName!module_ ~ ".";
-
-    static if(names.length == 1) {
-        return prefix ~ names[0].value;
-    } else {
-        string name;
-        try {
-            return prefix ~ "unittest" ~ (index).to!string;
-        } catch(Exception) {
-            assert(false, text("Error converting ", index, " to string"));
-        }
-    }
-}
 
 
 private auto getTestCases(alias module_, alias pred)() pure nothrow {
