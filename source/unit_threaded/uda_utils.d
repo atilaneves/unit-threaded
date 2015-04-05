@@ -49,3 +49,15 @@ private template TypeOf(alias T) {
         alias TypeOf = T;
     }
 }
+
+
+
+unittest {
+
+    import unit_threaded.attrs;
+    import unit_threaded.tests.module_with_attrs;
+
+    static assert(HasAttribute!(unit_threaded.tests.module_with_attrs, "testValueAttrs", HiddenTest));
+    static assert(HasAttribute!(unit_threaded.tests.module_with_attrs, "testValueAttrs", ShouldFail));
+    static assert(!HasAttribute!(unit_threaded.tests.module_with_attrs, "testValueAttrs", Name));
+}
