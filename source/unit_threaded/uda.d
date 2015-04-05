@@ -1,4 +1,4 @@
-module unit_threaded.uda_utils;
+module unit_threaded.uda;
 
 import std.traits;
 import std.typetuple;

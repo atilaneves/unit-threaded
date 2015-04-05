@@ -1,7 +1,7 @@
 module unit_threaded.reflection;
 
 import unit_threaded.attrs;
-import unit_threaded.uda_utils;
+import unit_threaded.uda;
 import std.uni: isUpper;
 import std.traits;
 import std.typetuple;
