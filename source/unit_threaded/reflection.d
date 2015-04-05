@@ -55,7 +55,7 @@ const(TestData)[] allTestCaseData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString
 
     return allTestsWithFunc!(q{getTestClasses}, MOD_SYMBOLS) ~
            allTestsWithFunc!(q{getTestFunctions}, MOD_SYMBOLS) ~
-           allTestsWithFunc!(q{getBuiltinTests}, MOD_SYMBOLS);
+           allTestsWithFunc!(q{getUnitTests}, MOD_SYMBOLS);
 }
 
 
@@ -86,7 +86,7 @@ unittest {
  * Finds all built-in unittest blocks in the given module.
  * @return An array of TestData structs
  */
-auto getBuiltinTests(alias module_)() pure nothrow {
+auto getUnitTests(alias module_)() pure nothrow {
     TestData[] testData;
     foreach(index, test; __traits(getUnitTests, module_)) {
         enum name = unittestName!(module_, test, index);
@@ -228,6 +228,6 @@ unittest {
 
 unittest {
     const expected = addModPrefix(["unittest0", "unittest1", "myUnitTest"]);
-    const actual = getBuiltinTests!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
+    const actual = getUnitTests!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
     assertEqual(actual, expected);
 }
