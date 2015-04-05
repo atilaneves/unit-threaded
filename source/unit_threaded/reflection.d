@@ -147,12 +147,9 @@ private auto createTestData(alias module_, string moduleMember)() pure nothrow {
         }
     }
 
-     enum HasHidden(alias module_, string member) = HasValueAttribute!(module_, member, isHiddenTest);
-     enum HasShouldFail(alias module_, string member) = HasValueAttribute!(module_, member, isShouldFail);
-
     return TestData(fullyQualifiedName!module_ ~ "." ~ moduleMember,
-                    HasHidden!(module_, moduleMember),
-                    HasShouldFail!(module_, moduleMember),
+                    HasAttribute!(module_, moduleMember, HiddenTest),
+                    HasAttribute!(module_, moduleMember, ShouldFail),
                     getTestFunction!(module_, moduleMember),
                     HasTypeAttribute!(module_, moduleMember, SingleThreaded));
 }

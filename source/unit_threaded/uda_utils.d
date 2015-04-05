@@ -21,14 +21,31 @@ template HasTypeAttribute(alias module_, string member, alias attribute) {
  * For the given module, return true if this module's member has
  * a UDA with a value that the predicate returns true to, false otherwise
  */
-template HasValueAttribute(alias module_, string member, alias predicate) {
+template HasAttribute(alias module_, string member, alias attribute) {
     mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
-    alias attrs = Filter!(predicate, __traits(getAttributes, mixin(member)));
+    enum isAttribute(alias T) = is(TypeOf!T == attribute);
+    alias attrs = Filter!(isAttribute, __traits(getAttributes, mixin(member)));
+
     static assert(attrs.length == 0 || attrs.length == 1,
-                  text("Maximum number of attributes is 1 for ", predicate));
+                  text("Maximum number of attributes is 1 for ", attribute));
+
     static if(attrs.length == 0) {
-        enum HasValueAttribute = false;
+        enum HasAttribute = false;
     } else {
-        enum HasValueAttribute = true;
+        enum HasAttribute = true;
+    }
+}
+
+
+/**
+ * Utility to allow checking UDAs for types
+ * regardless of whether the template parameter
+ * is or has a type
+ */
+private template TypeOf(alias T) {
+    static if(__traits(compiles, typeof(T))) {
+        alias TypeOf = typeof(T);
+    } else {
+        alias TypeOf = T;
     }
 }

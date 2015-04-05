@@ -14,21 +14,6 @@ struct ShouldFail {
     string reason;
 }
 
-/**
- * Utility to allow checking UDAs for types
- * regardless of whether the template parameter
- * is or has a type
- */
-private template TypeOf(alias T) {
-    static if(__traits(compiles, typeof(T))) {
-        alias TypeOf = typeof(T);
-    } else {
-        alias TypeOf = T;
-    }
-}
-
-package enum isHiddenTest(alias T) = is(TypeOf!T == HiddenTest);
-package enum isShouldFail(alias T) = is(TypeOf!T == ShouldFail);
 
 /**
  * Associate a name with a unittest block
