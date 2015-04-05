@@ -75,12 +75,6 @@ auto getTestFunctions(alias module_)() pure nothrow {
     return getTestCases!(module_, isTestFunction);
 }
 
-private enum isName(alias T) = is(typeof(T)) && is(typeof(T) == Name);
-
-unittest {
-    static assert(isName!(Name()));
-    static assert(!isName!Name);
-}
 
 /**
  * Finds all built-in unittest blocks in the given module.
@@ -88,10 +82,13 @@ unittest {
  */
 auto getUnitTests(alias module_)() pure nothrow {
 
+    // Return a name for a unittest block. If no @Name UDA is found a name is
+    // created automatically, else the UDA is used.
     string unittestName(alias test, int index)() @safe nothrow {
         import std.conv;
         mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
 
+        enum isName(alias T) = is(typeof(T)) && is(typeof(T) == Name);
         alias names = Filter!(isName, __traits(getAttributes, test));
         static assert(names.length == 0 || names.length == 1, "Found multiple Name UDAs on unittest");
         enum prefix = fullyQualifiedName!module_ ~ ".";
