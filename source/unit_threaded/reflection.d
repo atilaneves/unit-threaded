@@ -128,7 +128,7 @@ private auto getTestCases(alias module_, alias pred)() pure nothrow {
         enum notPrivate = __traits(compiles, mixin(moduleMember)); //only way I know to check if private
 
         static if(notPrivate && pred!(module_, moduleMember)) {
-            static if(!HasTypeAttribute!(module_, moduleMember, DontTest)) {
+            static if(!HasAttribute!(module_, moduleMember, DontTest)) {
                 testData ~= createTestData!(module_, moduleMember);
             }
         }
@@ -151,7 +151,7 @@ private auto createTestData(alias module_, string moduleMember)() pure nothrow {
                     HasAttribute!(module_, moduleMember, HiddenTest),
                     HasAttribute!(module_, moduleMember, ShouldFail),
                     getTestFunction!(module_, moduleMember),
-                    HasTypeAttribute!(module_, moduleMember, SingleThreaded));
+                    HasAttribute!(module_, moduleMember, SingleThreaded));
 }
 
 private template isTestClass(alias module_, string moduleMember) {
@@ -159,7 +159,7 @@ private template isTestClass(alias module_, string moduleMember) {
     static if(__traits(compiles, isAggregateType!(mixin(moduleMember)))) {
         static if(isAggregateType!(mixin(moduleMember))) {
 
-            enum hasUnitTest = HasTypeAttribute!(module_, moduleMember, UnitTest);
+            enum hasUnitTest = HasAttribute!(module_, moduleMember, UnitTest);
             enum hasTestMethod = __traits(hasMember, mixin(moduleMember), "test");
 
             enum isTestClass = hasTestMethod || hasUnitTest;
@@ -176,7 +176,7 @@ private template isTestFunction(alias module_, string moduleMember) {
     mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
     static if(isSomeFunction!(mixin(moduleMember))) {
         enum isTestFunction = hasTestPrefix!(module_, moduleMember) ||
-            HasTypeAttribute!(module_, moduleMember, UnitTest);
+            HasAttribute!(module_, moduleMember, UnitTest);
     } else {
         enum isTestFunction = false;
     }

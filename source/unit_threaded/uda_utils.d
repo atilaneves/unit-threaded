@@ -5,20 +5,6 @@ import std.typetuple;
 
 /**
  * For the given module, return true if this module's member has
- * an UDA that is the type designated by attribute, false otherwise
- */
-template HasTypeAttribute(alias module_, string member, alias attribute) {
-    mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
-    enum index = staticIndexOf!(attribute, __traits(getAttributes, mixin(member)));
-    static if(index >= 0) {
-        enum HasTypeAttribute = true;
-    } else {
-        enum HasTypeAttribute = false;
-    }
-}
-
-/**
- * For the given module, return true if this module's member has
  * a UDA with a value that the predicate returns true to, false otherwise
  */
 template HasAttribute(alias module_, string member, alias attribute) {
@@ -57,7 +43,12 @@ unittest {
     import unit_threaded.attrs;
     import unit_threaded.tests.module_with_attrs;
 
-    static assert(HasAttribute!(unit_threaded.tests.module_with_attrs, "testValueAttrs", HiddenTest));
-    static assert(HasAttribute!(unit_threaded.tests.module_with_attrs, "testValueAttrs", ShouldFail));
-    static assert(!HasAttribute!(unit_threaded.tests.module_with_attrs, "testValueAttrs", Name));
+    //check for value UDAs
+    static assert(HasAttribute!(unit_threaded.tests.module_with_attrs, "testAttrs", HiddenTest));
+    static assert(HasAttribute!(unit_threaded.tests.module_with_attrs, "testAttrs", ShouldFail));
+    static assert(!HasAttribute!(unit_threaded.tests.module_with_attrs, "testAttrs", Name));
+
+    //check for non-value UDAs
+    static assert(HasAttribute!(unit_threaded.tests.module_with_attrs, "testAttrs", SingleThreaded));
+    static assert(!HasAttribute!(unit_threaded.tests.module_with_attrs, "testAttrs", DontTest));
 }
