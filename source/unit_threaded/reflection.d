@@ -60,23 +60,6 @@ const(TestData)[] allTestCaseData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString
 
 
 /**
- * Finds all test classes (classes implementing a test() function)
- * in the given module
- */
-auto getTestClasses(alias module_)() pure nothrow {
-    return getTestCases!(module_, isTestClass);
-}
-
-/**
- * Finds all test functions in the given module.
- * Returns an array of TestData structs
- */
-auto getTestFunctions(alias module_)() pure nothrow {
-    return getTestCases!(module_, isTestFunction);
-}
-
-
-/**
  * Finds all built-in unittest blocks in the given module.
  * @return An array of TestData structs
  */
@@ -117,6 +100,22 @@ auto getUnitTests(alias module_)() pure nothrow {
     return testData;
 }
 
+
+/**
+ * Finds all test classes (classes implementing a test() function)
+ * in the given module
+ */
+auto getTestClasses(alias module_)() pure nothrow {
+    return getTestCases!(module_, isTestClass);
+}
+
+/**
+ * Finds all test functions in the given module.
+ * Returns an array of TestData structs
+ */
+auto getTestFunctions(alias module_)() pure nothrow {
+    return getTestCases!(module_, isTestFunction);
+}
 
 
 private auto getTestCases(alias module_, alias pred)() pure nothrow {
