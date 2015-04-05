@@ -47,14 +47,14 @@ const(TestData)[] allTestCaseData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString
         //tests is whatever type expr returns
         ReturnType!(mixin(expr ~ q{!(MOD_SYMBOLS[0])})) tests;
         foreach(module_; TypeTuple!MOD_SYMBOLS) {
-            tests ~= mixin(expr ~ q{!module_()}); //e.g. tests ~= getTestClasses!module_
+            tests ~= mixin(expr ~ q{!module_()}); //e.g. tests ~= moduleTestClasses!module_
         }
         return tests;
     }
 
-    return allTestsWithFunc!(q{getTestClasses}, MOD_SYMBOLS) ~
-           allTestsWithFunc!(q{getTestFunctions}, MOD_SYMBOLS) ~
-           allTestsWithFunc!(q{getUnitTests}, MOD_SYMBOLS);
+    return allTestsWithFunc!(q{moduleTestClasses}, MOD_SYMBOLS) ~
+           allTestsWithFunc!(q{moduleTestFunctions}, MOD_SYMBOLS) ~
+           allTestsWithFunc!(q{moduleUnitTests}, MOD_SYMBOLS);
 }
 
 
@@ -62,7 +62,7 @@ const(TestData)[] allTestCaseData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString
  * Finds all built-in unittest blocks in the given module.
  * @return An array of TestData structs
  */
-auto getUnitTests(alias module_)() pure nothrow {
+auto moduleUnitTests(alias module_)() pure nothrow {
 
     // Return a name for a unittest block. If no @Name UDA is found a name is
     // created automatically, else the UDA is used.
@@ -104,20 +104,20 @@ auto getUnitTests(alias module_)() pure nothrow {
  * Finds all test classes (classes implementing a test() function)
  * in the given module
  */
-auto getTestClasses(alias module_)() pure nothrow {
-    return getTestCases!(module_, isTestClass);
+auto moduleTestClasses(alias module_)() pure nothrow {
+    return moduleTestCases!(module_, isTestClass);
 }
 
 /**
  * Finds all test functions in the given module.
  * Returns an array of TestData structs
  */
-auto getTestFunctions(alias module_)() pure nothrow {
-    return getTestCases!(module_, isTestFunction);
+auto moduleTestFunctions(alias module_)() pure nothrow {
+    return moduleTestCases!(module_, isTestFunction);
 }
 
 
-private auto getTestCases(alias module_, alias pred)() pure nothrow {
+private auto moduleTestCases(alias module_, alias pred)() pure nothrow {
     mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
     TestData[] testData;
     foreach(moduleMember; __traits(allMembers, module_)) {
@@ -208,7 +208,7 @@ private auto addModPrefix(string[] elements, string module_ = "unit_threaded.tes
 
 unittest {
     const expected = addModPrefix([ "FooTest", "BarTest", "Blergh"]);
-    const actual = getTestClasses!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
+    const actual = moduleTestClasses!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
     assertEqual(actual, expected);
 }
 
@@ -219,13 +219,13 @@ unittest {
 
 unittest {
     const expected = addModPrefix([ "testFoo", "testBar", "funcThatShouldShowUpCosOfAttr" ]);
-    const actual = getTestFunctions!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
+    const actual = moduleTestFunctions!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
     assertEqual(actual, expected);
 }
 
 
 unittest {
     const expected = addModPrefix(["unittest0", "unittest1", "myUnitTest"]);
-    const actual = getUnitTests!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
+    const actual = moduleUnitTests!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
     assertEqual(actual, expected);
 }
