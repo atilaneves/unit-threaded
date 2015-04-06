@@ -108,18 +108,14 @@ auto moduleTestClasses(alias module_)() pure nothrow {
 
     template isTestClass(alias module_, string moduleMember) {
         mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
-        static if(__traits(compiles, isAggregateType!(mixin(moduleMember)))) {
-            static if(isAggregateType!(mixin(moduleMember))) {
-
-                enum hasUnitTest = HasAttribute!(module_, moduleMember, UnitTest);
-                enum hasTestMethod = __traits(hasMember, mixin(moduleMember), "test");
-
-                enum isTestClass = hasTestMethod || hasUnitTest;
-            } else {
-                enum isTestClass = false;
-            }
-        } else {
+        static if(!__traits(compiles, isAggregateType!(mixin(moduleMember)))) {
             enum isTestClass = false;
+        } else static if(!isAggregateType!(mixin(moduleMember))) {
+            enum isTestClass = false;
+        } else {
+            enum hasUnitTest = HasAttribute!(module_, moduleMember, UnitTest);
+            enum hasTestMethod = __traits(hasMember, mixin(moduleMember), "test");
+            enum isTestClass = hasTestMethod || hasUnitTest;
         }
     }
 
