@@ -117,7 +117,7 @@ private:
 class FunctionTestCase: TestCase {
     this(immutable TestData data) pure nothrow {
         _name = data.name;
-        _func = data.test;
+        _func = data.testFunction;
     }
 
     override void test() {

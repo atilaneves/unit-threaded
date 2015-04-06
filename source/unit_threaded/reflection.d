@@ -13,7 +13,7 @@ struct TestData {
     string name;
     bool hidden;
     bool shouldFail;
-    TestFunction test; ///only used for functions, null for classes
+    TestFunction testFunction; ///only used for functions, null for classes
     bool singleThreaded;
     bool builtin;
 }
