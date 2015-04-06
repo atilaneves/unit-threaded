@@ -124,10 +124,9 @@ private auto moduleTestCases(alias module_, alias pred)() pure nothrow {
 
         enum notPrivate = __traits(compiles, mixin(moduleMember)); //only way I know to check if private
 
-        static if(notPrivate && pred!(module_, moduleMember)) {
-            static if(!HasAttribute!(module_, moduleMember, DontTest)) {
-                testData ~= createTestData!(module_, moduleMember);
-            }
+        static if(notPrivate && pred!(module_, moduleMember) &&
+                  !HasAttribute!(module_, moduleMember, DontTest)) {
+            testData ~= createTestData!(module_, moduleMember);
         }
     }
 

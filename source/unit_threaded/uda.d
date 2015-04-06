@@ -24,9 +24,8 @@ template HasAttribute(alias module_, string member, alias attribute) {
 
 
 /**
- * Utility to allow checking UDAs for types
- * regardless of whether the template parameter
- * is or has a type
+ * Utility to allow checking UDAs regardless of whether the template
+ * parameter is or has a type
  */
 private template TypeOf(alias T) {
     static if(__traits(compiles, typeof(T))) {
