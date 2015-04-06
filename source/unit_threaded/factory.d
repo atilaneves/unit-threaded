@@ -36,8 +36,8 @@ TestCase[] createTestCases(in TestData[] testData, in string[] testsToRun = []) 
 }
 
 
-private TestCase createTestCase(TestData testData) {
-    TestCase createImpl(TestData testData) {
+private TestCase createTestCase(in TestData testData) {
+    TestCase createImpl() {
         if(testData.test is null) return cast(TestCase) Object.factory(testData.name);
         return testData.builtin ? new BuiltinTestCase(testData) : new FunctionTestCase(testData);
     }
@@ -46,15 +46,15 @@ private TestCase createTestCase(TestData testData) {
         static CompositeTestCase[string] composites;
         const moduleName = getModuleName(testData.name);
         if(moduleName !in composites) composites[moduleName] = new CompositeTestCase;
-        composites[moduleName] ~= createImpl(testData);
+        composites[moduleName] ~= createImpl();
         return composites[moduleName];
     }
 
     if(testData.shouldFail) {
-        return new ShouldFailTestCase(createImpl(testData));
+        return new ShouldFailTestCase(createImpl());
     }
 
-    auto testCase = createImpl(testData);
+    auto testCase = createImpl();
     if(testData.test !is null) {
         assert(testCase !is null, "Could not create TestCase object for test " ~ testData.name);
     }
