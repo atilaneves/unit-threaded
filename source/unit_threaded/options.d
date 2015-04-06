@@ -8,7 +8,7 @@ import std.exception;
 
 struct Options {
     bool multiThreaded;
-    string[] tests;
+    string[] testsToRun;
     bool debugOutput;
     bool list;
     bool exit;

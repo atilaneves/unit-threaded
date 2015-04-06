@@ -42,19 +42,24 @@ private TestCase createTestCase(in TestData testData) {
         return testData.builtin ? new BuiltinTestCase(testData) : new FunctionTestCase(testData);
     }
 
+    auto testCase = createImpl();
+
     if(testData.singleThreaded) {
+        // @SingleThreaded tests in the same module run sequentially.
+        // A CompositeTestCase is created for each module with at least
+        // one @SingleThreaded test and subsequent @SingleThreaded tests
+        // appended to it
         static CompositeTestCase[string] composites;
         const moduleName = getModuleName(testData.name);
         if(moduleName !in composites) composites[moduleName] = new CompositeTestCase;
-        composites[moduleName] ~= createImpl();
+        composites[moduleName] ~= testCase;
         return composites[moduleName];
     }
 
     if(testData.shouldFail) {
-        return new ShouldFailTestCase(createImpl());
+        return new ShouldFailTestCase(testCase);
     }
 
-    auto testCase = createImpl();
     if(testData.testFunction !is null) {
         assert(testCase !is null, "Could not create TestCase object for test " ~ testData.name);
     }
@@ -80,10 +85,10 @@ private bool isWantedTest(in TestData testData, in string[] testsToRun) {
 
 private bool moduleUnitTester() {
     //this is so unit-threaded's own tests run
-    foreach(mod; ModuleInfo) {
-        if(mod && mod.unitTest) {
-            if(startsWith(mod.name, "unit_threaded.")) {
-                mod.unitTest()();
+    foreach(module_; ModuleInfo) {
+        if(module_ && module_.unitTest) {
+            if(startsWith(module_.name, "unit_threaded.")) {
+                module_.unitTest()();
             }
         }
     }
