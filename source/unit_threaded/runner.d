@@ -55,7 +55,7 @@ bool runTests(in Options options, in TestData[] testData) {
     //tests with output could write to stdout in the meanwhile
     Thread.sleep(5.msecs);
 
-    auto testCases = createTests(testData, options.tests);
+    auto testCases = createTestCases(testData, options.tests);
     if(!testCases) {
         utWritelnRed("Error! No tests to run for args: ");
         utWriteln(options.tests);

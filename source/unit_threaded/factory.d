@@ -24,7 +24,7 @@ shared static this() {
  * Creates tests cases from the given modules.
  * If testsToRun is empty, it means run all tests.
  */
-TestCase[] createTests(in TestData[] testData, in string[] testsToRun = []) {
+TestCase[] createTestCases(in TestData[] testData, in string[] testsToRun = []) {
     bool[TestCase] tests;
     foreach(const data; testData) {
         if(!isWantedTest(data, testsToRun)) continue;
