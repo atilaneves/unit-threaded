@@ -23,12 +23,16 @@ struct TestSuite {
         _tests = tests;
     }
 
-    auto run(in Options options) {
+    /**
+     * Runs the tests with the given options.
+     * Returns: how long it took to run.
+     */
+    Duration run(in Options options) {
         auto tests = getTests(options);
         _stopWatch.start();
 
         if(options.multiThreaded) {
-            _failures = reduce!q{a ~ b}(_failures, taskPool.amap!runTest(tests));
+            _failures = reduce!((a, b) => a ~ b)(_failures, taskPool.amap!runTest(tests));
         } else {
             foreach(test; tests) _failures ~= test();
         }
@@ -40,7 +44,7 @@ struct TestSuite {
     }
 
     @property ulong numTestsRun() const {
-        return _tests.map!"a.numTestsRun".reduce!"a+b";
+        return _tests.map!(a => a.numTestsRun).reduce!((a, b) => a + b);
     }
 
     @property ulong numFailures() const pure nothrow {
