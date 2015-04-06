@@ -36,27 +36,27 @@ TestCase[] createTestCases(in TestData[] testData, in string[] testsToRun = []) 
 }
 
 
-private TestCase createTestCase(TestData data) {
-    TestCase createImpl(TestData data) {
-        if(data.test is null) return cast(TestCase) Object.factory(data.name);
-        return data.builtin ? new BuiltinTestCase(data) : new FunctionTestCase(data);
+private TestCase createTestCase(TestData testData) {
+    TestCase createImpl(TestData testData) {
+        if(testData.test is null) return cast(TestCase) Object.factory(testData.name);
+        return testData.builtin ? new BuiltinTestCase(testData) : new FunctionTestCase(testData);
     }
 
-    if(data.singleThreaded) {
+    if(testData.singleThreaded) {
         static CompositeTestCase[string] composites;
-        const moduleName = getModuleName(data.name);
+        const moduleName = getModuleName(testData.name);
         if(moduleName !in composites) composites[moduleName] = new CompositeTestCase;
-        composites[moduleName] ~= createImpl(data);
+        composites[moduleName] ~= createImpl(testData);
         return composites[moduleName];
     }
 
-    if(data.shouldFail) {
-        return new ShouldFailTestCase(createImpl(data));
+    if(testData.shouldFail) {
+        return new ShouldFailTestCase(createImpl(testData));
     }
 
-    auto testCase = createImpl(data);
-    if(data.test !is null) {
-        assert(testCase !is null, "Could not create TestCase object for test " ~ data.name);
+    auto testCase = createImpl(testData);
+    if(testData.test !is null) {
+        assert(testCase !is null, "Could not create TestCase object for test " ~ testData.name);
     }
 
     return testCase;
@@ -67,11 +67,11 @@ private string getModuleName(in string name) {
 }
 
 
-private bool isWantedTest(in TestData data, in string[] testsToRun) {
-    if(!testsToRun.length) return !data.hidden; //all tests except the hidden ones
-    bool matchesExactly(in string t) { return t == data.name; }
+private bool isWantedTest(in TestData testData, in string[] testsToRun) {
+    if(!testsToRun.length) return !testData.hidden; //all tests except the hidden ones
+    bool matchesExactly(in string t) { return t == testData.name; }
     bool matchesPackage(in string t) { //runs all tests in package if it matches
-        with(data) return !hidden && name.length > t.length &&
+        with(testData) return !hidden && name.length > t.length &&
                        name.startsWith(t) && name[t.length .. $].canFind(".");
     }
     return testsToRun.any!(t => matchesExactly(t) || matchesPackage(t));
