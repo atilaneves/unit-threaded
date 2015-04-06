@@ -50,7 +50,11 @@ private TestCase createTestCase(in TestData testData) {
         // one @SingleThreaded test and subsequent @SingleThreaded tests
         // appended to it
         static CompositeTestCase[string] composites;
-        const moduleName = getModuleName(testData.name);
+
+        const moduleName = testData.name.splitter(".").
+            array[0 .. $ - 1].
+            reduce!((a, b) => a ~ "." ~ b);
+
         if(moduleName !in composites) composites[moduleName] = new CompositeTestCase;
         composites[moduleName] ~= testCase;
         return composites[moduleName];
@@ -65,10 +69,6 @@ private TestCase createTestCase(in TestData testData) {
     }
 
     return testCase;
-}
-
-private string getModuleName(in string name) {
-    return name.splitter(".").array[0 .. $ - 1].reduce!((a, b) => a ~ "." ~ b);
 }
 
 
@@ -113,11 +113,4 @@ unittest {
                          ["example.tests.pass.io.TestFoo"]));
     assert(isWantedTest(TestData("example.tests.pass.normal.unittest"), []));
     assert(!isWantedTest(TestData("tests.pass.attributes.testHidden", true /*hidden*/), ["tests.pass"]));
-}
-
-
-
-unittest {
-    import unit_threaded.asserts;
-    assertEqual(getModuleName("tests.fail.composite.Test1"), "tests.fail.composite");
 }

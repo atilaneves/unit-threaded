@@ -9,6 +9,7 @@ import std.string;
 import std.conv;
 import std.algorithm;
 
+
 struct TestResult {
     int failures;
     string output;
@@ -22,6 +23,10 @@ class TestCase {
         return this.classinfo.name;
     }
 
+    /**
+     * Executes the test.
+     * Returns: array of failures
+     */
     string[] opCall() {
         collectOutput();
         printToScreen();
@@ -77,8 +82,9 @@ class CompositeTestCase: TestCase {
     void opOpAssign(string op : "~")(TestCase t) {
         add(t);
     }
+
     override string[] opCall() {
-        return _tests.map!"a()".reduce!"a ~ b";
+        return _tests.map!(a => a()).reduce!((a, b) => a ~ b);
     }
 
     override void test() { assert(false, "CompositeTestCase.test should never be called"); }
