@@ -105,6 +105,24 @@ auto moduleUnitTests(alias module_)() pure nothrow {
  * in the given module
  */
 auto moduleTestClasses(alias module_)() pure nothrow {
+
+    template isTestClass(alias module_, string moduleMember) {
+        mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
+        static if(__traits(compiles, isAggregateType!(mixin(moduleMember)))) {
+            static if(isAggregateType!(mixin(moduleMember))) {
+
+                enum hasUnitTest = HasAttribute!(module_, moduleMember, UnitTest);
+                enum hasTestMethod = __traits(hasMember, mixin(moduleMember), "test");
+
+                enum isTestClass = hasTestMethod || hasUnitTest;
+            } else {
+                enum isTestClass = false;
+            }
+        } else {
+            enum isTestClass = false;
+        }
+    }
+
     return moduleTestCases!(module_, isTestClass);
 }
 
@@ -113,6 +131,33 @@ auto moduleTestClasses(alias module_)() pure nothrow {
  * Returns an array of TestData structs
  */
 auto moduleTestFunctions(alias module_)() pure nothrow {
+
+    template isTestFunction(alias module_, string moduleMember) {
+        mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
+        static if(isSomeFunction!(mixin(moduleMember))) {
+            enum isTestFunction = hasTestPrefix!(module_, moduleMember) ||
+                HasAttribute!(module_, moduleMember, UnitTest);
+        } else {
+            enum isTestFunction = false;
+        }
+    }
+
+    template hasTestPrefix(alias module_, string member) {
+        import std.uni: isUpper;
+        mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
+
+        enum prefix = "test";
+        enum minSize = prefix.length + 1;
+
+        static if(isSomeFunction!(mixin(member)) &&
+                  member.length >= minSize && member[0 .. prefix.length] == prefix &&
+                  isUpper(member[prefix.length])) {
+            enum hasTestPrefix = true;
+        } else {
+            enum hasTestPrefix = false;
+        }
+    }
+
     return moduleTestCases!(module_, isTestFunction);
 }
 
@@ -126,73 +171,27 @@ private auto moduleTestCases(alias module_, alias pred)() pure nothrow {
 
         static if(notPrivate && pred!(module_, moduleMember) &&
                   !HasAttribute!(module_, moduleMember, DontTest)) {
-            testData ~= createTestData!(module_, moduleMember);
+
+            TestFunction getTestFunction(alias module_, string moduleMember)() pure nothrow {
+                //returns a function pointer for test functions, null for test classes
+                static if(__traits(compiles, &__traits(getMember, module_, moduleMember))) {
+                    return &__traits(getMember, module_, moduleMember);
+                } else {
+                    return null;
+                }
+            }
+
+            testData ~= TestData(fullyQualifiedName!module_~ "." ~ moduleMember,
+                                 HasAttribute!(module_, moduleMember, HiddenTest),
+                                 HasAttribute!(module_, moduleMember, ShouldFail),
+                                 getTestFunction!(module_, moduleMember),
+                                 HasAttribute!(module_, moduleMember, SingleThreaded));
         }
     }
 
     return testData;
 }
 
-private auto createTestData(alias module_, string moduleMember)() pure nothrow {
-    TestFunction getTestFunction() {
-        //returns a function pointer for test functions, null for test classes
-        static if(__traits(compiles, &__traits(getMember, module_, moduleMember))) {
-            return &__traits(getMember, module_, moduleMember);
-        } else {
-            return null;
-        }
-    }
-
-    return TestData(fullyQualifiedName!module_ ~ "." ~ moduleMember,
-                    HasAttribute!(module_, moduleMember, HiddenTest),
-                    HasAttribute!(module_, moduleMember, ShouldFail),
-                    getTestFunction,
-                    HasAttribute!(module_, moduleMember, SingleThreaded));
-}
-
-private template isTestClass(alias module_, string moduleMember) {
-    mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
-    static if(__traits(compiles, isAggregateType!(mixin(moduleMember)))) {
-        static if(isAggregateType!(mixin(moduleMember))) {
-
-            enum hasUnitTest = HasAttribute!(module_, moduleMember, UnitTest);
-            enum hasTestMethod = __traits(hasMember, mixin(moduleMember), "test");
-
-            enum isTestClass = hasTestMethod || hasUnitTest;
-        } else {
-            enum isTestClass = false;
-        }
-    } else {
-        enum isTestClass = false;
-    }
-}
-
-
-private template isTestFunction(alias module_, string moduleMember) {
-    mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
-    static if(isSomeFunction!(mixin(moduleMember))) {
-        enum isTestFunction = hasTestPrefix!(module_, moduleMember) ||
-            HasAttribute!(module_, moduleMember, UnitTest);
-    } else {
-        enum isTestFunction = false;
-    }
-}
-
-private template hasTestPrefix(alias module_, string member) {
-    import std.uni: isUpper;
-    mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
-
-    enum prefix = "test";
-    enum minSize = prefix.length + 1;
-
-    static if(isSomeFunction!(mixin(member)) &&
-              member.length >= minSize && member[0 .. prefix.length] == prefix &&
-              isUpper(member[prefix.length])) {
-        enum hasTestPrefix = true;
-    } else {
-        enum hasTestPrefix = false;
-    }
-}
 
 
 import unit_threaded.tests.module_with_tests; //defines tests and non-tests
@@ -209,11 +208,6 @@ unittest {
     const expected = addModPrefix([ "FooTest", "BarTest", "Blergh"]);
     const actual = moduleTestClasses!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
     assertEqual(actual, expected);
-}
-
-unittest {
-    static assert(hasTestPrefix!(unit_threaded.tests.module_with_tests, "testFoo"));
-    static assert(!hasTestPrefix!(unit_threaded.tests.module_with_tests, "funcThatShouldShowUpCosOfAttr"));
 }
 
 unittest {
