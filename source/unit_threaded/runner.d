@@ -24,11 +24,10 @@ import core.thread;
  * Returns: integer suitable for program return code.
  */
 int runTests(MODULES...)(string[] args) {
-    const testData = allTestCaseData!MODULES;
-    return runTests(testData, args);
+    return runTests(args, allTestCaseData!MODULES);
 }
 
-int runTests(in TestData[] testData, string[] args) {
+int runTests(string[] args, in TestData[] testData) {
     const options = getOptions(args);
 
     if(options.list) {
