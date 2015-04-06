@@ -20,6 +20,20 @@ shared static this() {
     Runtime.moduleUnitTester = &moduleUnitTester;
 }
 
+private bool moduleUnitTester() {
+    //this is so unit-threaded's own tests run
+    foreach(module_; ModuleInfo) {
+        if(module_ && module_.unitTest) {
+            if(startsWith(module_.name, "unit_threaded.")) {
+                module_.unitTest()();
+            }
+        }
+    }
+
+    return true;
+}
+
+
 /**
  * Creates tests cases from the given modules.
  * If testsToRun is empty, it means run all tests.
@@ -64,9 +78,8 @@ private TestCase createTestCase(in TestData testData) {
         return new ShouldFailTestCase(testCase);
     }
 
-    if(testData.testFunction !is null) {
-        assert(testCase !is null, "Could not create TestCase object for test " ~ testData.name);
-    }
+    assert(testCase !is null || testData.testFunction is null,
+           "Could not create TestCase object for test " ~ testData.name);
 
     return testCase;
 }
@@ -80,20 +93,6 @@ private bool isWantedTest(in TestData testData, in string[] testsToRun) {
                        name.startsWith(t) && name[t.length .. $].canFind(".");
     }
     return testsToRun.any!(t => matchesExactly(t) || matchesPackage(t));
-}
-
-
-private bool moduleUnitTester() {
-    //this is so unit-threaded's own tests run
-    foreach(module_; ModuleInfo) {
-        if(module_ && module_.unitTest) {
-            if(startsWith(module_.name, "unit_threaded.")) {
-                module_.unitTest()();
-            }
-        }
-    }
-
-    return true;
 }
 
 
