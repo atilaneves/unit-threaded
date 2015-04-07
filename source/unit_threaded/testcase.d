@@ -1,7 +1,7 @@
 module unit_threaded.testcase;
 
 import unit_threaded.check;
-import unit_threaded.io;
+import unit_threaded.io: addToOutput, utWrite;
 import unit_threaded.reflection: TestData, TestFunction;
 
 import std.exception;
@@ -21,12 +21,15 @@ class TestCase {
      * Returns: array of failures
      */
     string[] opCall() {
-        collectOutput();
-        printToScreen();
+        utWrite(collectOutput());
         return _failed ? [name] : [];
     }
 
-    final auto collectOutput() {
+    /**
+     * Collect this test's output so as to not interleave with output from
+     * other tests.
+     */
+    final string collectOutput() {
         print(name ~ ":\n");
         try {
             test();
@@ -38,10 +41,7 @@ class TestCase {
             utFail(t.msg, t.file, t.line);
         }
         if(_failed) print("\n\n");
-    }
-
-    void printToScreen() const {
-        utWrite(_output);
+        return _output;
     }
 
     abstract void test();
