@@ -7,13 +7,8 @@ import unit_threaded.options;
 import unit_threaded.testcase;
 import unit_threaded.reflection: allTestData;
 
-import std.stdio;
-import std.traits;
-import std.typetuple;
-import std.concurrency;
-import std.conv;
-import std.algorithm;
-import core.thread;
+import std.conv: text;
+import std.algorithm: map, filter, count;
 
 
 /**
@@ -27,10 +22,18 @@ int runTests(MODULES...)(string[] args) {
     return runTests(args, allTestData!MODULES);
 }
 
+/**
+ * Runs all tests in passed-in testData. Arguments are taken from the
+ * command-line.  -s Can be passed to run in single-threaded mode. The
+ * rest of argv is considered to be test names to be run.  Returns:
+ * integer suitable for program return code.
+ */
 int runTests(string[] args, in TestData[] testData) {
     const options = getOptions(args);
 
     if(options.list) {
+        import std.stdio;
+
         writeln("Listing tests:");
         foreach(test; testData.map!(a => a.name)) {
             writeln(test);
@@ -45,7 +48,10 @@ int runTests(string[] args, in TestData[] testData) {
     return success ? 0 : 1;
 }
 
-
+/**
+ * Runs all tests in passed-in testData. with the given options.
+ * Returns: true on success, false if any of the tests failed.
+ */
 bool runTests(in Options options, in TestData[] testData) {
     WriterThread.start;
     scope(exit) WriterThread.get.join;
@@ -61,7 +67,7 @@ bool runTests(in Options options, in TestData[] testData) {
     immutable elapsed = suite.run(options);
 
     if(!suite.numTestsRun) {
-        writeln("Did not run any tests!!!");
+        utWriteln("Did not run any tests!!!");
         return false;
     }
 
