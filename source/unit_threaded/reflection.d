@@ -15,7 +15,6 @@ struct TestData {
     bool shouldFail;
     TestFunction testFunction; ///only used for functions, null for classes
     bool singleThreaded;
-    bool builtin;
 }
 
 
@@ -91,13 +90,12 @@ auto moduleUnitTests(alias module_)() pure nothrow {
         enum hidden = false;
         enum shouldFail = false;
         enum singleThreaded = false;
-        enum builtin = true;
         testData ~= TestData(name,
                              HasAttribute!(module_, test, HiddenTest),
                              HasAttribute!(module_, test, ShouldFail),
                              &test,
                              HasAttribute!(module_, test, SingleThreaded),
-                             builtin);
+                             );
     }
     return testData;
 }
