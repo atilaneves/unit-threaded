@@ -20,37 +20,28 @@ struct TestData {
 
 /**
  * Finds all test cases (functions, classes, built-in unittest blocks)
- * Template parameters are module strings
+ * Template parameters are module symbols or their string representation
  */
-const(TestData)[] allTestData(MOD_STRINGS...)() if(allSatisfy!(isSomeString, typeof(MOD_STRINGS))) {
-
-    string getModulesString() {
-        import std.array: join;
-        string[] modules;
-        foreach(module_; MOD_STRINGS) modules ~= module_;
-        return modules.join(", ");
-    }
-
-    enum modulesString =  getModulesString;
-    mixin("import " ~ modulesString ~ ";");
-    mixin("return allTestData!(" ~ modulesString ~ ");");
-}
-
-
-/**
- * Finds all test cases (functions, classes, built-in unittest blocks)
- * Template parameters are module symbols
- */
-TestData[] allTestData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
+TestData[] allTestData(MODULES...)()
+{
     TestData[] testData;
 
-    foreach(module_; MOD_SYMBOLS) {
-        testData ~= moduleTestData!module_;
+    foreach(module_; MODULES) {
+        static if(is(typeof(module_)) && isSomeString!(typeof(module_)))
+        {
+            //string, generate the code
+            mixin("import " ~ module_ ~ ";");
+            testData ~= moduleTestData!(mixin(module_));
+        }
+        else
+        {
+            //module symbol, just add normally
+            testData ~= moduleTestData!(module_);
+        }
     }
 
     return testData;
 }
-
 
 /**
  * Finds all built-in unittest blocks in the given module.
