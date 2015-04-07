@@ -86,11 +86,7 @@ auto moduleUnitTests(alias module_)() pure nothrow {
 
     TestData[] testData;
     foreach(index, test; __traits(getUnitTests, module_)) {
-        enum name = unittestName!(test, index);
-        enum hidden = false;
-        enum shouldFail = false;
-        enum singleThreaded = false;
-        testData ~= TestData(name,
+        testData ~= TestData(unittestName!(test, index),
                              &test,
                              HasAttribute!(module_, test, HiddenTest),
                              HasAttribute!(module_, test, ShouldFail),
