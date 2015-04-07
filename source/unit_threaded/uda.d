@@ -9,21 +9,18 @@ import std.typetuple;
  */
 template HasAttribute(alias module_, alias member, alias attribute) if(isSomeString!(typeof(member))) {
     mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
-    enum isAttribute(alias T) = is(TypeOf!T == attribute);
-    alias attrs = Filter!(isAttribute, __traits(getAttributes, mixin(member)));
-
-    static assert(attrs.length == 0 || attrs.length == 1,
-                  text("Maximum number of attributes is 1 for ", attribute));
-
-    static if(attrs.length == 0) {
-        enum HasAttribute = false;
-    } else {
-        enum HasAttribute = true;
-    }
+    enum HasAttribute = HasAttributeImpl!(module_, mixin(member), attribute);
 }
 
+/**
+ * For the given module, return true if this module's member has
+ * the given UDA. UDAs can be types or values.
+ */
 template HasAttribute(alias module_, alias member, alias attribute) if(!isSomeString!(typeof(member))) {
-    mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
+    enum HasAttribute = HasAttributeImpl!(module_, member, attribute);
+}
+
+private template HasAttributeImpl(alias module_, alias member, alias attribute) {
     enum isAttribute(alias T) = is(TypeOf!T == attribute);
     alias attrs = Filter!(isAttribute, __traits(getAttributes, member));
 
@@ -31,9 +28,9 @@ template HasAttribute(alias module_, alias member, alias attribute) if(!isSomeSt
                   text("Maximum number of attributes is 1 for ", attribute));
 
     static if(attrs.length == 0) {
-        enum HasAttribute = false;
+        enum HasAttributeImpl = false;
     } else {
-        enum HasAttribute = true;
+        enum HasAttributeImpl = true;
     }
 }
 
