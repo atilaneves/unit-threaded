@@ -42,16 +42,13 @@ const(TestData)[] allTestCaseData(MOD_STRINGS...)() if(allSatisfy!(isSomeString,
  * Template parameters are module symbols
  */
 const(TestData)[] allTestCaseData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
-    auto allTestsWithFunc(string expr, MOD_SYMBOLS...)() pure nothrow {
-        //tests is whatever type expr returns
-        ReturnType!(mixin(expr ~ q{!(MOD_SYMBOLS[0])})) tests;
-        foreach(module_; TypeTuple!MOD_SYMBOLS) {
-            tests ~= mixin(expr ~ q{!module_()}); //e.g. tests ~= moduleTestClasses!module_
-        }
-        return tests;
+    TestData[] testData;
+
+    foreach(module_; MOD_SYMBOLS) {
+        testData ~= moduleUnitTests!module_;
     }
 
-    return allTestsWithFunc!(q{moduleUnitTests}, MOD_SYMBOLS);
+    return testData;
 }
 
 
