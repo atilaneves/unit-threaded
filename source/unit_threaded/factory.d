@@ -108,5 +108,6 @@ unittest {
     assert(!isWantedTest(TestData("example.tests.pass.normal.unittest"),
                          ["example.tests.pass.io.TestFoo"]));
     assert(isWantedTest(TestData("example.tests.pass.normal.unittest"), []));
-    assert(!isWantedTest(TestData("tests.pass.attributes.testHidden", true /*hidden*/), ["tests.pass"]));
+    assert(!isWantedTest(TestData("tests.pass.attributes.testHidden", null /*func*/, true /*hidden*/),
+                         ["tests.pass"]));
 }
