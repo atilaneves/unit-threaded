@@ -2,8 +2,8 @@ module unit_threaded.reflection;
 
 import unit_threaded.attrs;
 import unit_threaded.uda;
-import std.traits;
-import std.typetuple: allSatisfy, anySatisfy, Filter;
+import std.traits: fullyQualifiedName, isSomeString;
+import std.typetuple: Filter;
 
 /**
  * Common data for test functions and test classes
