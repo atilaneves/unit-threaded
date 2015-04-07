@@ -2,7 +2,6 @@ module tests.pass.normal;
 
 import unit_threaded;
 
-
 @Name("testEqual") unittest {
     1.shouldEqual(1);
     checkEqual(1.0, 1.0);

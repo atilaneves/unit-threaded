@@ -34,6 +34,8 @@ class TestCase {
             fail(ex.msg);
         } catch(Exception ex) {
             fail("\n    " ~ ex.toString() ~ "\n");
+        } catch(Throwable t) {
+            utFail(t.msg, t.file, t.line);
         }
         if(_failed) print("\n\n");
     }
@@ -67,14 +69,7 @@ class FunctionTestCase: TestCase {
     }
 
     override void test() {
-        try {
-            _func();
-        } catch(UnitTestException ex) {
-            //don't handle these
-            throw ex;
-        } catch(Throwable t) {
-            utFail(t.msg, t.file, t.line);
-        }
+        _func();
     }
 
     override string getPath() const pure nothrow {
