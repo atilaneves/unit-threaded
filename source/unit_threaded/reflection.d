@@ -61,7 +61,6 @@ TestData[] moduleTestData(alias module_)() pure nothrow {
     // Return a name for a unittest block. If no @Name UDA is found a name is
     // created automatically, else the UDA is used.
     string unittestName(alias test, int index)() @safe nothrow {
-        import std.conv;
         mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
 
         enum isName(alias T) = is(typeof(T)) && is(typeof(T) == Name);
@@ -72,12 +71,8 @@ TestData[] moduleTestData(alias module_)() pure nothrow {
         static if(names.length == 1) {
             return prefix ~ names[0].value;
         } else {
-            string name;
-            try {
-                return prefix ~ "unittest" ~ (index).to!string;
-            } catch(Exception) {
-                assert(false, text("Error converting ", index, " to string"));
-            }
+            import std.conv;
+            return prefix ~ "unittest" ~ index.to!string;
         }
     }
 
