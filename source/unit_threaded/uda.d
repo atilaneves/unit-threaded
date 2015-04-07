@@ -61,5 +61,4 @@ unittest {
 
     //check for non-value UDAs
     static assert(HasAttribute!(unit_threaded.tests.module_with_attrs, "testAttrs", SingleThreaded));
-    static assert(!HasAttribute!(unit_threaded.tests.module_with_attrs, "testAttrs", DontTest));
 }

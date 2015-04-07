@@ -2,14 +2,6 @@ module tests.pass.attributes;
 
 import unit_threaded;
 
-enum myEnumNum = "foo.bar"; //there was a bug that made this not compile
-enum myOtherEnumNum;
-
-//won't be tested due to attribute
-@DontTest
-@Name("testThatWontRun") unittest {
-    1.shouldEqual(2); //doesn't matter, won't run anyway
-}
 
 @HiddenTest
 @Name("testHidden") unittest {

@@ -1,6 +1,5 @@
 module unit_threaded.attrs;
 
-enum DontTest; //opt-out of registration
 enum SingleThreaded; //run tests in the module in one thread
 
 ///Hide test. Not run by default but can be run.
