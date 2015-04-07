@@ -11,7 +11,8 @@ import core.runtime;
 /**
  * Replace the D runtime's normal unittest block tester with our own
  */
-shared static this() {
+shared static this()
+{
     Runtime.moduleUnitTester = &moduleUnitTester;
 }
 
@@ -20,7 +21,8 @@ shared static this() {
  * unittest blocks for unit_threaded itself run as usual, but the other
  * tests are not run since unit_threaded runs those.
  */
-private bool moduleUnitTester() {
+private bool moduleUnitTester()
+{
     foreach(module_; ModuleInfo) {
         if(module_ && module_.unitTest &&
            module_.name.startsWith("unit_threaded.")) {
@@ -36,10 +38,12 @@ private bool moduleUnitTester() {
  * Creates tests cases from the given modules.
  * If testsToRun is empty, it means run all tests.
  */
-TestCase[] createTestCases(in TestData[] testData, in string[] testsToRun = []) {
+TestCase[] createTestCases(in TestData[] testData, in string[] testsToRun = [])
+{
     bool[TestCase] tests;
 
-    foreach(const data; testData) {
+    foreach(const data; testData)
+    {
         if(!isWantedTest(data, testsToRun)) continue;
         tests[createTestCase(data)] = true;
     }
@@ -48,10 +52,12 @@ TestCase[] createTestCases(in TestData[] testData, in string[] testsToRun = []) 
 }
 
 
-private TestCase createTestCase(in TestData testData) {
+private TestCase createTestCase(in TestData testData)
+{
     auto testCase = new FunctionTestCase(testData);
 
-    if(testData.singleThreaded) {
+    if(testData.singleThreaded)
+    {
         // @SingleThreaded tests in the same module run sequentially.
         // A CompositeTestCase is created for each module with at least
         // one @SingleThreaded test and subsequent @SingleThreaded tests
@@ -62,12 +68,15 @@ private TestCase createTestCase(in TestData testData) {
             array[0 .. $ - 1].
             reduce!((a, b) => a ~ "." ~ b);
 
-        if(moduleName !in composites) composites[moduleName] = new CompositeTestCase;
+        if(moduleName !in composites)
+            composites[moduleName] = new CompositeTestCase;
+
         composites[moduleName] ~= testCase;
         return composites[moduleName];
     }
 
-    if(testData.shouldFail) {
+    if(testData.shouldFail)
+    {
         return new ShouldFailTestCase(testCase);
     }
 
@@ -75,18 +84,26 @@ private TestCase createTestCase(in TestData testData) {
 }
 
 
-private bool isWantedTest(in TestData testData, in string[] testsToRun) {
-    if(!testsToRun.length) return !testData.hidden; //all tests except the hidden ones
-    bool matchesExactly(in string t) { return t == testData.name; }
-    bool matchesPackage(in string t) { //runs all tests in package if it matches
+private bool isWantedTest(in TestData testData, in string[] testsToRun)
+{
+    //hidden tests are not run by default, every other one is
+    if(!testsToRun.length) return !testData.hidden;
+    bool matchesExactly(in string t)
+    {
+        return t == testData.name;
+    }
+    bool matchesPackage(in string t) //runs all tests in package if it matches
+    {
         with(testData) return !hidden && name.length > t.length &&
                        name.startsWith(t) && name[t.length .. $].canFind(".");
     }
+
     return testsToRun.any!(t => matchesExactly(t) || matchesPackage(t));
 }
 
 
-unittest {
+unittest
+{
     //existing, wanted
     assert(isWantedTest(TestData("tests.server.testSubscribe"),
                         ["tests"]));
@@ -112,6 +129,7 @@ unittest {
                          ["example.tests.pass.io.TestFoo"]));
     assert(isWantedTest(TestData("example.tests.pass.normal.unittest"),
                         []));
-    assert(!isWantedTest(TestData("tests.pass.attributes.testHidden", null /*func*/, true /*hidden*/),
+    assert(!isWantedTest(TestData("tests.pass.attributes.testHidden",
+                                  null /*func*/, true /*hidden*/),
                          ["tests.pass"]));
 }

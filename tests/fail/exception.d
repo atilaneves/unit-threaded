@@ -3,21 +3,29 @@ module tests.fail.exception;
 import unit_threaded;
 
 
-class CustomException: Exception {
-    this(string msg) { super(msg); }
+class CustomException: Exception
+{
+    this(string msg)
+    {
+        super(msg);
+    }
 }
 
 @HiddenTest("Don't want to pollute the output")
-@Name("testCustomException") unittest {
+@Name("testCustomException") unittest
+{
     throw new CustomException("This should have a stack trace in the output");
 }
 
-class NormalException: UnitTestException {
-    this(string msg, in string file = __FILE__, in ulong line = __LINE__) {
+class NormalException: UnitTestException
+{
+    this(string msg, in string file = __FILE__, in ulong line = __LINE__)
+    {
         super([msg], file, line);
     }
 }
 
-@Name("testNormalException") unittest {
+@Name("testNormalException") unittest
+{
     throw new NormalException("This should not have a stack trace in the output");
 }

@@ -18,7 +18,8 @@ import std.algorithm: map, filter, count;
  * of argv is considered to be test names to be run.
  * Returns: integer suitable for program return code.
  */
-int runTests(MODULES...)(string[] args) {
+int runTests(MODULES...)(string[] args)
+{
     return runTests(args, allTestData!MODULES);
 }
 
@@ -28,14 +29,17 @@ int runTests(MODULES...)(string[] args) {
  * rest of argv is considered to be test names to be run.  Returns:
  * integer suitable for program return code.
  */
-int runTests(string[] args, in TestData[] testData) {
+int runTests(string[] args, in TestData[] testData)
+{
     const options = getOptions(args);
 
-    if(options.list) {
+    if(options.list)
+    {
         import std.stdio;
 
         writeln("Listing tests:");
-        foreach(test; testData.map!(a => a.name)) {
+        foreach(test; testData.map!(a => a.name))
+        {
             writeln(test);
         }
     }
@@ -52,12 +56,14 @@ int runTests(string[] args, in TestData[] testData) {
  * Runs all tests in passed-in testData. with the given options.
  * Returns: true on success, false if any of the tests failed.
  */
-bool runTests(in Options options, in TestData[] testData) {
+bool runTests(in Options options, in TestData[] testData)
+{
     WriterThread.start;
     scope(exit) WriterThread.get.join;
 
     auto testCases = createTestCases(testData, options.testsToRun);
-    if(!testCases) {
+    if(!testCases)
+    {
         utWritelnRed("Error! No tests to run for args: ");
         utWriteln(options.testsToRun);
         return false;
@@ -66,7 +72,8 @@ bool runTests(in Options options, in TestData[] testData) {
     auto suite = TestSuite(testCases);
     immutable elapsed = suite.run(options);
 
-    if(!suite.numTestsRun) {
+    if(!suite.numTestsRun)
+    {
         utWriteln("Did not run any tests!!!");
         return false;
     }
@@ -74,15 +81,20 @@ bool runTests(in Options options, in TestData[] testData) {
     utWriteln("\nTime taken: ", elapsed);
     utWrite(suite.numTestsRun, " test(s) run, ");
     const failuresStr = text(suite.numFailures, " failed");
-    if(suite.numFailures) {
+    if(suite.numFailures)
+    {
         utWriteRed(failuresStr);
-    } else {
+    }
+    else
+    {
         utWrite(failuresStr);
     }
 
-    void printAbout(string attr)(in string msg) {
+    void printAbout(string attr)(in string msg)
+    {
         const num = testData.filter!(a => mixin("a. " ~ attr)).count;
-        if(num) {
+        if(num)
+        {
             utWrite(", ");
             utWriteYellow(num, " " ~ msg);
         }
@@ -93,7 +105,8 @@ bool runTests(in Options options, in TestData[] testData) {
 
     utWriteln(".\n");
 
-    if(!suite.passed) {
+    if(!suite.passed)
+    {
         utWritelnRed("Unit tests failed!\n");
         return false; //oops
     }

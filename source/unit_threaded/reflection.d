@@ -56,7 +56,8 @@ TestData[] moduleTestData(alias module_)() pure nothrow {
 
         enum isName(alias T) = is(typeof(T)) && is(typeof(T) == Name);
         alias names = Filter!(isName, __traits(getAttributes, test));
-        static assert(names.length == 0 || names.length == 1, "Found multiple Name UDAs on unittest");
+        static assert(names.length == 0 || names.length == 1,
+                      "Found multiple Name UDAs on unittest");
         enum prefix = fullyQualifiedName!module_ ~ ".";
 
         static if(names.length == 1) {
@@ -80,7 +81,8 @@ TestData[] moduleTestData(alias module_)() pure nothrow {
 }
 
 
-unittest {
+unittest
+{
 
     import unit_threaded.asserts;
     import std.algorithm;
@@ -88,20 +90,27 @@ unittest {
 
 
     //helper function for the unittest blocks below
-    auto addModPrefix(string[] elements, string module_ = "unit_threaded.tests.module_with_tests") nothrow {
-        return elements.map!(a => module_ ~ "." ~ a).array;
+    auto addModPrefix(string[] elements) nothrow
+    {
+        return elements.
+            map!(a => "unit_threaded.tests.module_with_tests." ~ a).
+            array;
     }
 
     const expected = addModPrefix(["unittest0", "unittest1", "myUnitTest"]);
 
     {
-        import unit_threaded.tests.module_with_tests; //defines tests and non-tests
-        const actual = moduleTestData!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
+        import unit_threaded.tests.module_with_tests;
+        const actual = moduleTestData!(unit_threaded.tests.module_with_tests).
+            map!(a => a.name).
+            array;
         assertEqual(actual, expected);
     }
 
     {
-        const actual = allTestData!("unit_threaded.tests.module_with_tests").map!(a => a.name).array;
+        const actual = allTestData!("unit_threaded.tests.module_with_tests").
+            map!(a => a.name).
+            array;
         assertEqual(actual, expected);
     }
 }

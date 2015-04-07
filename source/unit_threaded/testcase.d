@@ -11,8 +11,10 @@ import std.algorithm;
 /**
  * Class from which other test cases derive
  */
-class TestCase {
-    string name() const pure nothrow {
+class TestCase
+{
+    string name() const pure nothrow
+    {
         return this.classinfo.name;
     }
 
@@ -20,7 +22,8 @@ class TestCase {
      * Executes the test.
      * Returns: array of failures
      */
-    string[] opCall() {
+    string[] opCall()
+    {
         utWrite(collectOutput());
         return _failed ? [name] : [];
     }
@@ -29,15 +32,23 @@ class TestCase {
      * Collect this test's output so as to not interleave with output from
      * other tests.
      */
-    final string collectOutput() {
+    final string collectOutput()
+    {
         print(name ~ ":\n");
-        try {
+        try
+        {
             test();
-        } catch(UnitTestException ex) {
+        }
+        catch(UnitTestException ex)
+        {
             fail(ex.msg);
-        } catch(Exception ex) {
+        }
+        catch(Exception ex)
+        {
             fail("\n    " ~ ex.toString() ~ "\n");
-        } catch(Throwable t) {
+        }
+        catch(Throwable t)
+        {
             utFail(t.msg, t.file, t.line);
         }
         if(_failed) print("\n\n");
@@ -51,28 +62,34 @@ private:
     bool _failed;
     string _output;
 
-    void fail(in string msg) {
+    void fail(in string msg)
+    {
         _failed = true;
         print(msg);
     }
 
-    void print(in string msg) {
+    void print(in string msg)
+    {
         addToOutput(_output, msg);
     }
 }
 
 
-class FunctionTestCase: TestCase {
-    this(immutable TestData data) pure nothrow {
+class FunctionTestCase: TestCase
+{
+    this(immutable TestData data) pure nothrow
+    {
         _name = data.name;
         _func = data.testFunction;
     }
 
-    override void test() {
+    override void test()
+    {
         _func();
     }
 
-    override string name() const pure nothrow {
+    override string name() const pure nothrow
+    {
         return _name;
     }
 
@@ -81,19 +98,24 @@ class FunctionTestCase: TestCase {
 }
 
 
-class ShouldFailTestCase: TestCase {
-    this(TestCase testCase) {
+class ShouldFailTestCase: TestCase
+{
+    this(TestCase testCase)
+    {
         this.testCase = testCase;
     }
 
-    override string name() const pure nothrow {
+    override string name() const pure nothrow
+    {
         return this.testCase.name;
     }
 
-    override void test() {
+    override void test()
+    {
         const ex = collectException!Exception(testCase.test());
         if(ex is null) {
-            throw new Exception("Test " ~ testCase.name ~ " was expected to fail but did not");
+            throw new Exception("Test " ~ testCase.name ~
+                                " was expected to fail but did not");
         }
     }
 
@@ -103,20 +125,30 @@ private:
 }
 
 
-class CompositeTestCase: TestCase {
-    void add(TestCase t) { _tests ~= t;}
+class CompositeTestCase: TestCase
+{
+    void add(TestCase t)
+    {
+        _tests ~= t;
+    }
 
-    void opOpAssign(string op : "~")(TestCase t) {
+    void opOpAssign(string op : "~")(TestCase t)
+    {
         add(t);
     }
 
-    override string[] opCall() {
+    override string[] opCall()
+    {
         return _tests.map!(a => a()).reduce!((a, b) => a ~ b);
     }
 
-    override void test() { assert(false, "CompositeTestCase.test should never be called"); }
+    override void test()
+    {
+        assert(false, "CompositeTestCase.test should never be called");
+    }
 
-    override ulong numTestsRun() const {
+    override ulong numTestsRun() const
+    {
         return _tests.length;
     }
 

@@ -6,7 +6,8 @@ import std.random;
 import std.exception;
 
 
-struct Options {
+struct Options
+{
     bool multiThreaded;
     string[] testsToRun;
     bool debugOutput;
@@ -20,7 +21,8 @@ struct Options {
 /**
  * Parses the command-line args and returns Options
  */
-auto getOptions(string[] args) {
+auto getOptions(string[] args)
+{
     bool single;
     bool debugOutput;
     bool help;
@@ -39,7 +41,8 @@ auto getOptions(string[] args) {
            "seed", &seed,
         );
 
-    if(help) {
+    if(help)
+    {
         writeln("Usage: <progname> <options> <tests>...\n",
                 "Options: \n",
                 "  -h/--help: help\n"
@@ -52,14 +55,17 @@ auto getOptions(string[] args) {
             );
     }
 
-    if(debugOutput) {
-        if(!single) {
+    if(debugOutput)
+    {
+        if(!single)
+        {
             writeln("-d implies -s, running in a single thread\n");
         }
         single = true;
     }
 
-    if(random) {
+    if(random)
+    {
         if(!single) writeln("-r implies -s, running in a single thread\n");
         single = true;
     }

@@ -10,108 +10,151 @@ public import unit_threaded.attrs;
 
 @safe:
 
-class UnitTestException: Exception {
-    this(in string[] msgLines, in string file, in ulong line) {
+class UnitTestException: Exception
+{
+    this(in string[] msgLines, in string file, in ulong line)
+    {
         import std.array;
         super(msgLines.map!(a => getOutputPrefix(file, line) ~ a).join("\n"));
     }
 
 private:
 
-    string getOutputPrefix(in string file, in ulong line) const {
+    string getOutputPrefix(in string file, in ulong line) const
+    {
         return "    " ~ file ~ ":" ~ line.to!string ~ " - ";
     }
 }
 
-void checkTrue(E)(lazy E condition, in string file = __FILE__, in ulong line = __LINE__) {
+void checkTrue(E)(lazy E condition,
+                  in string file = __FILE__, in ulong line = __LINE__)
+{
     if(!condition) failEqual(condition, true, file, line);
 }
 
-void checkFalse(E)(lazy E condition, in string file = __FILE__, in ulong line = __LINE__) {
+void checkFalse(E)(lazy E condition,
+                   in string file = __FILE__, in ulong line = __LINE__)
+{
     if(condition) failEqual(condition, false, file, line);
 }
 
-void checkEqual(T, U)(in T value, in U expected, in string file = __FILE__, in ulong line = __LINE__)
-  if(is(typeof(value != expected) == bool) && !is(T == class)) {
+void checkEqual(T, U)(in T value, in U expected,
+                      in string file = __FILE__, in ulong line = __LINE__)
+  if(is(typeof(value != expected) == bool) && !is(T == class))
+{
     if(value != expected) failEqual(value, expected, file, line);
 }
 
-void checkEqual(T)(in T value, in T expected, in string file = __FILE__, in ulong line = __LINE__)
-if(is(T == class)) {
+void checkEqual(T)(in T value, in T expected,
+                   in string file = __FILE__, in ulong line = __LINE__)
+if(is(T == class))
+{
     if(value.tupleof != expected.tupleof) failEqual(value, expected, file, line);
 }
 
 
 //@trusted because of object.opEquals
-void checkNotEqual(T, U)(in T value, in U expected, in string file = __FILE__, in ulong line = __LINE__) @trusted
-  if(is(typeof(value == expected) == bool)) {
-    if(value == expected) {
+void checkNotEqual(T, U)(in T value, in U expected,
+                         in string file = __FILE__, in ulong line = __LINE__)
+@trusted if(is(typeof(value == expected) == bool))
+{
+    if(value == expected)
+    {
         auto valueStr = value.to!string;
-        static if(is(T == string)) {
+        static if(is(T == string))
+        {
             valueStr = `"` ~ valueStr ~ `"`;
         }
         auto expectedStr = expected.to!string;
-        static if(is(U == string)) {
+        static if(is(U == string))
+        {
             expectedStr = `"` ~ expectedStr ~ `"`;
         }
 
-        const msg = "Value " ~ valueStr ~ " is not supposed to be equal to " ~ expectedStr ~ "\n";
+        const msg = "Value " ~ valueStr ~ " is not supposed to be equal to " ~
+            expectedStr ~ "\n";
         throw new UnitTestException([msg], file, line);
     }
 }
 
-void checkNull(T)(in T value, in string file = __FILE__, in ulong line = __LINE__) {
+void checkNull(T)(in T value,
+                  in string file = __FILE__, in ulong line = __LINE__)
+{
     if(value !is null) fail("Value is null", file, line);
 }
 
-void checkNotNull(T)(in T value, in string file = __FILE__, in ulong line = __LINE__) {
+void checkNotNull(T)(in T value,
+                     in string file = __FILE__, in ulong line = __LINE__)
+{
     if(value is null) fail("Value is null", file, line);
 }
 
-void checkIn(T, U)(in T value, in U container, in string file = __FILE__, in ulong line = __LINE__)
-    if(isAssociativeArray!U)
+void checkIn(T, U)(in T value, in U container,
+                   in string file = __FILE__, in ulong line = __LINE__)
+if(isAssociativeArray!U)
 {
-    if(value !in container) {
-        fail("Value " ~ to!string(value) ~ " not in " ~ to!string(container), file, line);
+    if(value !in container)
+    {
+        fail("Value " ~ to!string(value) ~ " not in " ~ to!string(container),
+             file, line);
     }
 }
 
-void checkIn(T, U)(in T value, in U container, in string file = __FILE__, in ulong line = __LINE__)
-    if(!isAssociativeArray!U)
+void checkIn(T, U)(in T value, in U container,
+                   in string file = __FILE__, in ulong line = __LINE__)
+if(!isAssociativeArray!U)
 {
-    if(!find(container, value)) {
-        fail("Value " ~ to!string(value) ~ " not in " ~ to!string(container), file, line);
+    if(!find(container, value))
+    {
+        fail("Value " ~ to!string(value) ~ " not in " ~ to!string(container),
+             file, line);
     }
 }
 
-void checkNotIn(T, U)(in T value, in U container, in string file = __FILE__, in ulong line = __LINE__)
-    if(isAssociativeArray!U)
+void checkNotIn(T, U)(in T value, in U container,
+                      in string file = __FILE__, in ulong line = __LINE__)
+if(isAssociativeArray!U)
 {
-    if(value in container) {
-        fail("Value " ~ to!string(value) ~ " is in " ~ to!string(container), file, line);
+    if(value in container)
+    {
+        fail("Value " ~ to!string(value) ~ " is in " ~ to!string(container),
+             file, line);
     }
 }
 
-void checkNotIn(T, U)(in T value, in U container, in string file = __FILE__, in ulong line = __LINE__)
-    if(!isAssociativeArray!U)
+void checkNotIn(T, U)(in T value, in U container,
+                      in string file = __FILE__, in ulong line = __LINE__)
+if(!isAssociativeArray!U)
 {
-    if(find(container, value).length > 0) {
-        fail("Value " ~ to!string(value) ~ " is in " ~ to!string(container), file, line);
+    if(find(container, value).length > 0)
+    {
+        fail("Value " ~ to!string(value) ~ " is in " ~ to!string(container),
+             file, line);
     }
 }
 
-void checkThrown(T: Throwable = Exception, E)(lazy E expr, in string file = __FILE__, in ulong line = __LINE__) {
+void checkThrown(T: Throwable = Exception, E)(lazy E expr,
+                                              in string file = __FILE__,
+                                              in ulong line = __LINE__)
+{
     if(!threw!T(expr)) fail("Expression did not throw", file, line);
 }
 
-void checkNotThrown(T: Throwable = Exception, E)(lazy E expr, in string file = __FILE__, in ulong line = __LINE__) {
+void checkNotThrown(T: Throwable = Exception, E)(lazy E expr,
+                                                 in string file = __FILE__,
+                                                 in ulong line = __LINE__)
+{
     if(threw!T(expr)) fail("Expression threw", file, line);
 }
 
-private bool threw(T: Throwable, E)(lazy E expr) {
-    try {
+private bool threw(T: Throwable, E)(lazy E expr)
+{
+    try
+    {
         expr();
-    } catch(T e) {
+    }
+    catch(T e)
+    {
         return true;
     }
 
@@ -119,18 +162,26 @@ private bool threw(T: Throwable, E)(lazy E expr) {
 }
 
 
-void utFail(in string output, in string file, in ulong line) {
+void utFail(in string output, in string file, in ulong line)
+{
     fail(output, file, line);
 }
 
-private void fail(in string output, in string file, in ulong line) {
+private void fail(in string output, in string file, in ulong line)
+{
     throw new UnitTestException([output], file, line);
 }
 
-private void failEqual(T, U)(in T value, in U expected, in string file, in ulong line) {
-    static if(isArray!T && !isSomeString!T) {
-        const msg = formatArray("Expected: ", expected) ~ formatArray("     Got: ", value);
-    } else {
+private void failEqual(T, U)(in T value, in U expected,
+                             in string file, in ulong line)
+{
+    static if(isArray!T && !isSomeString!T)
+    {
+        const msg = formatArray("Expected: ", expected) ~
+            formatArray("     Got: ", value);
+    }
+    else
+    {
         const msg = ["Expected: " ~ formatValue(expected),
                      "     Got: " ~ formatValue(value)];
     }
@@ -144,39 +195,51 @@ private string[] formatArray(T)(in string prefix, in T value) if(isArray!T) {
 
     static if(!isArray!(ElementType!T)) return defaultLines;
     else {
-        const maxElementSize = value.empty ? 0 : value.map!(a => a.length).reduce!max;
+        const maxElementSize = value.empty
+            ? 0
+            : value.map!(a => a.length).reduce!max;
         const tooBigForOneLine = (value.length > 5 && maxElementSize > 5) ||
             maxElementSize > 10;
         if(!tooBigForOneLine) return  defaultLines;
-        return [prefix ~ "["] ~ value.map!(a => "              " ~ formatValue(a) ~ ",").array ~ "          ]";
+        return [prefix ~ "["] ~ value.
+            map!(a => "              " ~ formatValue(a) ~ ",").array ~
+            "          ]";
     }
 }
 
-private auto formatValue(T)(T element) {
-    static if(isSomeString!T) {
+private auto formatValue(T)(T element)
+{
+    static if(isSomeString!T)
+    {
         return `"` ~ element.to!string ~ `"`;
-    } else {
+    }
+    else
+    {
         return () @trusted { return element.to!string; }();
     }
 }
 
 
-private void assertCheck(E)(lazy E expression) {
+private void assertCheck(E)(lazy E expression)
+{
     assertNotThrown!UnitTestException(expression);
 }
 
-private void assertFail(E)(lazy E expression) {
+private void assertFail(E)(lazy E expression)
+{
     assertThrown!UnitTestException(expression);
 }
 
 
-unittest {
+unittest
+{
     assertCheck(checkTrue(true));
     assertCheck(checkFalse(false));
 }
 
 
-unittest {
+unittest
+{
     assertCheck(checkEqual(true, true));
     assertCheck(checkEqual(false, false));
     assertCheck(checkNotEqual(true, false));
@@ -208,13 +271,15 @@ unittest {
     assertCheck(checkEqual(constIntToInts, intToInts));
 }
 
-unittest {
+unittest
+{
     assertCheck(checkNull(null));
     class Foo { }
     assertCheck(checkNotNull(new Foo));
 }
 
-unittest {
+unittest
+{
     assertCheck(checkIn(4, [1, 2, 4]));
     assertCheck(checkNotIn(3.5, [1.1, 2.2, 4.4]));
     assertCheck(checkIn("foo", ["foo": 1]));
@@ -222,28 +287,39 @@ unittest {
 }
 
 
-void checkEmpty(R)(R rng, in string file = __FILE__, in ulong line = __LINE__) if(isInputRange!R) {
+void checkEmpty(R)(R rng, in string file = __FILE__, in ulong line = __LINE__)
+if(isInputRange!R)
+{
     if(!rng.empty) fail("Range not empty", file, line);
 }
 
-void checkEmpty(T)(in T aa, in string file = __FILE__, in ulong line = __LINE__) if(isAssociativeArray!T) {
+void checkEmpty(T)(in T aa, in string file = __FILE__, in ulong line = __LINE__)
+if(isAssociativeArray!T)
+{
     //keys is @system
     () @trusted { if(!aa.keys.empty) fail("AA not empty", file, line); }();
 }
 
 
-void checkNotEmpty(R)(R rng, in string file = __FILE__, in ulong line = __LINE__) if(isInputRange!R) {
+void checkNotEmpty(R)(R rng,
+                      in string file = __FILE__, in ulong line = __LINE__)
+if(isInputRange!R)
+{
     if(rng.empty) fail("Range empty", file, line);
 }
 
 
-void checkNotEmpty(T)(in T aa, in string file = __FILE__, in ulong line = __LINE__) if(isAssociativeArray!T) {
+void checkNotEmpty(T)(in T aa,
+                      in string file = __FILE__, in ulong line = __LINE__)
+if(isAssociativeArray!T)
+{
     //keys is @system
     () @trusted { if(aa.keys.empty) fail("AA empty", file, line); }();
 }
 
 
-unittest {
+unittest
+{
     int[] ints;
     string[] strings;
     string[string] aa;
@@ -271,11 +347,15 @@ unittest {
 }
 
 
-void checkGreaterThan(T, U)(in T t, in U u, in string file = __FILE__, in ulong line = __LINE__) {
+void checkGreaterThan(T, U)(in T t, in U u,
+                            in string file = __FILE__, in ulong line = __LINE__)
+{
     if(t <= u) fail(text(t, " is not > ", u), file, line);
 }
 
-void checkSmallerThan(T, U)(in T t, in U u, in string file = __FILE__, in ulong line = __LINE__) {
+void checkSmallerThan(T, U)(in T t, in U u,
+                            in string file = __FILE__, in ulong line = __LINE__)
+{
     if(t >= u) fail(text(t, " is not < ", u), file, line);
 }
 

@@ -8,15 +8,18 @@ import std.parallelism: taskPool;
 import std.algorithm;
 
 
-auto runTest(TestCase test) {
+auto runTest(TestCase test)
+{
     return test();
 }
 
 /**
  * Responsible for running tests
  */
-struct TestSuite {
-    this(TestCase[] tests) {
+struct TestSuite
+{
+    this(TestCase[] tests)
+    {
         _tests = tests;
     }
 
@@ -24,13 +27,18 @@ struct TestSuite {
      * Runs the tests with the given options.
      * Returns: how long it took to run.
      */
-    Duration run(in Options options) {
+    Duration run(in Options options)
+    {
         auto tests = getTests(options);
         _stopWatch.start();
 
-        if(options.multiThreaded) {
-            _failures = reduce!((a, b) => a ~ b)(_failures, taskPool.amap!runTest(tests));
-        } else {
+        if(options.multiThreaded)
+        {
+            _failures = reduce!((a, b) => a ~ b)(_failures,
+                                                 taskPool.amap!runTest(tests));
+        }
+        else
+        {
             foreach(test; tests) _failures ~= test();
         }
 
@@ -40,15 +48,18 @@ struct TestSuite {
         return cast(Duration)_stopWatch.peek();
     }
 
-    @property ulong numTestsRun() const {
+    @property ulong numTestsRun() const
+    {
         return _tests.map!(a => a.numTestsRun).reduce!((a, b) => a + b);
     }
 
-    @property ulong numFailures() const pure nothrow {
+    @property ulong numFailures() const pure nothrow
+    {
         return _failures.length;
     }
 
-    @property bool passed() const pure nothrow {
+    @property bool passed() const pure nothrow
+    {
         return numFailures() == 0;
     }
 
@@ -58,20 +69,25 @@ private:
     string[] _failures;
     StopWatch _stopWatch;
 
-    auto getTests(in Options options) {
+    auto getTests(in Options options)
+    {
         auto tests = _tests;
-        if(options.random) {
+        if(options.random)
+        {
             import std.random;
             auto generator = Random(options.seed);
             tests.randomShuffle(generator);
-            utWriteln("Running tests in random order. To repeat this run, use --seed ", options.seed);
+            utWriteln("Running tests in random order. ",
+                      "To repeat this run, use --seed ", options.seed);
         }
         return tests;
     }
 
-    void handleFailures() {
+    void handleFailures()
+    {
         if(_failures) utWriteln("");
-        foreach(failure; _failures) {
+        foreach(failure; _failures)
+        {
             utWrite("Test ", failure, " ");
             utWriteRed("failed");
             utWriteln(".");
