@@ -3,7 +3,7 @@ module unit_threaded.reflection;
 import unit_threaded.attrs;
 import unit_threaded.uda;
 import std.traits;
-import std.typetuple;
+import std.typetuple: allSatisfy, anySatisfy, Filter;
 
 /**
  * Common data for test functions and test classes
@@ -11,7 +11,7 @@ import std.typetuple;
 alias void function() TestFunction;
 struct TestData {
     string name;
-    TestFunction testFunction; ///only used for functions, null for classes
+    TestFunction testFunction;
     bool hidden;
     bool shouldFail;
     bool singleThreaded;
