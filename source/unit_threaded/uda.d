@@ -7,10 +7,25 @@ import std.typetuple;
  * For the given module, return true if this module's member has
  * the given UDA. UDAs can be types or values.
  */
-template HasAttribute(alias module_, string member, alias attribute) {
+template HasAttribute(alias module_, alias member, alias attribute) if(isSomeString!(typeof(member))) {
     mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
     enum isAttribute(alias T) = is(TypeOf!T == attribute);
     alias attrs = Filter!(isAttribute, __traits(getAttributes, mixin(member)));
+
+    static assert(attrs.length == 0 || attrs.length == 1,
+                  text("Maximum number of attributes is 1 for ", attribute));
+
+    static if(attrs.length == 0) {
+        enum HasAttribute = false;
+    } else {
+        enum HasAttribute = true;
+    }
+}
+
+template HasAttribute(alias module_, alias member, alias attribute) if(!isSomeString!(typeof(member))) {
+    mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
+    enum isAttribute(alias T) = is(TypeOf!T == attribute);
+    alias attrs = Filter!(isAttribute, __traits(getAttributes, member));
 
     static assert(attrs.length == 0 || attrs.length == 1,
                   text("Maximum number of attributes is 1 for ", attribute));

@@ -5,61 +5,12 @@ import unit_threaded.should;
 import unit_threaded.check;
 import unit_threaded.attrs;
 
-
 @SingleThreaded
-class Test1: TestCase {
-    override void test() {
-        true.shouldBeTrue;
-        (2 + 3).shouldEqual(5);
-    }
-}
-
-@SingleThreaded
-class Test2: TestCase {
-    override void test() {
-        true.shouldBeTrue;
-        (2 + 3).shouldEqual(5);
-    }
-}
-
-@SingleThreaded
-class Test3: TestCase {
-    override void test() {
-        true.shouldBeTrue;
-        (2 + 3).checkEqual(5);
-    }
-}
-
-@SingleThreaded
-class Test4: TestCase {
-    override void test() {
-        true.shouldBeTrue;
-        checkEqual(2 + 3, 5);
-    }
-}
-
-@SingleThreaded
-class Test5: TestCase {
-    override void test() {
-        true.shouldBeTrue;
-        checkEqual(2 + 3, 5);
-    }
-}
-
-@SingleThreaded
-class Test6: TestCase {
-    override void test() {
-        true.shouldBeTrue;
-        checkEqual(2 + 3, 5);
-    }
-}
-
-@SingleThreaded
-void testFunction1() {
+@Name("testFunction1") unittest {
     true.shouldBeTrue;
 }
 
 @SingleThreaded
-void testFunction2() {
+@Name("testFunction2") unittest {
     checkTrue(false);
 }

@@ -3,13 +3,7 @@ module tests.pass.io;
 import unit_threaded;
 
 
-class TestIo: TestCase {
-    override void test() {
-        writelnUt("Class writelnUt should only print with '-d' option");
-    }
-}
-
-void testNoIo1() {
+@Name("testNoIo1") unittest {
     import std.stdio;
     writeln("This should not be seen except for -d option");
     writeln("Or this");
@@ -18,14 +12,14 @@ void testNoIo1() {
 }
 
 
-void testNoIo2() {
+@Name("testNoIo2") unittest {
     import std.stdio;
     writeln("This should not be seen except for -d option");
     writeln("Or this");
     stderr.writeln("Stderr shouldn't be seen either");
 }
 
-void testNoIo3() {
+@Name("testNoIo3") unittest {
     import std.stdio;
     writeln("This should not be seen except for -d option");
     writeln("Or this");

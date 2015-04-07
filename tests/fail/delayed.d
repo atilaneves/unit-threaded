@@ -6,18 +6,18 @@ import core.thread;
 
 //the tests below should take only 1 second in total if using parallelism
 //(given enough cores)
-void testLongRunning1() {
+@Name("testLongRunning1") unittest {
     Thread.sleep(1.seconds);
 }
 
-void testLongRunning2() {
+@Name("testLongRunning2") unittest {
     Thread.sleep(1.seconds);
 }
 
-void testLongRunning3() {
+@Name("testLongRunning3") unittest {
     Thread.sleep(1.seconds);
 }
 
-void testLongRunning4() {
+@Name("testLongRunning4") unittest {
     Thread.sleep(1.seconds);
 }

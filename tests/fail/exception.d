@@ -8,7 +8,7 @@ class CustomException: Exception {
 }
 
 @HiddenTest("Don't want to pollute the output")
-void testCustomException() {
+@Name("testCustomException") unittest {
     throw new CustomException("This should have a stack trace in the output");
 }
 
@@ -18,6 +18,6 @@ class NormalException: UnitTestException {
     }
 }
 
-void testNormalException() {
+@Name("testNormalException") unittest {
     throw new NormalException("This should not have a stack trace in the output");
 }

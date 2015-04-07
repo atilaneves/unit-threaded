@@ -52,9 +52,7 @@ const(TestData)[] allTestCaseData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString
         return tests;
     }
 
-    return allTestsWithFunc!(q{moduleTestClasses}, MOD_SYMBOLS) ~
-           allTestsWithFunc!(q{moduleTestFunctions}, MOD_SYMBOLS) ~
-           allTestsWithFunc!(q{moduleUnitTests}, MOD_SYMBOLS);
+    return allTestsWithFunc!(q{moduleUnitTests}, MOD_SYMBOLS);
 }
 
 
@@ -89,105 +87,22 @@ auto moduleUnitTests(alias module_)() pure nothrow {
 
     TestData[] testData;
     foreach(index, test; __traits(getUnitTests, module_)) {
-        enum name = unittestName!(test, index);
-        enum hidden = false;
-        enum shouldFail = false;
-        enum singleThreaded = false;
-        enum builtin = true;
-        testData ~= TestData(name, hidden, shouldFail, &test, singleThreaded, builtin);
+        static if(!HasAttribute!(module_, test, DontTest)) {
+            enum name = unittestName!(test, index);
+            enum hidden = false;
+            enum shouldFail = false;
+            enum singleThreaded = false;
+            enum builtin = true;
+            testData ~= TestData(name,
+                                 HasAttribute!(module_, test, HiddenTest),
+                                 HasAttribute!(module_, test, ShouldFail),
+                                 &test,
+                                 HasAttribute!(module_, test, SingleThreaded),
+                                 builtin);
+        }
     }
     return testData;
 }
-
-
-/**
- * Finds all test classes (classes implementing a test() function)
- * in the given module
- */
-auto moduleTestClasses(alias module_)() pure nothrow {
-
-    template isTestClass(alias module_, string moduleMember) {
-        mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
-        static if(!__traits(compiles, isAggregateType!(mixin(moduleMember)))) {
-            enum isTestClass = false;
-        } else static if(!isAggregateType!(mixin(moduleMember))) {
-            enum isTestClass = false;
-        } else {
-            enum hasUnitTest = HasAttribute!(module_, moduleMember, UnitTest);
-            enum hasTestMethod = __traits(hasMember, mixin(moduleMember), "test");
-            enum isTestClass = hasTestMethod || hasUnitTest;
-        }
-    }
-
-    return moduleTestCases!(module_, isTestClass);
-}
-
-/**
- * Finds all test functions in the given module.
- * Returns an array of TestData structs
- */
-auto moduleTestFunctions(alias module_)() pure nothrow {
-
-    template isTestFunction(alias module_, string moduleMember) {
-        mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
-        static if(isSomeFunction!(mixin(moduleMember))) {
-            enum isTestFunction = hasTestPrefix!(module_, moduleMember) ||
-                HasAttribute!(module_, moduleMember, UnitTest);
-        } else {
-            enum isTestFunction = false;
-        }
-    }
-
-    template hasTestPrefix(alias module_, string member) {
-        import std.uni: isUpper;
-        mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
-
-        enum prefix = "test";
-        enum minSize = prefix.length + 1;
-
-        static if(isSomeFunction!(mixin(member)) &&
-                  member.length >= minSize && member[0 .. prefix.length] == prefix &&
-                  isUpper(member[prefix.length])) {
-            enum hasTestPrefix = true;
-        } else {
-            enum hasTestPrefix = false;
-        }
-    }
-
-    return moduleTestCases!(module_, isTestFunction);
-}
-
-
-private auto moduleTestCases(alias module_, alias pred)() pure nothrow {
-    mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
-    TestData[] testData;
-    foreach(moduleMember; __traits(allMembers, module_)) {
-
-        enum notPrivate = __traits(compiles, mixin(moduleMember)); //only way I know to check if private
-
-        static if(notPrivate && pred!(module_, moduleMember) &&
-                  !HasAttribute!(module_, moduleMember, DontTest)) {
-
-            TestFunction getTestFunction(alias module_, string moduleMember)() pure nothrow {
-                //returns a function pointer for test functions, null for test classes
-                static if(__traits(compiles, &__traits(getMember, module_, moduleMember))) {
-                    return &__traits(getMember, module_, moduleMember);
-                } else {
-                    return null;
-                }
-            }
-
-            testData ~= TestData(fullyQualifiedName!module_~ "." ~ moduleMember,
-                                 HasAttribute!(module_, moduleMember, HiddenTest),
-                                 HasAttribute!(module_, moduleMember, ShouldFail),
-                                 getTestFunction!(module_, moduleMember),
-                                 HasAttribute!(module_, moduleMember, SingleThreaded));
-        }
-    }
-
-    return testData;
-}
-
 
 
 import unit_threaded.tests.module_with_tests; //defines tests and non-tests
@@ -195,25 +110,13 @@ import unit_threaded.asserts;
 import std.algorithm;
 import std.array;
 
-//helper function for the unittest blocks below
-private auto addModPrefix(string[] elements, string module_ = "unit_threaded.tests.module_with_tests") nothrow {
-    return elements.map!(a => module_ ~ "." ~ a).array;
-}
-
 unittest {
-    const expected = addModPrefix([ "FooTest", "BarTest", "Blergh"]);
-    const actual = moduleTestClasses!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
-    assertEqual(actual, expected);
-}
 
-unittest {
-    const expected = addModPrefix([ "testFoo", "testBar", "funcThatShouldShowUpCosOfAttr" ]);
-    const actual = moduleTestFunctions!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
-    assertEqual(actual, expected);
-}
+    //helper function for the unittest blocks below
+    auto addModPrefix(string[] elements, string module_ = "unit_threaded.tests.module_with_tests") nothrow {
+        return elements.map!(a => module_ ~ "." ~ a).array;
+    }
 
-
-unittest {
     const expected = addModPrefix(["unittest0", "unittest1", "myUnitTest"]);
     const actual = moduleUnitTests!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
     assertEqual(actual, expected);
