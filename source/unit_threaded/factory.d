@@ -15,13 +15,16 @@ shared static this() {
     Runtime.moduleUnitTester = &moduleUnitTester;
 }
 
+/**
+ * Replacement for the usual unittest runner. This is needed so that the
+ * unittest blocks for unit_threaded itself run as usual, but the other
+ * tests are not run since unit_threaded runs those.
+ */
 private bool moduleUnitTester() {
-    //this is so unit-threaded's own tests run
     foreach(module_; ModuleInfo) {
-        if(module_ && module_.unitTest) {
-            if(module_.name.startsWith("unit_threaded.")) {
+        if(module_ && module_.unitTest &&
+           module_.name.startsWith("unit_threaded.")) {
                 module_.unitTest()();
-            }
         }
     }
 
