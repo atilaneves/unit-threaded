@@ -22,7 +22,7 @@ struct TestData {
  * Finds all test cases (functions, classes, built-in unittest blocks)
  * Template parameters are module strings
  */
-const(TestData)[] allTestCaseData(MOD_STRINGS...)() if(allSatisfy!(isSomeString, typeof(MOD_STRINGS))) {
+const(TestData)[] allTestData(MOD_STRINGS...)() if(allSatisfy!(isSomeString, typeof(MOD_STRINGS))) {
 
     string getModulesString() {
         import std.array: join;
@@ -33,7 +33,7 @@ const(TestData)[] allTestCaseData(MOD_STRINGS...)() if(allSatisfy!(isSomeString,
 
     enum modulesString =  getModulesString;
     mixin("import " ~ modulesString ~ ";");
-    mixin("return allTestCaseData!(" ~ modulesString ~ ");");
+    mixin("return allTestData!(" ~ modulesString ~ ");");
 }
 
 
@@ -41,11 +41,11 @@ const(TestData)[] allTestCaseData(MOD_STRINGS...)() if(allSatisfy!(isSomeString,
  * Finds all test cases (functions, classes, built-in unittest blocks)
  * Template parameters are module symbols
  */
-const(TestData)[] allTestCaseData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
+TestData[] allTestData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
     TestData[] testData;
 
     foreach(module_; MOD_SYMBOLS) {
-        testData ~= moduleUnitTests!module_;
+        testData ~= moduleTestData!module_;
     }
 
     return testData;
@@ -56,7 +56,7 @@ const(TestData)[] allTestCaseData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString
  * Finds all built-in unittest blocks in the given module.
  * @return An array of TestData structs
  */
-auto moduleUnitTests(alias module_)() pure nothrow {
+TestData[] moduleTestData(alias module_)() pure nothrow {
 
     // Return a name for a unittest block. If no @Name UDA is found a name is
     // created automatically, else the UDA is used.
@@ -110,12 +110,12 @@ unittest {
 
     {
         import unit_threaded.tests.module_with_tests; //defines tests and non-tests
-        const actual = moduleUnitTests!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
+        const actual = moduleTestData!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
         assertEqual(actual, expected);
     }
 
     {
-        const actual = allTestCaseData!("unit_threaded.tests.module_with_tests").map!(a => a.name).array;
+        const actual = allTestData!("unit_threaded.tests.module_with_tests").map!(a => a.name).array;
         assertEqual(actual, expected);
     }
 }
