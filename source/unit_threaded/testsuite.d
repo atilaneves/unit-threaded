@@ -5,9 +5,6 @@ import unit_threaded.io;
 import unit_threaded.options;
 import std.datetime;
 import std.parallelism: taskPool;
-import std.concurrency;
-import std.stdio;
-import std.conv;
 import std.algorithm;
 
 
@@ -79,6 +76,6 @@ private:
             utWriteRed("failed");
             utWriteln(".");
         }
-        if(_failures) writeln("");
+        if(_failures) utWriteln("");
     }
 }

@@ -47,8 +47,8 @@ int runTests(string[] args, in TestData[] testData) {
 
 
 bool runTests(in Options options, in TestData[] testData) {
-    WriterThread.get(); //make sure this is up
-    scope(exit) WriterThread.get().join();
+    WriterThread.start;
+    scope(exit) WriterThread.get.join;
 
     //sleep to give WriterThread some time to set up. Otherwise,
     //tests with output could write to stdout in the meanwhile
