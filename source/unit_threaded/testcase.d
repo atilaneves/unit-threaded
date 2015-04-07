@@ -12,7 +12,7 @@ import std.algorithm;
  * Class from which other test cases derive
  */
 class TestCase {
-    string getPath() const pure nothrow {
+    string name() const pure nothrow {
         return this.classinfo.name;
     }
 
@@ -23,11 +23,11 @@ class TestCase {
     string[] opCall() {
         collectOutput();
         printToScreen();
-        return _failed ? [getPath()] : [];
+        return _failed ? [name] : [];
     }
 
     final auto collectOutput() {
-        print(getPath() ~ ":\n");
+        print(name ~ ":\n");
         try {
             test();
         } catch(UnitTestException ex) {
@@ -72,7 +72,7 @@ class FunctionTestCase: TestCase {
         _func();
     }
 
-    override string getPath() const pure nothrow {
+    override string name() const pure nothrow {
         return _name;
     }
 
@@ -86,14 +86,14 @@ class ShouldFailTestCase: TestCase {
         this.testCase = testCase;
     }
 
-    override string getPath() const pure nothrow {
-        return this.testCase.getPath;
+    override string name() const pure nothrow {
+        return this.testCase.name;
     }
 
     override void test() {
         const ex = collectException!Exception(testCase.test());
         if(ex is null) {
-            throw new Exception("Test " ~ testCase.getPath() ~ " was expected to fail but did not");
+            throw new Exception("Test " ~ testCase.name ~ " was expected to fail but did not");
         }
     }
 

@@ -41,7 +41,7 @@ TestCase[] createTestCases(in TestData[] testData, in string[] testsToRun = []) 
         tests[createTestCase(data)] = true;
     }
 
-    return tests.keys.sort!((a, b) => a.getPath < b.getPath).array;
+    return tests.keys.sort!((a, b) => a.name < b.name).array;
 }
 
 
