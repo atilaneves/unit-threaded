@@ -105,12 +105,12 @@ auto moduleUnitTests(alias module_)() pure nothrow {
 }
 
 
-import unit_threaded.tests.module_with_tests; //defines tests and non-tests
-import unit_threaded.asserts;
-import std.algorithm;
-import std.array;
-
 unittest {
+
+    import unit_threaded.asserts;
+    import std.algorithm;
+    import std.array;
+
 
     //helper function for the unittest blocks below
     auto addModPrefix(string[] elements, string module_ = "unit_threaded.tests.module_with_tests") nothrow {
@@ -118,6 +118,16 @@ unittest {
     }
 
     const expected = addModPrefix(["unittest0", "unittest1", "myUnitTest"]);
-    const actual = moduleUnitTests!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
-    assertEqual(actual, expected);
+
+    {
+        import unit_threaded.tests.module_with_tests; //defines tests and non-tests
+        const actual = moduleUnitTests!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
+        assertEqual(actual, expected);
+    }
+
+    {
+        const actual = allTestCaseData!("unit_threaded.tests.module_with_tests").map!(a => a.name).array;
+        assertEqual(actual, expected);
+    }
+
 }
