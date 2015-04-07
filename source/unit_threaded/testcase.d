@@ -127,7 +127,14 @@ class FunctionTestCase: TestCase {
     }
 
     override void test() {
-        _func();
+        try {
+            _func();
+        } catch(UnitTestException ex) {
+            //don't handle these
+            throw ex;
+        } catch(Throwable t) {
+            utFail(t.msg, t.file, t.line);
+        }
     }
 
     override string getPath() const pure nothrow {
@@ -136,18 +143,4 @@ class FunctionTestCase: TestCase {
 
     private string _name;
     private TestFunction _func;
-}
-
-class BuiltinTestCase: FunctionTestCase {
-    this(immutable TestData data) pure nothrow {
-        super(data);
-    }
-
-    override void test() {
-        try {
-            super.test();
-        } catch(Throwable t) {
-            utFail(t.msg, t.file, t.line);
-        }
-    }
 }

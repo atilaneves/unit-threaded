@@ -125,5 +125,4 @@ unittest {
         const actual = allTestCaseData!("unit_threaded.tests.module_with_tests").map!(a => a.name).array;
         assertEqual(actual, expected);
     }
-
 }

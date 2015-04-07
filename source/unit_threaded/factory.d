@@ -51,12 +51,9 @@ TestCase[] createTestCases(in TestData[] testData, in string[] testsToRun = []) 
 
 
 private TestCase createTestCase(in TestData testData) {
-    TestCase createImpl() {
-        if(testData.testFunction is null) return cast(TestCase) Object.factory(testData.name);
-        return new FunctionTestCase(testData);
-    }
-
-    auto testCase = createImpl();
+    auto testCase = testData.testFunction is null
+        ? cast(TestCase) Object.factory(testData.name)
+        : new FunctionTestCase(testData);
 
     if(testData.singleThreaded) {
         // @SingleThreaded tests in the same module run sequentially.
