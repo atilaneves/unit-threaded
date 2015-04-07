@@ -88,9 +88,9 @@ auto moduleUnitTests(alias module_)() pure nothrow {
     foreach(index, test; __traits(getUnitTests, module_)) {
         testData ~= TestData(unittestName!(test, index),
                              &test,
-                             HasAttribute!(module_, test, HiddenTest),
-                             HasAttribute!(module_, test, ShouldFail),
-                             HasAttribute!(module_, test, SingleThreaded),
+                             HasAttribute!(test, HiddenTest),
+                             HasAttribute!(test, ShouldFail),
+                             HasAttribute!(test, SingleThreaded),
                              );
     }
     return testData;
