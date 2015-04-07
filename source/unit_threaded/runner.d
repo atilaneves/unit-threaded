@@ -50,10 +50,6 @@ bool runTests(in Options options, in TestData[] testData) {
     WriterThread.start;
     scope(exit) WriterThread.get.join;
 
-    //sleep to give WriterThread some time to set up. Otherwise,
-    //tests with output could write to stdout in the meanwhile
-    Thread.sleep(5.msecs);
-
     auto testCases = createTestCases(testData, options.testsToRun);
     if(!testCases) {
         utWritelnRed("Error! No tests to run for args: ");
