@@ -8,6 +8,10 @@ import std.parallelism: taskPool;
 import std.algorithm;
 
 
+/**
+ * Only exists because taskPool.amap only works with regular functions,
+ * not closures.
+ */
 auto runTest(TestCase test)
 {
     return test();
