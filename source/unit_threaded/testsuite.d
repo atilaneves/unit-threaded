@@ -30,6 +30,11 @@ struct TestSuite
     {
         _options = options;
         _testCases = createTestCases(testData, options.testsToRun);
+        WriterThread.start;
+    }
+
+    ~this() {
+        WriterThread.get.join;
     }
 
     /**

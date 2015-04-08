@@ -57,9 +57,6 @@ int runTests(string[] args, in TestData[] testData)
  */
 bool runTests(in Options options, in TestData[] testData)
 {
-    WriterThread.start;
-    scope(exit) WriterThread.get.join;
-
     auto suite = TestSuite(options, testData);
     if(!suite.numTestCases)
     {
