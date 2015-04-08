@@ -72,11 +72,6 @@ struct TestSuite
         return _failures.length;
     }
 
-    @property bool passed() const pure nothrow
-    {
-        return numFailures() == 0;
-    }
-
     @property ulong numTestCases() const pure nothrow
     {
         return _testCases.length;

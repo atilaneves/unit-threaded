@@ -100,7 +100,7 @@ bool runTests(in Options options, in TestData[] testData)
 
     utWriteln(".\n");
 
-    if(!suite.passed)
+    if(suite.numFailures)
     {
         utWritelnRed("Unit tests failed!\n");
         return false; //oops
