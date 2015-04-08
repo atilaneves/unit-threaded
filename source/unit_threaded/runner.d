@@ -1,6 +1,5 @@
 module unit_threaded.runner;
 
-import unit_threaded.factory;
 import unit_threaded.testsuite;
 import unit_threaded.io;
 import unit_threaded.options;
@@ -61,16 +60,15 @@ bool runTests(in Options options, in TestData[] testData)
     WriterThread.start;
     scope(exit) WriterThread.get.join;
 
-    auto testCases = createTestCases(testData, options.testsToRun);
-    if(!testCases)
+    auto suite = TestSuite(options, testData);
+    if(!suite.numTestCases)
     {
         utWritelnRed("Error! No tests to run for args: ");
         utWriteln(options.testsToRun);
         return false;
     }
 
-    auto suite = TestSuite(testCases);
-    immutable elapsed = suite.run(options);
+    immutable elapsed = suite.run();
 
     if(!suite.numTestsRun)
     {

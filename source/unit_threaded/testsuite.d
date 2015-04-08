@@ -3,6 +3,7 @@ module unit_threaded.testsuite;
 import unit_threaded.testcase;
 import unit_threaded.io;
 import unit_threaded.options;
+import unit_threaded.factory: createTestCases;
 import std.datetime;
 import std.parallelism: taskPool;
 import std.algorithm;
@@ -22,21 +23,22 @@ auto runTest(TestCase test)
  */
 struct TestSuite
 {
-    this(TestCase[] tests)
+    this(in Options options, in TestData[] testData)
     {
-        _tests = tests;
+        _options = options;
+        _testCases = createTestCases(testData, options.testsToRun);
     }
 
     /**
      * Runs the tests with the given options.
      * Returns: how long it took to run.
      */
-    Duration run(in Options options)
+    Duration run()
     {
-        auto tests = getTests(options);
+        auto tests = getTests();
         _stopWatch.start();
 
-        if(options.multiThreaded)
+        if(_options.multiThreaded)
         {
             _failures = reduce!((a, b) => a ~ b)(_failures,
                                                  taskPool.amap!runTest(tests));
@@ -54,7 +56,7 @@ struct TestSuite
 
     @property ulong numTestsRun() const
     {
-        return _tests.map!(a => a.numTestsRun).reduce!((a, b) => a + b);
+        return _testCases.map!(a => a.numTestsRun).reduce!((a, b) => a + b);
     }
 
     @property ulong numFailures() const pure nothrow
@@ -67,22 +69,28 @@ struct TestSuite
         return numFailures() == 0;
     }
 
+    @property ulong numTestCases() const pure nothrow
+    {
+        return _testCases.length;
+    }
+
 private:
 
-    TestCase[] _tests;
+    const(Options) _options;
+    TestCase[] _testCases;
     string[] _failures;
     StopWatch _stopWatch;
 
-    auto getTests(in Options options)
+    auto getTests()
     {
-        auto tests = _tests;
-        if(options.random)
+        auto tests = _testCases;
+        if(_options.random)
         {
             import std.random;
-            auto generator = Random(options.seed);
+            auto generator = Random(_options.seed);
             tests.randomShuffle(generator);
             utWriteln("Running tests in random order. ",
-                      "To repeat this run, use --seed ", options.seed);
+                      "To repeat this run, use --seed ", _options.seed);
         }
         return tests;
     }
