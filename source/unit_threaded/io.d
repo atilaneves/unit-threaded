@@ -158,6 +158,8 @@ class WriterThread
     {
         _tid.send(thisTid); //tell it to join
         receiveOnly!Tid(); //wait for it to join
+        _instance = null;
+        _instantiated = false;
     }
 
 private:
@@ -267,4 +269,11 @@ private void threadWriter()
     stdout = saveStdout;
     stderr = saveStderr;
     if(_tid != Tid.init) _tid.send(thisTid);
+}
+
+
+unittest {
+    //make sure this can be brought up and down again
+    WriterThread.get.join;
+    WriterThread.get.join;
 }
