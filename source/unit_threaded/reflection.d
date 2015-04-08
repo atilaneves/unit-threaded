@@ -84,10 +84,14 @@ TestData[] moduleTestData(alias module_)() pure nothrow {
 unittest
 {
 
-    import unit_threaded.asserts;
     import std.algorithm;
     import std.array;
+    import std.conv;
 
+    void assertEqual(T, U)(T t, U u)
+    {
+        assert(t == u, "\nExp: " ~ to!string(u) ~ "\nGot: " ~ to!string(t));
+    }
 
     //helper function for the unittest blocks below
     auto addModPrefix(string[] elements) nothrow
