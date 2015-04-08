@@ -62,7 +62,7 @@ struct TestSuite
         return cast(Duration)_stopWatch.peek();
     }
 
-    @property ulong numTestsRun() const
+    @property ulong numTestsRun() const pure
     {
         return _testCases.map!(a => a.numTestsRun).reduce!((a, b) => a + b);
     }

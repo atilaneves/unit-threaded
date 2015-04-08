@@ -56,7 +56,7 @@ class TestCase
     }
 
     abstract void test();
-    ulong numTestsRun() const { return 1; }
+    ulong numTestsRun() const pure nothrow { return 1; }
 
 private:
     bool _failed;
@@ -147,7 +147,7 @@ class CompositeTestCase: TestCase
         assert(false, "CompositeTestCase.test should never be called");
     }
 
-    override ulong numTestsRun() const
+    override ulong numTestsRun() const pure nothrow
     {
         return _tests.length;
     }
