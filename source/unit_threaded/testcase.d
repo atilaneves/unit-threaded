@@ -1,6 +1,6 @@
 module unit_threaded.testcase;
 
-import unit_threaded.check;
+import unit_threaded.should;
 import unit_threaded.io: addToOutput, utWrite;
 import unit_threaded.reflection: TestData, TestFunction;
 

@@ -5,7 +5,7 @@ import unit_threaded;
 
 @Name("testTrue") unittest
 {
-    checkTrue(true);
+    true.shouldBeTrue;
 }
 
 @Name("testEqualVars") unittest

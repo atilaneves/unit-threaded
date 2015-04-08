@@ -1,9 +1,6 @@
 module tests.fail.composite;
 
-import unit_threaded.testcase;
-import unit_threaded.should;
-import unit_threaded.check;
-import unit_threaded.attrs;
+import unit_threaded;
 
 @SingleThreaded
 @Name("testFunction1") unittest
@@ -14,5 +11,5 @@ import unit_threaded.attrs;
 @SingleThreaded
 @Name("testFunction2") unittest
 {
-    checkTrue(false);
+    false.shouldBeTrue;
 }
