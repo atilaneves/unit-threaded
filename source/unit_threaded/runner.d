@@ -11,23 +11,25 @@ import std.algorithm: map, filter, count;
 
 
 /**
- * Runs all tests in passed-in modules. Modules can be symbols
- * or strings. Arguments are taken from the command-line.
- * -s Can be passed to run in single-threaded mode. The rest
- * of argv is considered to be test names to be run.
- * Returns: integer suitable for program return code.
- */
+Runs all tests in passed-in modules. Modules can be symbols
+or strings. Arguments are taken from the command-line.
+-s Can be passed to run in single-threaded mode. The rest
+of argv is considered to be test names to be run.
+Params:
+  args: Arguments passed to main.
+Returns: An integer suitable for the program's return code.
+*/
 int runTests(MODULES...)(string[] args)
 {
     return runTests(args, allTestData!MODULES);
 }
 
 /**
- * Runs all tests in passed-in testData. Arguments are taken from the
- * command-line.  -s Can be passed to run in single-threaded mode. The
- * rest of argv is considered to be test names to be run.  Returns:
- * integer suitable for program return code.
- */
+Runs all tests in passed-in testData. Arguments are taken from the
+command-line. `-s` Can be passed to run in single-threaded mode. The
+rest of argv is considered to be test names to be run.
+Returns: An integer suitable for the program's return code.
+*/
 int runTests(string[] args, in TestData[] testData)
 {
     const options = getOptions(args);

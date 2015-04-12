@@ -6,6 +6,9 @@ import std.random;
 import std.exception;
 
 
+/**
+ * Options to the test-runner to be specified at run-time.
+ */
 struct Options
 {
     bool multiThreaded;
@@ -19,7 +22,10 @@ struct Options
 }
 
 /**
- * Parses the command-line args and returns Options
+ * Parses the command-line args.
+ * Params:
+ *   args: The arguments passed to main.
+ * Returns: The options struct.
  */
 Options getOptions(string[] args)
 {

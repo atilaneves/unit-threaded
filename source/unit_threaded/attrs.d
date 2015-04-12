@@ -8,7 +8,7 @@ struct Name
     string value;
 }
 
-enum SingleThreaded; //run tests in the module in one thread
+enum SingleThreaded; ///run all unittests in the module in one thread
 
 /**
  * The suite fails if the test passes.
@@ -19,7 +19,8 @@ struct ShouldFail
 }
 
 /**
- * Hide test. Not run by default but can be run.
+ * Hide test. Not run by default but can be run by specifying its name
+ * on the command-line.
  */
 struct HiddenTest
 {

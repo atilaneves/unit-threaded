@@ -38,6 +38,10 @@ struct TestSuite
         WriterThread.get.join;
     }
 
+    /**
+     Runs all test cases.
+     Returns: true if no test failed, false otherwise.
+     */
     bool run()
     {
         if(!_testCases.length)

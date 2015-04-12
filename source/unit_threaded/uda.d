@@ -4,9 +4,9 @@ import std.traits;
 import std.typetuple;
 
 /**
- * For the given module, return true if this module's member has
- * the given UDA. UDAs can be types or values.
- */
+For the given module, return true if this module's member has
+the given UDA. UDAs can be types or values.
+*/
 template HasAttribute(alias member, alias attribute) {
     enum isAttribute(alias T) = is(TypeOf!T == attribute);
     alias attrs = Filter!(isAttribute, __traits(getAttributes, member));
@@ -20,9 +20,9 @@ template HasAttribute(alias member, alias attribute) {
 
 
 /**
- * Utility to allow checking UDAs regardless of whether the template
- * parameter is or has a type
- */
+Utility to allow checking UDAs regardless of whether the template
+parameter is or has a type
+*/
 private template TypeOf(alias T) {
     static if(__traits(compiles, typeof(T))) {
         alias TypeOf = typeof(T);

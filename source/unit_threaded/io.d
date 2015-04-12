@@ -102,6 +102,10 @@ package void utWriteYellow(T...)(T args)
  */
 class WriterThread
 {
+
+    /**
+     * Returns a reference to the only instance of this class.
+     */
     static WriterThread get()
     {
         if(!_instantiated)
@@ -118,42 +122,70 @@ class WriterThread
         return _instance;
     }
 
+    /**
+     * Writes the args in a thread-safe manner.
+     */
     void write(T...)(T args)
     {
         _tid.send(text(args));
     }
 
+    /**
+     * Writes the args in a thread-safe manner and appends a newline.
+     */
     void writeln(T...)(T args)
     {
         write(args, "\n");
     }
 
+    /**
+     * Writes the args in a thread-safe manner in green (POSIX only).
+     * and appends a newline.
+     */
     void writelnGreen(T...)(T args)
     {
         _tid.send(green(text(args) ~ "\n"));
     }
 
+    /**
+     * Writes the args in a thread-safe manner in red (POSIX only)
+     * and appends a newline.
+     */
     void writelnRed(T...)(T args)
     {
         _tid.send(red(text(args) ~ "\n"));
     }
 
+    /**
+     * Writes the args in a thread-safe manner in red (POSIX only).
+     * and appends a newline.
+     */
     void writeRed(T...)(T args)
     {
         _tid.send(red(text(args)));
     }
 
+    /**
+     * Writes the args in a thread-safe manner in yellow (POSIX only).
+     * and appends a newline.
+     */
     void writeYellow(T...)(T args)
     {
         _tid.send(yellow(text(args)));
     }
 
+    /**
+     * Creates the singleton instance and waits until it's ready.
+     */
     static void start()
     {
         WriterThread.get._tid.send(true, thisTid);
         receiveOnly!bool; //wait for it to start
     }
 
+    /**
+     * Waits for the writer thread to terminate.
+     */
     void join()
     {
         _tid.send(thisTid); //tell it to join

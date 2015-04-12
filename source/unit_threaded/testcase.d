@@ -13,6 +13,9 @@ import std.algorithm;
  */
 class TestCase
 {
+    /**
+    The name of the test case.
+    */
     string name() const pure nothrow
     {
         return this.classinfo.name;
@@ -20,7 +23,7 @@ class TestCase
 
     /**
      * Executes the test.
-     * Returns: array of failures
+     * Returns: An array of failures
      */
     string[] opCall()
     {
@@ -31,6 +34,7 @@ class TestCase
     /**
      * Collect this test's output so as to not interleave with output from
      * other tests.
+     * Returns: the output of running this test.
      */
     final string collectOutput()
     {
@@ -55,8 +59,19 @@ class TestCase
         return _output;
     }
 
+    /**
+     Run the test case.
+     */
     abstract void test();
-    ulong numTestsRun() const pure nothrow { return 1; }
+
+
+    /**
+    The number of tests to run.
+    */
+    ulong numTestsRun() const pure nothrow
+    {
+        return 1;
+    }
 
 private:
     bool _failed;
@@ -75,6 +90,9 @@ private:
 }
 
 
+/**
+ * A test case that is a simple function.
+ */
 class FunctionTestCase: TestCase
 {
     this(immutable TestData data) pure nothrow
@@ -98,6 +116,9 @@ class FunctionTestCase: TestCase
 }
 
 
+/**
+A test case that should fail.
+ */
 class ShouldFailTestCase: TestCase
 {
     this(TestCase testCase)
@@ -125,6 +146,9 @@ private:
 }
 
 
+/**
+A test case that contains other test cases.
+ */
 class CompositeTestCase: TestCase
 {
     void add(TestCase t)

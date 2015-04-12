@@ -6,9 +6,13 @@ import std.traits: fullyQualifiedName, isSomeString;
 import std.typetuple: Filter;
 
 /**
- * Common data for test functions and test classes
+ * Unit test function type.
  */
 alias void function() TestFunction;
+
+/**
+ * Unit test data
+ */
 struct TestData {
     string name;
     TestFunction testFunction;
@@ -19,9 +23,14 @@ struct TestData {
 
 
 /**
- * Finds all test cases (functions, classes, built-in unittest blocks)
- * Template parameters are module symbols or their string representation
- */
+Finds all test cases (functions, classes, built-in unittest blocks)
+Template parameters are module symbols or their string representation.
+Examples:
+-----
+import my.test.module;
+auto testData = allTestData!(my.test.module, "other.test.module);
+-----
+*/
 TestData[] allTestData(MODULES...)()
 {
     TestData[] testData;
@@ -44,9 +53,11 @@ TestData[] allTestData(MODULES...)()
 }
 
 /**
- * Finds all built-in unittest blocks in the given module.
- * @return An array of TestData structs
- */
+Finds all built-in unittest blocks in the given module_.
+Params:
+  module_: The module to reflect on. Can be a symbol or a string.
+Returns: An array of TestData structs
+*/
 TestData[] moduleTestData(alias module_)() pure nothrow {
 
     // Return a name for a unittest block. If no @Name UDA is found a name is

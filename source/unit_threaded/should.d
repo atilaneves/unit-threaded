@@ -10,6 +10,9 @@ public import unit_threaded.attrs;
 
 @safe:
 
+/**
+An exception to signal that a test case has failed.
+ */
 class UnitTestException: Exception
 {
     this(in string[] msgLines, in string file, in ulong line)
@@ -26,18 +29,30 @@ private:
     }
 }
 
+/**
+Verify that the condition is `true`.
+Throws: UnitTestException on failure.
+ */
 void shouldBeTrue(E)(lazy E condition,
                   in string file = __FILE__, in ulong line = __LINE__)
 {
     if(!condition) failEqual(condition, true, file, line);
 }
 
+/**
+Verify that the condition is `false`.
+Throws: UnitTestException on failure.
+ */
 void shouldBeFalse(E)(lazy E condition,
                    in string file = __FILE__, in ulong line = __LINE__)
 {
     if(condition) failEqual(condition, false, file, line);
 }
 
+/**
+Verify that two values are the same.
+Throws: UnitTestException on failure.
+ */
 void shouldEqual(T, U)(in T value, in U expected,
                       in string file = __FILE__, in ulong line = __LINE__)
   if(is(typeof(value != expected) == bool) && !is(T == class))
@@ -45,6 +60,10 @@ void shouldEqual(T, U)(in T value, in U expected,
     if(value != expected) failEqual(value, expected, file, line);
 }
 
+/**
+Verify that two values are the same.
+Throws: UnitTestException on failure
+ */
 void shouldEqual(T)(in T value, in T expected,
                    in string file = __FILE__, in ulong line = __LINE__)
 if(is(T == class))
@@ -54,6 +73,10 @@ if(is(T == class))
 
 
 //@trusted because of object.opEquals
+/**
+Verify that two values are not the same.
+Throws: UnitTestException on failure
+*/
 void shouldNotEqual(T, U)(in T value, in U expected,
                          in string file = __FILE__, in ulong line = __LINE__)
 @trusted if(is(typeof(value == expected) == bool))
@@ -77,18 +100,31 @@ void shouldNotEqual(T, U)(in T value, in U expected,
     }
 }
 
+/**
+Verify that the value is null.
+Throws: UnitTestException on failure
+ */
 void shouldBeNull(T)(in T value,
                   in string file = __FILE__, in ulong line = __LINE__)
 {
     if(value !is null) fail("Value is null", file, line);
 }
 
+
+/**
+Verify that the value is not null.
+Throws: UnitTestException on failure
+*/
 void shouldNotBeNull(T)(in T value,
                      in string file = __FILE__, in ulong line = __LINE__)
 {
     if(value is null) fail("Value is null", file, line);
 }
 
+/**
+Verify that the value is in the container.
+Throws: UnitTestException on failure
+*/
 void shouldBeIn(T, U)(in T value, in U container,
                    in string file = __FILE__, in ulong line = __LINE__)
 if(isAssociativeArray!U)
@@ -100,6 +136,10 @@ if(isAssociativeArray!U)
     }
 }
 
+/**
+Verify that the value is in the container.
+Throws: UnitTestException on failure
+*/
 void shouldBeIn(T, U)(in T value, in U container,
                    in string file = __FILE__, in ulong line = __LINE__)
 if(!isAssociativeArray!U)
@@ -111,6 +151,10 @@ if(!isAssociativeArray!U)
     }
 }
 
+/**
+Verify that the value is not in the container.
+Throws: UnitTestException on failure
+*/
 void shouldNotBeIn(T, U)(in T value, in U container,
                       in string file = __FILE__, in ulong line = __LINE__)
 if(isAssociativeArray!U)
@@ -122,6 +166,10 @@ if(isAssociativeArray!U)
     }
 }
 
+/**
+Verify that the value is not in the container.
+Throws: UnitTestException on failure
+*/
 void shouldNotBeIn(T, U)(in T value, in U container,
                       in string file = __FILE__, in ulong line = __LINE__)
 if(!isAssociativeArray!U)
@@ -133,6 +181,11 @@ if(!isAssociativeArray!U)
     }
 }
 
+/**
+Verify that expr throws the templated Exception class.
+Throws: UnitTestException on failure (when expr does not
+throw the expected exception)
+*/
 void shouldThrow(T: Throwable = Exception, E)(lazy E expr,
                                               in string file = __FILE__,
                                               in ulong line = __LINE__)
@@ -140,6 +193,10 @@ void shouldThrow(T: Throwable = Exception, E)(lazy E expr,
     if(!threw!T(expr)) fail("Expression did not throw", file, line);
 }
 
+/**
+Verify that expr does not throw the templated Exception class.
+Throws: UnitTestException on failure
+*/
 void shouldNotThrow(T: Throwable = Exception, E)(lazy E expr,
                                                  in string file = __FILE__,
                                                  in ulong line = __LINE__)
@@ -162,7 +219,7 @@ private bool threw(T: Throwable, E)(lazy E expr)
 }
 
 
-void utFail(in string output, in string file, in ulong line)
+package void utFail(in string output, in string file, in ulong line)
 {
     fail(output, file, line);
 }
@@ -286,31 +343,46 @@ unittest
     assertOk(shouldNotBeIn(1.0, [2.0: 1, 3.0: 2]));
 }
 
-
-void shouldBeEmpty(R)(R rng, in string file = __FILE__, in ulong line = __LINE__)
+/**
+Verify that rng is empty.
+Throws: UnitTestException on failure.
+*/
+void shouldBeEmpty(R)(R rng,
+                      in string file = __FILE__, in ulong line = __LINE__)
 if(isInputRange!R)
 {
     if(!rng.empty) fail("Range not empty", file, line);
 }
 
-void shouldBeEmpty(T)(in T aa, in string file = __FILE__, in ulong line = __LINE__)
+/**
+Verify that aa is empty.
+Throws: UnitTestException on failure.
+*/
+void shouldBeEmpty(T)(in T aa,
+                      in string file = __FILE__, in ulong line = __LINE__)
 if(isAssociativeArray!T)
 {
     //keys is @system
     () @trusted { if(!aa.keys.empty) fail("AA not empty", file, line); }();
 }
 
-
+/**
+Verify that rng is not empty.
+Throws: UnitTestException on failure.
+*/
 void shouldNotBeEmpty(R)(R rng,
-                      in string file = __FILE__, in ulong line = __LINE__)
+                         in string file = __FILE__, in ulong line = __LINE__)
 if(isInputRange!R)
 {
     if(rng.empty) fail("Range empty", file, line);
 }
 
-
+/**
+Verify that aa is not empty.
+Throws: UnitTestException on failure.
+*/
 void shouldNotBeEmpty(T)(in T aa,
-                      in string file = __FILE__, in ulong line = __LINE__)
+                         in string file = __FILE__, in ulong line = __LINE__)
 if(isAssociativeArray!T)
 {
     //keys is @system
@@ -347,14 +419,24 @@ unittest
 }
 
 
+/**
+Verify that t is greater than u.
+Throws: UnitTestException on failure.
+*/
 void shouldBeGreaterThan(T, U)(in T t, in U u,
-                            in string file = __FILE__, in ulong line = __LINE__)
+                               in string file = __FILE__,
+                               in ulong line = __LINE__)
 {
     if(t <= u) fail(text(t, " is not > ", u), file, line);
 }
 
+/**
+Verify that t is smaller than u.
+Throws: UnitTestException on failure.
+*/
 void shouldBeSmallerThan(T, U)(in T t, in U u,
-                            in string file = __FILE__, in ulong line = __LINE__)
+                               in string file = __FILE__,
+                               in ulong line = __LINE__)
 {
     if(t >= u) fail(text(t, " is not < ", u), file, line);
 }
