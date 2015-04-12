@@ -28,7 +28,7 @@ Template parameters are module symbols or their string representation.
 Examples:
 -----
 import my.test.module;
-auto testData = allTestData!(my.test.module, "other.test.module);
+auto testData = allTestData!(my.test.module, "other.test.module");
 -----
 */
 TestData[] allTestData(MODULES...)()
