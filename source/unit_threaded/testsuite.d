@@ -6,8 +6,8 @@ import unit_threaded.options;
 import std.datetime;
 import std.parallelism: taskPool;
 import std.algorithm;
+import std.conv: text;
 import std.array;
-import std.string;
 import core.runtime;
 
 
@@ -22,13 +22,14 @@ auto runTest(TestCase test)
 }
 
 /**
- * Responsible for running tests
+ * Responsible for running tests and printing output.
  */
 struct TestSuite
 {
     this(in Options options, in TestData[] testData)
     {
         _options = options;
+        _testData = testData;
         _testCases = createTestCases(testData, options.testsToRun);
         WriterThread.start;
     }
@@ -37,11 +38,75 @@ struct TestSuite
         WriterThread.get.join;
     }
 
+    bool run()
+    {
+        if(!_testCases.length)
+        {
+            utWritelnRed("Error! No tests to run for args: ");
+            utWriteln(_options.testsToRun);
+            return false;
+        }
+
+        immutable elapsed = doRun();
+
+        if(!numTestsRun)
+        {
+            utWriteln("Did not run any tests!!!");
+            return false;
+        }
+
+        utWriteln("\nTime taken: ", elapsed);
+        utWrite(numTestsRun, " test(s) run, ");
+        const failuresStr = text(_failures.length, " failed");
+        if(_failures.length)
+        {
+            utWriteRed(failuresStr);
+        }
+        else
+        {
+            utWrite(failuresStr);
+        }
+
+        void printAbout(string attr)(in string msg)
+        {
+            const num = _testData.filter!(a => mixin("a. " ~ attr)).count;
+            if(num)
+            {
+                utWrite(", ");
+                utWriteYellow(num, " " ~ msg);
+            }
+        }
+
+        printAbout!"hidden"("hidden");
+        printAbout!"shouldFail"("failing as expected");
+
+        utWriteln(".\n");
+
+        if(_failures.length)
+        {
+            utWritelnRed("Unit tests failed!\n");
+            return false; //oops
+        }
+
+        utWritelnGreen("OK!\n");
+
+
+        return true;
+    }
+
+private:
+
+    const(Options) _options;
+    const(TestData)[] _testData;
+    TestCase[] _testCases;
+    string[] _failures;
+    StopWatch _stopWatch;
+
     /**
      * Runs the tests with the given options.
      * Returns: how long it took to run.
      */
-    Duration run()
+    Duration doRun()
     {
         auto tests = getTests();
         _stopWatch.start();
@@ -62,27 +127,6 @@ struct TestSuite
         return cast(Duration)_stopWatch.peek();
     }
 
-    @property ulong numTestsRun() const pure
-    {
-        return _testCases.map!(a => a.numTestsRun).reduce!((a, b) => a + b);
-    }
-
-    @property ulong numFailures() const pure nothrow
-    {
-        return _failures.length;
-    }
-
-    @property ulong numTestCases() const pure nothrow
-    {
-        return _testCases.length;
-    }
-
-private:
-
-    const(Options) _options;
-    TestCase[] _testCases;
-    string[] _failures;
-    StopWatch _stopWatch;
 
     auto getTests()
     {
@@ -108,6 +152,11 @@ private:
             utWriteln(".");
         }
         if(_failures) utWriteln("");
+    }
+
+    @property ulong numTestsRun() const pure
+    {
+        return _testCases.map!(a => a.numTestsRun).reduce!((a, b) => a + b);
     }
 }
 

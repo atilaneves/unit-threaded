@@ -34,7 +34,8 @@ int runTests(string[] args, in TestData[] testData)
     handleCmdLineOptions(options, testData);
     if(options.exit) return 0;
 
-    immutable success = runTests(options, testData);
+    auto suite = TestSuite(options, testData);
+    immutable success = suite.run;
     return success ? 0 : 1;
 }
 
@@ -54,64 +55,4 @@ private void handleCmdLineOptions(in Options options, in TestData[] testData)
 
     if(options.debugOutput) enableDebugOutput();
     if(options.forceEscCodes) forceEscCodes();
-}
-
-/**
- * Runs all tests in passed-in testData with the given options.
- * Returns: true on success, false if any of the tests failed.
- */
-bool runTests(in Options options, in TestData[] testData)
-{
-    auto suite = TestSuite(options, testData);
-    if(!suite.numTestCases)
-    {
-        utWritelnRed("Error! No tests to run for args: ");
-        utWriteln(options.testsToRun);
-        return false;
-    }
-
-    immutable elapsed = suite.run();
-
-    if(!suite.numTestsRun)
-    {
-        utWriteln("Did not run any tests!!!");
-        return false;
-    }
-
-    utWriteln("\nTime taken: ", elapsed);
-    utWrite(suite.numTestsRun, " test(s) run, ");
-    const failuresStr = text(suite.numFailures, " failed");
-    if(suite.numFailures)
-    {
-        utWriteRed(failuresStr);
-    }
-    else
-    {
-        utWrite(failuresStr);
-    }
-
-    void printAbout(string attr)(in string msg)
-    {
-        const num = testData.filter!(a => mixin("a. " ~ attr)).count;
-        if(num)
-        {
-            utWrite(", ");
-            utWriteYellow(num, " " ~ msg);
-        }
-    }
-
-    printAbout!"hidden"("hidden");
-    printAbout!"shouldFail"("failing as expected");
-
-    utWriteln(".\n");
-
-    if(suite.numFailures)
-    {
-        utWritelnRed("Unit tests failed!\n");
-        return false; //oops
-    }
-
-    utWritelnGreen("OK!\n");
-
-    return true;
 }
