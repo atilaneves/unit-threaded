@@ -359,7 +359,8 @@ void shouldBeSmallerThan(T, U)(in T t, in U u,
     if(t >= u) fail(text(t, " is not < ", u), file, line);
 }
 
-unittest {
+unittest
+{
     assertOk(shouldBeGreaterThan(7, 5));
     assertFail(shouldBeGreaterThan(5, 7));
     assertFail(shouldBeGreaterThan(7, 7));

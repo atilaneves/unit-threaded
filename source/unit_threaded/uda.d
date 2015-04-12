@@ -33,8 +33,8 @@ private template TypeOf(alias T) {
 
 
 
-unittest {
-
+unittest
+{
     import unit_threaded.attrs;
     import unit_threaded.tests.module_with_attrs;
 

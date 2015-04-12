@@ -272,7 +272,8 @@ private void threadWriter()
 }
 
 
-unittest {
+unittest
+{
     //make sure this can be brought up and down again
     WriterThread.get.join;
     WriterThread.get.join;
