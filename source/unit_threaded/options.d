@@ -24,7 +24,7 @@ struct Options
 /**
  * Parses the command-line args.
  * Params:
- *   args: The arguments passed to main.
+ *   args = The arguments passed to main.
  * Returns: The options struct.
  */
 Options getOptions(string[] args)

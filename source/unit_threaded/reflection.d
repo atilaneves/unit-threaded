@@ -55,7 +55,7 @@ TestData[] allTestData(MODULES...)()
 /**
 Finds all built-in unittest blocks in the given module_.
 Params:
-  module_: The module to reflect on. Can be a symbol or a string.
+  module_ = The module to reflect on. Can be a symbol or a string.
 Returns: An array of TestData structs
 */
 TestData[] moduleTestData(alias module_)() pure nothrow {
