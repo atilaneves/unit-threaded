@@ -35,8 +35,7 @@ int runTests(string[] args, in TestData[] testData)
     if(options.exit) return 0;
 
     auto suite = TestSuite(options, testData);
-    immutable success = suite.run;
-    return success ? 0 : 1;
+    return suite.run ? 0 : 1;
 }
 
 
