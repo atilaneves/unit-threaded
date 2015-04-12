@@ -1,21 +1,27 @@
 module unit_threaded.attrs;
 
-enum SingleThreaded; //run tests in the module in one thread
-
-///Hide test. Not run by default but can be run.
-struct HiddenTest
+/**
+ * Associate a name with a unittest block.
+ */
+struct Name
 {
-    string reason;
+    string value;
 }
 
-/// The suite fails if the test passes.
+enum SingleThreaded; //run tests in the module in one thread
+
+/**
+ * The suite fails if the test passes.
+ */
 struct ShouldFail
 {
     string reason;
 }
 
-/// Associate a name with a unittest block.
-struct Name
+/**
+ * Hide test. Not run by default but can be run.
+ */
+struct HiddenTest
 {
-    string value;
+    string reason;
 }
