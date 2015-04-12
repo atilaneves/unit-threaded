@@ -86,7 +86,7 @@ private:
 
     auto getTests()
     {
-        auto tests = _testCases;
+        auto tests = _testCases.dup;
         if(_options.random)
         {
             import std.random;

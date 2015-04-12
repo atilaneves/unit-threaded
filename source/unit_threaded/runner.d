@@ -31,7 +31,16 @@ int runTests(MODULES...)(string[] args)
 int runTests(string[] args, in TestData[] testData)
 {
     const options = getOptions(args);
+    handleCmdLineOptions(options, testData);
+    if(options.exit) return 0;
 
+    immutable success = runTests(options, testData);
+    return success ? 0 : 1;
+}
+
+
+private void handleCmdLineOptions(in Options options, in TestData[] testData)
+{
     if(options.list)
     {
         import std.stdio;
@@ -43,16 +52,12 @@ int runTests(string[] args, in TestData[] testData)
         }
     }
 
-    if(options.exit) return 0;
     if(options.debugOutput) enableDebugOutput();
     if(options.forceEscCodes) forceEscCodes();
-
-    immutable success = runTests(options, testData);
-    return success ? 0 : 1;
 }
 
 /**
- * Runs all tests in passed-in testData. with the given options.
+ * Runs all tests in passed-in testData with the given options.
  * Returns: true on success, false if any of the tests failed.
  */
 bool runTests(in Options options, in TestData[] testData)

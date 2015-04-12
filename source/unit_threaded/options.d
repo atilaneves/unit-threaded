@@ -21,7 +21,7 @@ struct Options
 /**
  * Parses the command-line args and returns Options
  */
-auto getOptions(string[] args)
+Options getOptions(string[] args)
 {
     bool single;
     bool debugOutput;
