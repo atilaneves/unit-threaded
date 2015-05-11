@@ -31,8 +31,9 @@ void checkFalse(E)(lazy E condition, in string file = __FILE__, in ulong line = 
     if(condition) failEqual(condition, false, file, line);
 }
 
+
 void checkEqual(T, U)(in T value, in U expected, in string file = __FILE__, in ulong line = __LINE__)
-  if(is(typeof(value != expected) == bool) && !is(T == class)) {
+  if(is(typeof(value != expected) == bool) && !is(T == class) && !is(T == interface)) {
     if(value != expected) failEqual(value, expected, file, line);
 }
 
@@ -40,6 +41,14 @@ void checkEqual(T)(in T value, in T expected, in string file = __FILE__, in ulon
 if(is(T == class)) {
     if(value.tupleof != expected.tupleof) failEqual(value, expected, file, line);
 }
+
+void checkEqual(T)(in T value, in T expected, in string file = __FILE__, in ulong line = __LINE__)
+  if(is(T == interface)) {
+
+    //not allowed to compare interfaces or take their addresses in @safe code
+    () @trusted { if(value != expected) failEqual(value, expected, file, line); }();
+}
+
 
 
 //@trusted because of object.opEquals
