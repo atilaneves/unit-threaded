@@ -159,7 +159,8 @@ private void failEqual(T, U)(in T value, in U expected, in string file, in ulong
 
 private string[] formatArray(T)(in string prefix, in T value) if(isArray!T) {
     import std.range;
-    auto defaultLines = [prefix ~ value.to!string];
+    //for certain types, std.conv.to might be @system
+    auto defaultLines = () @trusted { return [prefix ~ value.to!string]; }();
 
     static if(!isArray!(ElementType!T)) return defaultLines;
     else {
@@ -169,6 +170,11 @@ private string[] formatArray(T)(in string prefix, in T value) if(isArray!T) {
         if(!tooBigForOneLine) return  defaultLines;
         return [prefix ~ "["] ~ value.map!(a => "              " ~ formatValue(a) ~ ",").array ~ "          ]";
     }
+}
+
+unittest {
+    ubyte[] arr;
+    checkEqual(arr, []);
 }
 
 private auto formatValue(T)(T element) {
