@@ -117,7 +117,8 @@ void checkNotThrown(T: Throwable = Exception, E)(lazy E expr, in string file = _
     if(threw!T(expr)) fail("Expression threw", file, line);
 }
 
-private bool threw(T: Throwable, E)(lazy E expr) {
+//catching Throwable isn't @safe, so...
+private bool threw(T: Throwable, E)(lazy E expr) @trusted {
     try {
         expr();
     } catch(T e) {
@@ -125,6 +126,15 @@ private bool threw(T: Throwable, E)(lazy E expr) {
     }
 
     return false;
+}
+
+unittest {
+    void throwRangeError() {
+        ubyte[] bytes;
+        bytes = bytes[1..$];
+    }
+    import core.exception: RangeError;
+    throwRangeError.checkThrown!RangeError;
 }
 
 
