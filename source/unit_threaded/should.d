@@ -85,6 +85,8 @@ void shouldEqual(T, U)(in T value, in U expected, in string file = __FILE__, in 
 void shouldEqual(T)(in T value, in T expected, in string file = __FILE__, in ulong line = __LINE__) if (
         is(T == class))
 {
+    static assert(is(typeof(() { string s = value.toString(); })),
+                  "Cannot compare instances of class " ~ T.stringof ~ " unless toString is overridden");
     if (value.tupleof != expected.tupleof)
         failEqual(value, expected, file, line);
 }
@@ -172,12 +174,20 @@ void shouldNotBeNull(T)(in T value, in string file = __FILE__, in ulong line = _
 
 unittest
 {
+    import std.conv: to;
     assertOk(shouldBeNull(null));
     class Foo
     {
+        this(int i) { this.i = i; }
+        override string toString() const { return i.to!string; }
+        int i;
     }
 
-    assertOk(shouldNotBeNull(new Foo));
+    assertOk(shouldNotBeNull(new Foo(4)));
+    assertOk(shouldEqual(new Foo(5), new Foo(5)));
+    assertFail(shouldEqual(new Foo(5), new Foo(4)));
+    assertOk(shouldNotEqual(new Foo(5), new Foo(4)));
+    assertFail(shouldNotEqual(new Foo(5), new Foo(5)));
 }
 
 /**
@@ -550,4 +560,40 @@ unittest
     assertOk(shouldBeSmallerThan(5, 7));
     assertFail(shouldBeSmallerThan(7, 5));
     assertFail(shouldBeSmallerThan(7, 7));
+}
+
+
+
+/**
+ * Verify that t and u represent the same set (ordering is not important).
+ * Throws: UnitTestException on failure.
+ */
+void shouldBeSameSetAs(T, U)(T t, U u, in string file = __FILE__, in ulong line = __LINE__)
+if (isInputRange!T && isInputRange!U && is(typeof(t.front != u.front) == bool))
+{
+    shouldEqual(std.algorithm.sort(t.array), std.algorithm.sort(u.array));
+}
+
+/**
+ * Verify that t and u do not represent the same set (ordering is not important).
+ * Throws: UnitTestException on failure.
+ */
+void shouldNotBeSameSetAs(T, U)(T t, U u, in string file = __FILE__, in ulong line = __LINE__)
+if (isInputRange!T && isInputRange!U && is(typeof(t.front != u.front) == bool))
+{
+    shouldNotEqual(std.algorithm.sort(t.array), std.algorithm.sort(u.array));
+}
+
+
+unittest
+{
+    auto inOrder = iota(4);
+    auto noOrder = [2, 3, 0, 1];
+    auto oops = [2, 3, 4, 5];
+    inOrder.shouldBeSameSetAs(noOrder);
+    inOrder.shouldBeSameSetAs(oops).shouldThrow!UnitTestException;
+
+    inOrder.shouldNotBeSameSetAs(oops);
+    inOrder.shouldNotBeSameSetAs(noOrder).shouldThrow!UnitTestException;
+    3.shouldEqual(4);
 }

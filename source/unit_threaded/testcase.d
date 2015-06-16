@@ -46,13 +46,9 @@ class TestCase
         {
             fail(ex.toString());
         }
-        catch (Exception ex)
-        {
-            fail("\n    " ~ ex.toString() ~ "\n");
-        }
         catch (Throwable t)
         {
-            utFail(t.msg, t.file, t.line);
+            fail("\n    " ~ t.toString() ~ "\n");
         }
         if (_failed)
             print("\n\n");
