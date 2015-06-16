@@ -418,8 +418,6 @@ private void failEqual(T, U)(in T value, in U expected, in string file, in ulong
 
 private string[] formatArray(T)(in string prefix, in T value) if (isArray!T)
 {
-    import std.range;
-
     //some versions of `to` are @system
     auto defaultLines = () @trusted{ return [prefix ~ value.to!string]; }();
 
@@ -433,6 +431,56 @@ private string[] formatArray(T)(in string prefix, in T value) if (isArray!T)
             return defaultLines;
         return [prefix ~ "["] ~ value.map!(a => "              " ~ formatValue(a) ~ ",").array ~ "          ]";
     }
+}
+
+private string[] formatValue2(T)(in string prefix, T value) if(isSomeString!T) {
+    return [prefix ~ `"` ~ value ~ `"`];
+}
+
+private string[] formatValue2(T)(in string prefix, T value) if(!isSomeString!T && !isInputRange!T) {
+    return [prefix ~ () @trusted{ return value.to!string; }()];
+}
+
+private string[] formatValue2(T)(in string prefix, T value) if(isInputRange!T) {
+    //some versions of `to` are @system
+    auto defaultLines = () @trusted{ return [prefix ~ value.to!string]; }();
+
+    static if (isInputRange!(ElementType!T))
+    {
+        const maxElementSize = value.empty ? 0 : value.map!(a => a.length).reduce!max;
+        const tooBigForOneLine = (value.length > 5 && maxElementSize > 5) || maxElementSize > 10;
+        if (!tooBigForOneLine)
+            return defaultLines;
+        return [prefix ~ "["] ~ value.map!(a => "              " ~ formatValue2(a) ~ ",").array ~ "          ]";
+    }
+    else
+        return defaultLines;
+}
+
+
+private bool isEqual(V, E)(V value, E expected)
+if (is(typeof(value == expected) == bool))
+{
+    return value == expected;
+}
+
+private bool isEqual(V, E)(V value, E expected)
+if (isInputRange!V && isInputRange!E && is(typeof(value.front == expected.front) == bool))
+{
+    return equal(value, expected);
+}
+
+void shouldEqual2(V, E)(V value, E expected, in string file = __FILE__, in ulong line = __LINE__)
+{
+    if (!isEqual(value, expected))
+    {
+        const msg = [(formatValue2("Expected: " , expected) ~ formatValue2("     Got: ", value)).join("")];
+        throw new UnitTestException(msg, file, line);
+    }
+}
+
+unittest {
+    shouldEqual2(iota(3), [0, 1, 2]);
 }
 
 unittest
