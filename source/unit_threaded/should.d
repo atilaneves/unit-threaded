@@ -98,7 +98,12 @@ void shouldEqual(T)(in T value, in T expected, in string file = __FILE__, in ulo
 void shouldNotEqual(T, U)(in T value, in U expected, in string file = __FILE__,
     in ulong line = __LINE__) if (is(typeof(value == expected) == bool))
 {
-    if (() @trusted { return value == expected; }()) //object.opEquals
+    static if(is(T == class)) {
+        immutable eq = value.tupleof == expected.tupleof;
+    } else {
+        immutable eq = value == expected;
+    }
+    if(eq)
     {
         auto valueStr = () @trusted { return value.to!string; }();
         static if (is(T == string))
