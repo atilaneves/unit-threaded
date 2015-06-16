@@ -22,13 +22,13 @@ class DoubleEqualTest: TestCase {
 
 void testEqual() {
     1.shouldEqual(1);
-    checkEqual(1.0, 1.0);
+    shouldEqual(1.0, 1.0);
     "foo".shouldEqual("foo");
 }
 
 void testNotEqual() {
     3.shouldNotEqual(4);
-    checkNotEqual(5.0, 6.0);
+    shouldNotEqual(5.0, 6.0);
     "foo".shouldNotEqual("bar");
 }
 

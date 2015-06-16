@@ -3,7 +3,7 @@ module unit_threaded.tests.module_with_tests;
 import unit_threaded.attrs;
 
 version(unittest) {
-    import unit_threaded.check;
+    import unit_threaded.should;
 
     //test functions
     void testFoo() {}

@@ -5,8 +5,8 @@ import unit_threaded;
 
 class WrongTest: TestCase {
     override void test() {
-        checkTrue(5 == 3);
-        checkFalse(5 == 5);
+        shouldBeTrue(5 == 3);
+        shouldBeFalse(5 == 5);
         5.shouldEqual(5);
         5.shouldNotEqual(3);
         5.shouldEqual(3);
@@ -15,18 +15,18 @@ class WrongTest: TestCase {
 
 class OtherWrongTest: TestCase {
     override void test() {
-        checkTrue(false);
+        shouldBeTrue(false);
     }
 }
 
 class RightTest: TestCase {
     override void test() {
-        checkTrue(true);
+        shouldBeTrue(true);
     }
 }
 
 void testTrue() {
-    checkTrue(true);
+    shouldBeTrue(true);
 }
 
 void testEqualVars() {

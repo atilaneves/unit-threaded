@@ -8,5 +8,5 @@ class Service: IService { }
 void testCastNotAllowed() {
    IService x = new Service();
    IService y = new Service();
-   checkEqual(x, y);
+   shouldEqual(x, y);
 }

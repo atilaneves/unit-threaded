@@ -2,7 +2,7 @@ module tests.fail.composite;
 
 import unit_threaded.testcase;
 import unit_threaded.should;
-import unit_threaded.check;
+import unit_threaded.should;
 import unit_threaded.attrs;
 
 
@@ -26,7 +26,7 @@ class Test2: TestCase {
 class Test3: TestCase {
     override void test() {
         true.shouldBeTrue;
-        (2 + 3).checkEqual(5);
+        (2 + 3).shouldEqual(5);
     }
 }
 
@@ -34,7 +34,7 @@ class Test3: TestCase {
 class Test4: TestCase {
     override void test() {
         true.shouldBeTrue;
-        checkEqual(2 + 3, 5);
+        shouldEqual(2 + 3, 5);
     }
 }
 
@@ -42,7 +42,7 @@ class Test4: TestCase {
 class Test5: TestCase {
     override void test() {
         true.shouldBeTrue;
-        checkEqual(2 + 3, 5);
+        shouldEqual(2 + 3, 5);
     }
 }
 
@@ -50,7 +50,7 @@ class Test5: TestCase {
 class Test6: TestCase {
     override void test() {
         true.shouldBeTrue;
-        checkEqual(2 + 3, 5);
+        shouldEqual(2 + 3, 5);
     }
 }
 
@@ -61,5 +61,5 @@ void testFunction1() {
 
 @SingleThreaded
 void testFunction2() {
-    checkTrue(false);
+    shouldBeTrue(false);
 }
