@@ -188,10 +188,19 @@ shared static this()
  * Replacement for the usual unittest runner. Since unit_threaded
  * runs the tests itself, the moduleUnitTester doesn't have to do anything.
  */
-private bool moduleUnitTester()
-{
+private bool moduleUnitTester() {
+    //this is so unit-threaded's own tests run
+    foreach(module_; ModuleInfo) {
+        if(module_ && module_.unitTest) {
+            if(startsWith(module_.name, "unit_threaded.")) {
+                module_.unitTest()();
+            }
+        }
+    }
+
     return true;
 }
+
 
 /**
  * Creates tests cases from the given modules.

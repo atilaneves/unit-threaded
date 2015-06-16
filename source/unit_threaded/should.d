@@ -600,5 +600,4 @@ unittest
 
     inOrder.shouldNotBeSameSetAs(oops);
     inOrder.shouldNotBeSameSetAs(noOrder).shouldThrow!UnitTestException;
-    3.shouldEqual(4);
 }
