@@ -3,29 +3,29 @@ module tests.fail.normal;
 import unit_threaded;
 
 
-@Name("testTrue") unittest
+@name("testTrue") unittest
 {
     true.shouldBeTrue;
 }
 
-@Name("testEqualVars") unittest
+@name("testEqualVars") unittest
 {
     immutable foo = 4;
     immutable bar = 6;
     foo.shouldEqual(bar);
 }
 
-@Name("testStringEqual") unittest
+@name("testStringEqual") unittest
 {
     "foo".shouldEqual("bar");
 }
 
-@Name("testStringEqualFails") unittest
+@name("testStringEqualFails") unittest
 {
     "foo".shouldEqual("bar");
 }
 
-@Name("testStringNotEqual") unittest
+@name("testStringNotEqual") unittest
 {
     "foo".shouldNotEqual("foo");
 }
@@ -37,12 +37,12 @@ unittest
     assert(3 == 4, str);
 }
 
-@Name("testIntArray") unittest
+@name("testIntArray") unittest
 {
     [1, 2, 4].shouldEqual([1, 2, 3]);
 }
 
-@Name("testStringArray") unittest
+@name("testStringArray") unittest
 {
     ["foo", "baz", "badoooooooooooo!"].shouldEqual(["foo", "bar", "baz"]);
 }

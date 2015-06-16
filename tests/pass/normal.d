@@ -2,14 +2,14 @@ module tests.pass.normal;
 
 import unit_threaded;
 
-@Name("testEqual") unittest
+@name("testEqual") unittest
 {
     1.shouldEqual(1);
     shouldEqual(1.0, 1.0);
     "foo".shouldEqual("foo");
 }
 
-@Name("testNotEqual") unittest
+@name("testNotEqual") unittest
 {
     3.shouldNotEqual(4);
     shouldNotEqual(5.0, 6.0);
@@ -25,7 +25,7 @@ private class MyException: Exception
     }
 }
 
-@Name("testThrown") unittest
+@name("testThrown") unittest
 {
     void throwFunc()
     {
@@ -35,7 +35,7 @@ private class MyException: Exception
     throwFunc.shouldThrow!MyException;
 }
 
-@Name("testNotThrown") unittest
+@name("testNotThrown") unittest
 {
     void nothrowFunc() nothrow
     {
@@ -44,14 +44,14 @@ private class MyException: Exception
     nothrowFunc.shouldNotThrow;
 }
 
-@Name("first_unit_test")
+@name("first_unit_test")
 unittest
 {
     writelnUt("First unit test block\n");
     assert(true); //unit test block that always passes
 }
 
-@Name("second_unit_test")
+@name("second_unit_test")
 unittest
 {
     writelnUt("Second unit test block\n");
@@ -75,7 +75,7 @@ private class MyClass
     }
 }
 
-@Name("testEqualClass") unittest
+@name("testEqualClass") unittest
 {
     const foo = new MyClass(2, 3.0);
     const bar = new MyClass(2, 3.0);
@@ -96,7 +96,7 @@ private struct Pair
     int i;
 }
 
-@Name("testPairAA") unittest
+@name("testPairAA") unittest
 {
     auto map = [Pair("foo", 5): 105];
     [Pair("foo", 5): 105].shouldEqual(map);

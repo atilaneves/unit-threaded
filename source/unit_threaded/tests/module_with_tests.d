@@ -13,7 +13,7 @@ unittest {
     assert(true);
 }
 
-@Name("myUnitTest")
+@name("myUnitTest")
 unittest {
     assert(true);
 }

@@ -23,9 +23,77 @@ int main(string[] args) {
 
 This will (by default) run all $(D unittest) blocks in the modules passed in as
 compile-time parameters in multiple threads. Unit tests can be named: to do so
-simply use the supplied $(D Name)
+simply use the supplied $(D name)
 <a href="http://dlang.org/attribute.html#uda">UDA</a>. There are other
-supplied UDAs Please consult the relevant documentation.
+supplied UDAs. Please consult the relevant documentation.
+
+As an alternative to writing a program like the one above manually, the included
+$(D gen_ut_main.d) file can be run as a script and will generate such a file.
+This can be run as part of the build system to recreate the unit test main file.
+
+Examples:
+
+-----
+
+@name("testTimesTwo")
+unittest
+{
+    int timesTwo(int i) { return i * 2; }
+
+    2.timesTwo.shouldEqual(4);
+    3.timesTwo.shouldEqual(6);
+}
+
+@name("testIn")
+unittest
+{
+    auto ints = [1, 2, 3, 4];
+    3.shouldBeIn(ints);
+    1.shouldBeIn(ints);
+    5.shouldNotBeIn(ints);
+}
+
+@name("testThrows")
+unittest
+{
+    void throwRangeError()
+    {
+        ubyte[] bytes;
+        bytes = bytes[1..$];
+    }
+    import core.exception: RangeError;
+    throwRangeError.shouldThrow!RangeError;
+}
+
+//a test that is expected to fail
+@name("testOops")
+@shouldFail("Bug #1234")
+unittest
+{
+    3.shouldEqual(5); //won't cause the suite to fail
+}
+
+//prevent data races
+__gshared int i;
+
+@name("sideEffect1")
+@singleThreaded //all @singleThreaded tests in a module run in the same thread
+unittest
+{
+    i++;
+    i.shouldEqual(1);
+}
+
+@name("sideEffect2")
+@singleThreaded //all @singleThreaded tests in a module run in the same thread
+unittest
+{
+    i++;
+    i.shouldEqual(2);
+}
+
+
+-----
  */
 
 module unit_threaded;
@@ -34,3 +102,4 @@ public import unit_threaded.should;
 public import unit_threaded.testcase;
 public import unit_threaded.io;
 public import unit_threaded.reflection;
+public import unit_threaded.runner;

@@ -11,8 +11,8 @@ class CustomException: Exception
     }
 }
 
-@HiddenTest("Don't want to pollute the output")
-@Name("testCustomException") unittest
+@hiddenTest("Don't want to pollute the output")
+@name("testCustomException") unittest
 {
     throw new CustomException("This should have a stack trace in the output");
 }
@@ -25,7 +25,7 @@ class NormalException: UnitTestException
     }
 }
 
-@Name("testNormalException") unittest
+@name("testNormalException") unittest
 {
     throw new NormalException("This should not have a stack trace in the output");
 }

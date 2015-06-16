@@ -1,19 +1,23 @@
+/**
+ * This module defines UDAs to be used on unit tests.
+ */
+
 module unit_threaded.attrs;
 
 /**
  * Associate a name with a unittest block.
  */
-struct Name
+struct name
 {
     string value;
 }
 
-enum SingleThreaded; ///run all unittests in the module in one thread
+enum singleThreaded; ///run all unittests in the module in one thread
 
 /**
  * The suite fails if the test passes.
  */
-struct ShouldFail
+struct shouldFail
 {
     string reason;
 }
@@ -22,7 +26,7 @@ struct ShouldFail
  * Hide test. Not run by default but can be run by specifying its name
  * on the command-line.
  */
-struct HiddenTest
+struct hiddenTest
 {
     string reason;
 }

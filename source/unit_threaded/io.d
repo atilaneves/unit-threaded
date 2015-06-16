@@ -8,7 +8,6 @@ import std.concurrency;
 import std.stdio;
 import std.conv;
 
-
 /**
  * Write if debug output was enabled. Not thread-safe in the sense that it
  * will get printed out immediately and may overlap with other output.
@@ -18,12 +17,13 @@ import std.conv;
 void writelnUt(T...)(T args)
 {
     import std.stdio;
-    if(_debugOutput) writeln("    ", args);
+
+    if (_debugOutput)
+        writeln("    ", args);
 }
 
 private shared(bool) _debugOutput = false; ///print debug msgs?
 private shared(bool) _forceEscCodes = false; ///use ANSI escape codes anyway?
-
 
 package void enableDebugOutput() nothrow
 {
@@ -51,12 +51,16 @@ package void forceEscCodes() nothrow
 
 /**
  * Adds to the test cases output so far or immediately prints
+ * Params:
+ *  output = The output to add to.
+ *  msg = The string to add.
  */
-package void addToOutput(ref string output, in string msg)
+package void addToOutput(ref string output, in string msg) @safe
 {
-    if(_debugOutput)
+    if (_debugOutput)
     {
         import std.stdio;
+
         writeln(msg);
     }
     else
@@ -64,7 +68,6 @@ package void addToOutput(ref string output, in string msg)
         output ~= msg;
     }
 }
-
 
 package void utWrite(T...)(T args)
 {
@@ -96,7 +99,6 @@ package void utWriteYellow(T...)(T args)
     WriterThread.get().writeYellow(args);
 }
 
-
 /**
  * Thread to output to stdout
  */
@@ -108,7 +110,7 @@ class WriterThread
      */
     static WriterThread get()
     {
-        if(!_instantiated)
+        if (!_instantiated)
         {
             synchronized
             {
@@ -196,17 +198,22 @@ class WriterThread
 
 private:
 
+    enum Color
+    {
+        red,
+        green,
+        yellow,
+        cancel,
+    }
+
     this()
     {
         _tid = spawn(&threadWriter);
-        _escCodes = [ "red": "\033[31;1m",
-                      "green": "\033[32;1m",
-                      "yellow": "\033[33;1m",
-                      "cancel": "\033[0;;m" ];
 
-        version(Posix)
+        version (Posix)
         {
             import core.sys.posix.unistd;
+
             _useEscCodes = _forceEscCodes || isatty(stdout.fileno()) != 0;
         }
     }
@@ -214,38 +221,38 @@ private:
     /**
      * Generate green coloured output on POSIX systems
      */
-    string green(in string msg) const
+    string green(in string msg) @safe pure const
     {
-        return escCode("green") ~ msg ~ escCode("cancel");
+        return escCode(Color.green) ~ msg ~ escCode(Color.cancel);
     }
 
     /**
      * Generate red coloured output on POSIX systems
      */
-    string red(in string msg) const
+    string red(in string msg) @safe pure const
     {
-        return escCode("red") ~ msg ~ escCode("cancel");
+        return escCode(Color.red) ~ msg ~ escCode(Color.cancel);
     }
 
     /**
      * Generate yellow coloured output on POSIX systems
      */
-    string yellow(in string msg) const
+    string yellow(in string msg) @safe pure const
     {
-        return escCode("yellow") ~ msg ~ escCode("cancel");
+        return escCode(Color.yellow) ~ msg ~ escCode(Color.cancel);
     }
 
     /**
      * Send escape code to the console
      */
-    string escCode(in string code) const
+    string escCode(in Color code) @safe pure const
     {
         return _useEscCodes ? _escCodes[code] : "";
     }
 
-
     Tid _tid;
-    string[string] _escCodes;
+    static immutable string[] _escCodes = ["\033[31;1m", "\033[32;1m", "\033[33;1m",
+        "\033[0;;m"];
     bool _useEscCodes;
 
     static bool _instantiated; /// Thread local
@@ -260,9 +267,16 @@ private void threadWriter()
     auto saveStdout = stdout;
     auto saveStderr = stderr;
 
-    if(!isDebugOutputEnabled())
+    scope (exit)
     {
-        version(Posix)
+        saveStdout.flush();
+        stdout = saveStdout;
+        stderr = saveStderr;
+    }
+
+    if (!isDebugOutputEnabled())
+    {
+        version (Posix)
         {
             enum nullFileName = "/dev/null";
         }
@@ -275,34 +289,34 @@ private void threadWriter()
         stderr = File(nullFileName, "w");
     }
 
-    while(!done)
+    while (!done)
     {
         string output;
         receive(
-            (string msg) {
+            (string msg)
+            {
                 output ~= msg;
             },
-            (bool, Tid tid) {
-                //another thread is waiting for confirmation
+           (bool, Tid tid)
+            {  //another thread is waiting for confirmation
                 //that we started, let them know it's ok to proceed
                 tid.send(true);
             },
-            (Tid tid) {
+            (Tid tid)
+            {
                 done = true;
                 _tid = tid;
             },
-            (OwnerTerminated trm) {
+            (OwnerTerminated trm)
+            {
                 done = true;
             }
         );
         saveStdout.write(output);
     }
-    saveStdout.flush();
-    stdout = saveStdout;
-    stderr = saveStderr;
-    if(_tid != Tid.init) _tid.send(thisTid);
+    if (_tid != Tid.init)
+        _tid.send(thisTid);
 }
-
 
 unittest
 {

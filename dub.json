@@ -6,6 +6,7 @@
     "copyright": "Copyright © 2013, Atila Neves",
     "license": "BSD 3-clause",
     "targetType": "library",
+    "excludedSourceFiles": ["source/unit_threaded/gen_ut_main.d"],
     "configurations": [
         { "name": "library" },
         { "name": "unittest",

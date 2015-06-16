@@ -1,12 +1,11 @@
 module unit_threaded.testcase;
 
 import unit_threaded.should;
-import unit_threaded.io: addToOutput, utWrite;
-import unit_threaded.reflection: TestData, TestFunction;
+import unit_threaded.io : addToOutput, utWrite;
+import unit_threaded.reflection : TestData, TestFunction;
 
 import std.exception;
 import std.algorithm;
-
 
 /**
  * Class from which other test cases derive
@@ -14,9 +13,9 @@ import std.algorithm;
 class TestCase
 {
     /**
-    The name of the test case.
-    */
-    string name() const pure nothrow
+     * The name of the test case.
+     */
+    string name() @safe const pure nothrow
     {
         return this.classinfo.name;
     }
@@ -43,32 +42,32 @@ class TestCase
         {
             test();
         }
-        catch(UnitTestException ex)
+        catch (UnitTestException ex)
         {
-            fail(ex.msg);
+            fail(ex.toString());
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             fail("\n    " ~ ex.toString() ~ "\n");
         }
-        catch(Throwable t)
+        catch (Throwable t)
         {
             utFail(t.msg, t.file, t.line);
         }
-        if(_failed) print("\n\n");
+        if (_failed)
+            print("\n\n");
         return _output;
     }
 
     /**
-     Run the test case.
+     * Run the test case.
      */
     abstract void test();
 
-
     /**
-    The number of tests to run.
-    */
-    ulong numTestsRun() const pure nothrow
+     * The number of tests to run.
+     */
+    ulong numTestsRun() @safe const pure nothrow
     {
         return 1;
     }
@@ -77,25 +76,24 @@ private:
     bool _failed;
     string _output;
 
-    void fail(in string msg)
+    void fail(in string msg) @safe
     {
         _failed = true;
         print(msg);
     }
 
-    void print(in string msg)
+    void print(in string msg) @safe
     {
         addToOutput(_output, msg);
     }
 }
 
-
 /**
  * A test case that is a simple function.
  */
-class FunctionTestCase: TestCase
+class FunctionTestCase : TestCase
 {
-    this(immutable TestData data) pure nothrow
+    this(immutable TestData data) @safe pure nothrow
     {
         _name = data.name;
         _func = data.testFunction;
@@ -106,7 +104,7 @@ class FunctionTestCase: TestCase
         _func();
     }
 
-    override string name() const pure nothrow
+    override string name() @safe const pure nothrow
     {
         return _name;
     }
@@ -115,18 +113,17 @@ class FunctionTestCase: TestCase
     private TestFunction _func;
 }
 
-
 /**
-A test case that should fail.
+ * A test case that should fail.
  */
-class ShouldFailTestCase: TestCase
+class ShouldFailTestCase : TestCase
 {
-    this(TestCase testCase)
+    this(TestCase testCase) @safe pure nothrow
     {
         this.testCase = testCase;
     }
 
-    override string name() const pure nothrow
+    override string name() @safe const pure nothrow
     {
         return this.testCase.name;
     }
@@ -134,9 +131,9 @@ class ShouldFailTestCase: TestCase
     override void test()
     {
         const ex = collectException!Exception(testCase.test());
-        if(ex is null) {
-            throw new Exception("Test " ~ testCase.name ~
-                                " was expected to fail but did not");
+        if (ex is null)
+        {
+            throw new Exception("Test " ~ testCase.name ~ " was expected to fail but did not");
         }
     }
 
@@ -145,18 +142,17 @@ private:
     TestCase testCase;
 }
 
-
 /**
-A test case that contains other test cases.
+ * A test case that contains other test cases.
  */
-class CompositeTestCase: TestCase
+class CompositeTestCase : TestCase
 {
-    void add(TestCase t)
+    void add(TestCase t) @safe nothrow
     {
         _tests ~= t;
     }
 
-    void opOpAssign(string op : "~")(TestCase t)
+    void opOpAssign(string op : "~")(TestCase t) @safe nothrow
     {
         add(t);
     }
@@ -171,7 +167,7 @@ class CompositeTestCase: TestCase
         assert(false, "CompositeTestCase.test should never be called");
     }
 
-    override ulong numTestsRun() const pure nothrow
+    override ulong numTestsRun() @safe const pure nothrow
     {
         return _tests.length;
     }
