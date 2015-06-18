@@ -111,9 +111,12 @@ void shouldNotEqual(V, E)(V value, E expected, in string file = __FILE__, in ulo
 
 unittest {
     string getExceptionMsg(E)(lazy E expr) {
-        try {
+        try
+        {
             expr();
-        } catch(UnitTestException ex) {
+        }
+        catch(UnitTestException ex)
+        {
             return ex.toString;
         }
         assert(0, "Expression did not throw UnitTestException");
@@ -123,11 +126,12 @@ unittest {
     void assertExceptionMsg(E)(lazy E expr, string expected,
                                in ulong line = __LINE__)
     {
+        //updating the tests below as line numbers change is tedious.]
+        //instead, replace the number there with the actual line number
+        expected = expected.replace(":123", ":" ~ line.to!string);
         immutable msg = getExceptionMsg(expr);
-        import std.regex: replaceAll, regex;
-        auto lineNumReg = regex(`:(\d+) - `);
-        expected = expected.replaceAll(lineNumReg, ":" ~ line.to!string ~ " - ");
-        assert(msg == expected, "\nExpected Exception:\n" ~ expected ~ "\nGot Exception:\n" ~ msg);
+        assert(msg == expected,
+               "\nExpected Exception:\n" ~ expected ~ "\nGot Exception:\n" ~ msg);
     }
 
     assertExceptionMsg(3.shouldEqual(5),
