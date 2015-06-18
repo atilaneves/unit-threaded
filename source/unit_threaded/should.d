@@ -410,7 +410,8 @@ private void failEqual(T, U)(in T value, in U expected, in string file, in ulong
     }
     else
     {
-        const msg = ["Expected: " ~ formatValue(expected), "     Got: " ~ formatValue(value)];
+        const msg = ["Expected: " ~ formatValue(expected),
+                     "     Got: " ~ formatValue(value)];
     }
 
     throw new UnitTestException(msg, file, line);
@@ -433,17 +434,17 @@ private string[] formatArray(T)(in string prefix, in T value) if (isArray!T)
     }
 }
 
-private string[] formatValue2(T)(in string prefix, T value) if(isSomeString!T) {
-    return [prefix ~ `"` ~ value ~ `"`];
+private string[] formatValue2(T)(T value) if(isSomeString!T) {
+    return [`"` ~ value ~ `"`];
 }
 
-private string[] formatValue2(T)(in string prefix, T value) if(!isSomeString!T && !isInputRange!T) {
-    return [prefix ~ () @trusted{ return value.to!string; }()];
+private string[] formatValue2(T)(T value) if(!isSomeString!T && !isInputRange!T) {
+    return [() @trusted{ return value.to!string; }()];
 }
 
-private string[] formatValue2(T)(in string prefix, T value) if(isInputRange!T) {
+private string[] formatValue2(T)(T value) if(!isSomeString!T && isInputRange!T) {
     //some versions of `to` are @system
-    auto defaultLines = () @trusted{ return [prefix ~ value.to!string]; }();
+    auto defaultLines = () @trusted{ return [value.to!string]; }();
 
     static if (isInputRange!(ElementType!T))
     {
@@ -451,36 +452,164 @@ private string[] formatValue2(T)(in string prefix, T value) if(isInputRange!T) {
         const tooBigForOneLine = (value.length > 5 && maxElementSize > 5) || maxElementSize > 10;
         if (!tooBigForOneLine)
             return defaultLines;
-        return [prefix ~ "["] ~ value.map!(a => "              " ~ formatValue2(a) ~ ",").array ~ "          ]";
+        return ["["] ~ value.map!(a => "              " ~ formatValue2(a)).join(",") ~ "          ]";
     }
     else
         return defaultLines;
 }
 
 
+private string[] formatValue3(T)(in string prefix, T value) {
+    static if(isSomeString!T) {
+        return [ prefix ~ `"` ~ value ~ `"`];
+    } else static if(isInputRange!T) {
+        return formatRange(prefix, value);
+    } else {
+        return [() @trusted{ return prefix ~ value.to!string; }()];
+    }
+}
+
+private string[] formatRange(T)(in string prefix, T value) @trusted {
+    //some versions of `to` are @system
+    auto defaultLines = () @trusted{ return [prefix ~ value.to!string]; }();
+
+    static if (!isInputRange!(ElementType!T))
+        return defaultLines;
+    else
+    {
+        const maxElementSize = value.empty ? 0 : value.map!(a => a.length).reduce!max;
+        const tooBigForOneLine = (value.length > 5 && maxElementSize > 5) || maxElementSize > 10;
+        if (!tooBigForOneLine)
+            return defaultLines;
+        return [prefix ~ "["] ~
+            value.map!(a => formatValue3("              ", a).join("") ~ ",").array ~
+            "          ]";
+    }
+}
+
 private bool isEqual(V, E)(V value, E expected)
-if (is(typeof(value == expected) == bool))
+if (!isInputRange!V && is(typeof(value == expected) == bool))
 {
     return value == expected;
 }
-
 private bool isEqual(V, E)(V value, E expected)
 if (isInputRange!V && isInputRange!E && is(typeof(value.front == expected.front) == bool))
 {
     return equal(value, expected);
 }
 
+private bool isEqual(V, E)(V value, E expected)
+    if (isInputRange!V && isInputRange!E && !is(typeof(value.front == expected.front) == bool) &&
+        isInputRange!(ElementType!V) && isInputRange!(ElementType!E))
+{
+    while (!value.empty && !expected.empty)
+    {
+        if (!equal(value.front, expected.front))
+            return false;
+
+        value.popFront;
+        expected.popFront;
+    }
+
+    return value.empty && expected.empty;
+}
+
+
+unittest {
+    assert(isEqual(2, 2));
+    assert(!isEqual(2, 3));
+
+    assert(isEqual(2.1, 2.1));
+    assert(!isEqual(2.1, 2.2));
+
+    assert(isEqual("foo", "foo"));
+    assert(!isEqual("foo", "fooo"));
+
+    assert(isEqual([1, 2], [1, 2]));
+    assert(!isEqual([1, 2], [1, 2, 3]));
+
+    assert(isEqual(iota(2), [0, 1]));
+    assert(!isEqual(iota(2), [1, 2, 3]));
+
+    assert(isEqual([[0, 1], [0, 1, 2]], [iota(2), iota(3)]));
+    assert(isEqual([[0, 1], [0, 1, 2]], [[0, 1], [0, 1, 2]]));
+    assert(!isEqual([[0, 1], [0, 1, 4]], [iota(2), iota(3)]));
+
+}
+
+
 void shouldEqual2(V, E)(V value, E expected, in string file = __FILE__, in ulong line = __LINE__)
 {
     if (!isEqual(value, expected))
     {
-        const msg = [(formatValue2("Expected: " , expected) ~ formatValue2("     Got: ", value)).join("")];
+        const msg = formatValue3("Expected: ", expected) ~
+                    formatValue3("     Got: ", value);
         throw new UnitTestException(msg, file, line);
     }
 }
 
 unittest {
     shouldEqual2(iota(3), [0, 1, 2]);
+    auto foo = [[0, 1], [0, 1, 2]];
+    alias tfoo = typeof(foo);
+    static assert(!isSomeString!tfoo);
+    static assert(isInputRange!tfoo);
+    static assert(!isSomeString!tfoo && isInputRange!tfoo);
+    static assert(isArray!tfoo);
+    shouldEqual2([[0, 1], [0, 1, 2]], [[0, 1], [0, 1, 2]]);
+    shouldEqual2([[0, 1], [0, 1, 2]], [iota(2), iota(3)]);
+    shouldEqual2([iota(2), iota(3)], [[0, 1], [0, 1, 2]]);
+}
+
+unittest {
+    string getExceptionMsg(E)(lazy E expr) {
+        try {
+            expr();
+        } catch(UnitTestException ex) {
+            return ex.toString;
+        }
+        assert(0, expr.stringof ~ " did not throw UnitTestException");
+    }
+
+
+    void assertExceptionMsg(E)(lazy E expr, in string expected) {
+        immutable msg = getExceptionMsg(expr);
+        assert(msg == expected, "\nExpected Exception:\n" ~ expected ~ "\nGot Exception:\n" ~ msg);
+    }
+
+    assertExceptionMsg(3.shouldEqual2(5),
+                       "    source/unit_threaded/should.d:580 - Expected: 5\n"
+                       "    source/unit_threaded/should.d:580 -      Got: 3");
+
+    assertExceptionMsg("foo".shouldEqual2("bar"),
+                       "    source/unit_threaded/should.d:584 - Expected: \"bar\"\n"
+                       "    source/unit_threaded/should.d:584 -      Got: \"foo\"");
+
+    assertExceptionMsg([1, 2, 4].shouldEqual2([1, 2, 3]),
+                       "    source/unit_threaded/should.d:588 - Expected: [1, 2, 3]\n"
+                       "    source/unit_threaded/should.d:588 -      Got: [1, 2, 4]");
+
+    assertExceptionMsg([[0, 1, 2, 3, 4], [1], [2], [3], [4], [5]].shouldEqual2([[0], [1], [2]]),
+                       "    source/unit_threaded/should.d:592 - Expected: [[0], [1], [2]]\n"
+                       "    source/unit_threaded/should.d:592 -      Got: [[0, 1, 2, 3, 4], [1], [2], [3], [4], [5]]");
+
+    assertExceptionMsg([[0, 1, 2, 3, 4, 5], [1], [2], [3]].shouldEqual2([[0], [1], [2]]),
+                       "    source/unit_threaded/should.d:596 - Expected: [[0], [1], [2]]\n"
+                       "    source/unit_threaded/should.d:596 -      Got: [[0, 1, 2, 3, 4, 5], [1], [2], [3]]");
+
+
+    assertExceptionMsg([[0, 1, 2, 3, 4, 5], [1], [2], [3], [4], [5]].shouldEqual2([[0]]),
+                       "    source/unit_threaded/should.d:601 - Expected: [[0]]\n"
+
+                       "    source/unit_threaded/should.d:601 -      Got: [\n"
+                       "    source/unit_threaded/should.d:601 -               [0, 1, 2, 3, 4, 5],\n"
+                       "    source/unit_threaded/should.d:601 -               [1],\n"
+                       "    source/unit_threaded/should.d:601 -               [2],\n"
+                       "    source/unit_threaded/should.d:601 -               [3],\n"
+                       "    source/unit_threaded/should.d:601 -               [4],\n"
+                       "    source/unit_threaded/should.d:601 -               [5],\n"
+                       "    source/unit_threaded/should.d:601 -           ]");
+
 }
 
 unittest
