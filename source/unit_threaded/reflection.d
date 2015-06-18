@@ -1,8 +1,31 @@
 module unit_threaded.reflection;
 
 import unit_threaded.attrs;
-import std.traits : fullyQualifiedName, isSomeString, hasUDA;
+import std.traits : fullyQualifiedName, isSomeString;
 import std.typetuple : Filter;
+
+//copied from phobos 2.068
+template hasUDA(alias symbol, alias attribute)
+{
+    import std.typetuple : staticIndexOf;
+    import std.traits : staticMap;
+
+    static if (is(attribute == struct) || is(attribute == class))
+    {
+        template GetTypeOrExp(alias S)
+        {
+            static if (is(typeof(S)))
+                alias GetTypeOrExp = typeof(S);
+            else
+                alias GetTypeOrExp = S;
+        }
+        enum bool hasUDA = staticIndexOf!(attribute, staticMap!(GetTypeOrExp,
+                __traits(getAttributes, symbol))) != -1;
+    }
+    else
+        enum bool hasUDA = staticIndexOf!(attribute, __traits(getAttributes, symbol)) != -1;
+}
+
 
 /**
  * Unit test function type.
