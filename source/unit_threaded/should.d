@@ -123,20 +123,20 @@ void shouldNotEqual(T, U)(in T value, in U expected, in string file = __FILE__,
 
 unittest
 {
-    assertOk(shouldEqual(true, true));
-    assertOk(shouldEqual(false, false));
+    assertOk(shouldEqual2(true, true));
+    assertOk(shouldEqual2(false, false));
     assertOk(shouldNotEqual(true, false));
 
-    assertOk(shouldEqual(1, 1));
+    assertOk(shouldEqual2(1, 1));
     assertOk(shouldNotEqual(1, 2));
 
-    assertOk(shouldEqual("foo", "foo"));
+    assertOk(shouldEqual2("foo", "foo"));
     assertOk(shouldNotEqual("f", "b"));
 
-    assertOk(shouldEqual(1.0, 1.0));
+    assertOk(shouldEqual2(1.0, 1.0));
     assertOk(shouldNotEqual(1.0, 2.0));
 
-    assertOk(shouldEqual([2, 3], [2, 3]));
+    assertOk(shouldEqual2([2, 3], [2, 3]));
     assertOk(shouldNotEqual([2, 3], [2, 3, 4]));
 }
 
@@ -145,16 +145,16 @@ unittest
     int[] ints = [1, 2, 3];
     byte[] bytes = [1, 2, 3];
     byte[] bytes2 = [1, 2, 4];
-    assertOk(shouldEqual(ints, bytes));
-    assertOk(shouldEqual(bytes, ints));
+    assertOk(shouldEqual2(ints, bytes));
+    assertOk(shouldEqual2(bytes, ints));
     assertOk(shouldNotEqual(ints, bytes2));
 
-    assertOk(shouldEqual([1 : 2.0, 2 : 4.0], [1 : 2.0, 2 : 4.0]));
+    assertOk(shouldEqual2([1 : 2.0, 2 : 4.0], [1 : 2.0, 2 : 4.0]));
     assertOk(shouldNotEqual([1 : 2.0, 2 : 4.0], [1 : 2.2, 2 : 4.0]));
     const constIntToInts = [1 : 2, 3 : 7, 9 : 345];
     auto intToInts = [1 : 2, 3 : 7, 9 : 345];
-    assertOk(shouldEqual(intToInts, constIntToInts));
-    assertOk(shouldEqual(constIntToInts, intToInts));
+    assertOk(shouldEqual2(intToInts, constIntToInts));
+    assertOk(shouldEqual2(constIntToInts, intToInts));
 }
 
 /**
@@ -189,8 +189,8 @@ unittest
     }
 
     assertOk(shouldNotBeNull(new Foo(4)));
-    assertOk(shouldEqual(new Foo(5), new Foo(5)));
-    assertFail(shouldEqual(new Foo(5), new Foo(4)));
+    assertOk(shouldEqual2(new Foo(5), new Foo(5)));
+    assertFail(shouldEqual2(new Foo(5), new Foo(4)));
     assertOk(shouldNotEqual(new Foo(5), new Foo(4)));
     assertFail(shouldNotEqual(new Foo(5), new Foo(5)));
 }
@@ -487,21 +487,22 @@ private string[] formatRange(T)(in string prefix, T value) @trusted {
     }
 }
 
-private bool isEqual(V, E)(V value, E expected)
-if (!isInputRange!V && is(typeof(value == expected) == bool))
+private bool isEqual(V, E)(in V value, in E expected)
+if (!is(V == class) && !isInputRange!V && is(typeof(value == expected) == bool))
 {
     return value == expected;
 }
 
 private bool isEqual(V, E)(V value, E expected)
-if (isInputRange!V && isInputRange!E && is(typeof(value.front == expected.front) == bool))
+if (!is(V == class) && isInputRange!V && isInputRange!E && is(typeof(value.front == expected.front) == bool))
 {
     return equal(value, expected);
 }
 
 private bool isEqual(V, E)(V value, E expected)
-    if (isInputRange!V && isInputRange!E && !is(typeof(value.front == expected.front) == bool) &&
-        isInputRange!(ElementType!V) && isInputRange!(ElementType!E))
+if (!is(V == class) &&
+    isInputRange!V && isInputRange!E && !is(typeof(value.front == expected.front) == bool) &&
+    isInputRange!(ElementType!V) && isInputRange!(ElementType!E))
 {
     while (!value.empty && !expected.empty)
     {
@@ -513,6 +514,16 @@ private bool isEqual(V, E)(V value, E expected)
     }
 
     return value.empty && expected.empty;
+}
+
+private bool isEqual(V, E)(V value, E expected)
+if (is(V == class) && is(E == class))
+{
+    static assert(is(typeof(() { string s1 = value.toString; string s2 = expected.toString;})),
+                  "Cannot compare instances of class " ~ V.stringof ~
+                  " or class " ~ E.stringof ~ " unless toString is overridden for both");
+
+    return value.tupleof == expected.tupleof;
 }
 
 
@@ -536,6 +547,30 @@ unittest {
     assert(isEqual([[0, 1], [0, 1, 2]], [[0, 1], [0, 1, 2]]));
     assert(!isEqual([[0, 1], [0, 1, 4]], [iota(2), iota(3)]));
 
+    assert(isEqual([0: 1], [0: 1]));
+
+    const constIntToInts = [1 : 2, 3 : 7, 9 : 345];
+    auto intToInts = [1 : 2, 3 : 7, 9 : 345];
+
+    assert(isEqual(intToInts, constIntToInts));
+    assert(isEqual(constIntToInts, intToInts));
+
+    class Foo
+    {
+        this(int i) { this.i = i; }
+        override string toString() const { return i.to!string; }
+        int i;
+    }
+
+    assert(isEqual(new Foo(5), new Foo(5)));
+    assert(!isEqual(new Foo(5), new Foo(4)));
+
+    // ubyte[] arr;
+
+    // static assert(isInputRange!(typeof(arr)));
+    // static assert(isInputRange!(typeof([])));
+
+    // assert(isEqual(arr, []));
 }
 
 
@@ -758,7 +793,7 @@ unittest
 void shouldBeSameSetAs(T, U)(T t, U u, in string file = __FILE__, in ulong line = __LINE__)
 if (isInputRange!T && isInputRange!U && is(typeof(t.front != u.front) == bool))
 {
-    shouldEqual(std.algorithm.sort(t.array), std.algorithm.sort(u.array));
+    shouldEqual2(std.algorithm.sort(t.array), std.algorithm.sort(u.array));
 }
 
 /**
