@@ -125,19 +125,19 @@ unittest
 {
     assertOk(shouldEqual2(true, true));
     assertOk(shouldEqual2(false, false));
-    assertOk(shouldNotEqual(true, false));
+    assertOk(shouldNotEqual2(true, false));
 
     assertOk(shouldEqual2(1, 1));
-    assertOk(shouldNotEqual(1, 2));
+    assertOk(shouldNotEqual2(1, 2));
 
     assertOk(shouldEqual2("foo", "foo"));
-    assertOk(shouldNotEqual("f", "b"));
+    assertOk(shouldNotEqual2("f", "b"));
 
     assertOk(shouldEqual2(1.0, 1.0));
-    assertOk(shouldNotEqual(1.0, 2.0));
+    assertOk(shouldNotEqual2(1.0, 2.0));
 
     assertOk(shouldEqual2([2, 3], [2, 3]));
-    assertOk(shouldNotEqual([2, 3], [2, 3, 4]));
+    assertOk(shouldNotEqual2([2, 3], [2, 3, 4]));
 }
 
 unittest
@@ -147,10 +147,10 @@ unittest
     byte[] bytes2 = [1, 2, 4];
     assertOk(shouldEqual2(ints, bytes));
     assertOk(shouldEqual2(bytes, ints));
-    assertOk(shouldNotEqual(ints, bytes2));
+    assertOk(shouldNotEqual2(ints, bytes2));
 
     assertOk(shouldEqual2([1 : 2.0, 2 : 4.0], [1 : 2.0, 2 : 4.0]));
-    assertOk(shouldNotEqual([1 : 2.0, 2 : 4.0], [1 : 2.2, 2 : 4.0]));
+    assertOk(shouldNotEqual2([1 : 2.0, 2 : 4.0], [1 : 2.2, 2 : 4.0]));
     const constIntToInts = [1 : 2, 3 : 7, 9 : 345];
     auto intToInts = [1 : 2, 3 : 7, 9 : 345];
     assertOk(shouldEqual2(intToInts, constIntToInts));
@@ -191,8 +191,8 @@ unittest
     assertOk(shouldNotBeNull(new Foo(4)));
     assertOk(shouldEqual2(new Foo(5), new Foo(5)));
     assertFail(shouldEqual2(new Foo(5), new Foo(4)));
-    assertOk(shouldNotEqual(new Foo(5), new Foo(4)));
-    assertFail(shouldNotEqual(new Foo(5), new Foo(5)));
+    assertOk(shouldNotEqual2(new Foo(5), new Foo(4)));
+    assertFail(shouldNotEqual2(new Foo(5), new Foo(5)));
 }
 
 /**
@@ -573,7 +573,10 @@ unittest {
     // assert(isEqual(arr, []));
 }
 
-
+/**
+ * Verify that two values are the same.
+ * Throws: UnitTestException on failure
+ */
 void shouldEqual2(V, E)(V value, E expected, in string file = __FILE__, in ulong line = __LINE__)
 {
     if (!isEqual(value, expected))
@@ -597,6 +600,23 @@ unittest {
     shouldEqual2([iota(2), iota(3)], [[0, 1], [0, 1, 2]]);
 }
 
+/**
+ * Verify that two values are not the same.
+ * Throws: UnitTestException on failure
+ */
+void shouldNotEqual2(V, E)(V value, E expected, in string file = __FILE__, in ulong line = __LINE__)
+{
+    if (isEqual(value, expected))
+    {
+        const msg = ["Value:",
+                     formatValue3("", value).join(""),
+                     "is not expected to be equal to:",
+                     formatValue3("", expected).join("")
+            ];
+        throw new UnitTestException(msg, file, line);
+    }
+}
+
 unittest {
     string getExceptionMsg(E)(lazy E expr) {
         try {
@@ -604,7 +624,7 @@ unittest {
         } catch(UnitTestException ex) {
             return ex.toString;
         }
-        assert(0, expr.stringof ~ " did not throw UnitTestException");
+        assert(0, "Expression did not throw UnitTestException");
     }
 
 
@@ -650,6 +670,11 @@ unittest {
                        "    source/unit_threaded/should.d:123 -               [5],\n"
                        "    source/unit_threaded/should.d:123 -           ]");
 
+    assertExceptionMsg(1.shouldNotEqual2(1),
+                       "    source/unit_threaded/should.d:123 - Value:\n"
+                       "    source/unit_threaded/should.d:123 - 1\n"
+                       "    source/unit_threaded/should.d:123 - is not expected to be equal to:\n"
+                       "    source/unit_threaded/should.d:123 - 1");
 }
 
 unittest
@@ -803,7 +828,7 @@ if (isInputRange!T && isInputRange!U && is(typeof(t.front != u.front) == bool))
 void shouldNotBeSameSetAs(T, U)(T t, U u, in string file = __FILE__, in ulong line = __LINE__)
 if (isInputRange!T && isInputRange!U && is(typeof(t.front != u.front) == bool))
 {
-    shouldNotEqual(std.algorithm.sort(t.array), std.algorithm.sort(u.array));
+    shouldNotEqual2(std.algorithm.sort(t.array), std.algorithm.sort(u.array));
 }
 
 
