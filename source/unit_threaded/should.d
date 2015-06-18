@@ -492,6 +492,7 @@ if (!isInputRange!V && is(typeof(value == expected) == bool))
 {
     return value == expected;
 }
+
 private bool isEqual(V, E)(V value, E expected)
 if (isInputRange!V && isInputRange!E && is(typeof(value.front == expected.front) == bool))
 {
@@ -572,43 +573,47 @@ unittest {
     }
 
 
-    void assertExceptionMsg(E)(lazy E expr, in string expected) {
+    void assertExceptionMsg(E)(lazy E expr, string expected,
+                               in ulong line = __LINE__) {
         immutable msg = getExceptionMsg(expr);
+        import std.regex: replaceAll, regex;
+        auto lineNumReg = regex(`:(\d+) - `);
+        expected = expected.replaceAll(lineNumReg, ":" ~ line.to!string ~ " - ");
         assert(msg == expected, "\nExpected Exception:\n" ~ expected ~ "\nGot Exception:\n" ~ msg);
     }
 
     assertExceptionMsg(3.shouldEqual2(5),
-                       "    source/unit_threaded/should.d:580 - Expected: 5\n"
-                       "    source/unit_threaded/should.d:580 -      Got: 3");
+                       "    source/unit_threaded/should.d:123 - Expected: 5\n"
+                       "    source/unit_threaded/should.d:123 -      Got: 3");
 
     assertExceptionMsg("foo".shouldEqual2("bar"),
-                       "    source/unit_threaded/should.d:584 - Expected: \"bar\"\n"
-                       "    source/unit_threaded/should.d:584 -      Got: \"foo\"");
+                       "    source/unit_threaded/should.d:123 - Expected: \"bar\"\n"
+                       "    source/unit_threaded/should.d:123 -      Got: \"foo\"");
 
     assertExceptionMsg([1, 2, 4].shouldEqual2([1, 2, 3]),
-                       "    source/unit_threaded/should.d:588 - Expected: [1, 2, 3]\n"
-                       "    source/unit_threaded/should.d:588 -      Got: [1, 2, 4]");
+                       "    source/unit_threaded/should.d:123 - Expected: [1, 2, 3]\n"
+                       "    source/unit_threaded/should.d:123 -      Got: [1, 2, 4]");
 
     assertExceptionMsg([[0, 1, 2, 3, 4], [1], [2], [3], [4], [5]].shouldEqual2([[0], [1], [2]]),
-                       "    source/unit_threaded/should.d:592 - Expected: [[0], [1], [2]]\n"
-                       "    source/unit_threaded/should.d:592 -      Got: [[0, 1, 2, 3, 4], [1], [2], [3], [4], [5]]");
+                       "    source/unit_threaded/should.d:123 - Expected: [[0], [1], [2]]\n"
+                       "    source/unit_threaded/should.d:123 -      Got: [[0, 1, 2, 3, 4], [1], [2], [3], [4], [5]]");
 
     assertExceptionMsg([[0, 1, 2, 3, 4, 5], [1], [2], [3]].shouldEqual2([[0], [1], [2]]),
-                       "    source/unit_threaded/should.d:596 - Expected: [[0], [1], [2]]\n"
-                       "    source/unit_threaded/should.d:596 -      Got: [[0, 1, 2, 3, 4, 5], [1], [2], [3]]");
+                       "    source/unit_threaded/should.d:123 - Expected: [[0], [1], [2]]\n"
+                       "    source/unit_threaded/should.d:123 -      Got: [[0, 1, 2, 3, 4, 5], [1], [2], [3]]");
 
 
     assertExceptionMsg([[0, 1, 2, 3, 4, 5], [1], [2], [3], [4], [5]].shouldEqual2([[0]]),
-                       "    source/unit_threaded/should.d:601 - Expected: [[0]]\n"
+                       "    source/unit_threaded/should.d:123 - Expected: [[0]]\n"
 
-                       "    source/unit_threaded/should.d:601 -      Got: [\n"
-                       "    source/unit_threaded/should.d:601 -               [0, 1, 2, 3, 4, 5],\n"
-                       "    source/unit_threaded/should.d:601 -               [1],\n"
-                       "    source/unit_threaded/should.d:601 -               [2],\n"
-                       "    source/unit_threaded/should.d:601 -               [3],\n"
-                       "    source/unit_threaded/should.d:601 -               [4],\n"
-                       "    source/unit_threaded/should.d:601 -               [5],\n"
-                       "    source/unit_threaded/should.d:601 -           ]");
+                       "    source/unit_threaded/should.d:123 -      Got: [\n"
+                       "    source/unit_threaded/should.d:123 -               [0, 1, 2, 3, 4, 5],\n"
+                       "    source/unit_threaded/should.d:123 -               [1],\n"
+                       "    source/unit_threaded/should.d:123 -               [2],\n"
+                       "    source/unit_threaded/should.d:123 -               [3],\n"
+                       "    source/unit_threaded/should.d:123 -               [4],\n"
+                       "    source/unit_threaded/should.d:123 -               [5],\n"
+                       "    source/unit_threaded/should.d:123 -           ]");
 
 }
 
