@@ -105,3 +105,9 @@ private struct Pair
     auto othermap = [pair: 105];
     map.shouldEqual(othermap);
 }
+
+@name("range") unittest
+{
+    import std.range: iota;
+    iota(3).shouldEqual([0, 1, 2]);
+}
