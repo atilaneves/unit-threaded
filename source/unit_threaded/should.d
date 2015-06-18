@@ -488,7 +488,7 @@ private string[] formatRange(T)(in string prefix, T value) @trusted {
 }
 
 private bool isEqual(V, E)(in V value, in E expected)
-if (!is(V == class) && !isInputRange!V && is(typeof(value == expected) == bool))
+ if (!is(V == class) && (!isInputRange!V || !isInputRange!E) && is(typeof(value == expected) == bool))
 {
     return value == expected;
 }
@@ -546,6 +546,7 @@ unittest {
     assert(isEqual([[0, 1], [0, 1, 2]], [iota(2), iota(3)]));
     assert(isEqual([[0, 1], [0, 1, 2]], [[0, 1], [0, 1, 2]]));
     assert(!isEqual([[0, 1], [0, 1, 4]], [iota(2), iota(3)]));
+    assert(!isEqual([[0, 1], [0]], [iota(2), iota(3)]));
 
     assert(isEqual([0: 1], [0: 1]));
 
@@ -565,12 +566,8 @@ unittest {
     assert(isEqual(new Foo(5), new Foo(5)));
     assert(!isEqual(new Foo(5), new Foo(4)));
 
-    // ubyte[] arr;
-
-    // static assert(isInputRange!(typeof(arr)));
-    // static assert(isInputRange!(typeof([])));
-
-    // assert(isEqual(arr, []));
+    ubyte[] arr;
+    assert(isEqual(arr, []));
 }
 
 /**
@@ -680,7 +677,7 @@ unittest {
 unittest
 {
     ubyte[] arr;
-    arr.shouldEqual([]);
+    arr.shouldEqual2([]);
 }
 
 private auto formatValue(T)(T element)
