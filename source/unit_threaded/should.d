@@ -43,8 +43,7 @@ private:
  */
 void shouldBeTrue(E)(lazy E condition, in string file = __FILE__, in ulong line = __LINE__)
 {
-    if (!condition)
-        failEqual(condition, true, file, line);
+    shouldEqual(condition, true);
 }
 
 unittest
@@ -58,8 +57,7 @@ unittest
  */
 void shouldBeFalse(E)(lazy E condition, in string file = __FILE__, in ulong line = __LINE__)
 {
-    if (condition)
-        failEqual(condition, false, file, line);
+    shouldEqual(condition, false);
 }
 
 unittest
@@ -69,56 +67,117 @@ unittest
 
 /**
  * Verify that two values are the same.
- * Throws: UnitTestException on failure.
- */
-void shouldEqual(T, U)(in T value, in U expected, in string file = __FILE__, in ulong line = __LINE__) if (
-        is(typeof(value != expected) == bool) &&  !is(T == class))
-{
-    if (value != expected)
-        failEqual(value, expected, file, line);
-}
-
-/**
- * Verify that two values are the same.
  * Throws: UnitTestException on failure
  */
-void shouldEqual(T)(in T value, in T expected, in string file = __FILE__, in ulong line = __LINE__) if (
-        is(T == class))
+void shouldEqual(V, E)(V value, E expected, in string file = __FILE__, in ulong line = __LINE__)
 {
-    static assert(is(typeof(() { string s = value.toString(); })),
-                  "Cannot compare instances of class " ~ T.stringof ~ " unless toString is overridden");
-    if (value.tupleof != expected.tupleof)
-        failEqual(value, expected, file, line);
+    if (!isEqual(value, expected))
+    {
+        const msg = formatValue("Expected: ", expected) ~
+                    formatValue("     Got: ", value);
+        throw new UnitTestException(msg, file, line);
+    }
+}
+
+unittest {
+    shouldEqual(iota(3), [0, 1, 2]);
+    auto foo = [[0, 1], [0, 1, 2]];
+    alias tfoo = typeof(foo);
+    static assert(!isSomeString!tfoo);
+    static assert(isInputRange!tfoo);
+    static assert(!isSomeString!tfoo && isInputRange!tfoo);
+    static assert(isArray!tfoo);
+    shouldEqual([[0, 1], [0, 1, 2]], [[0, 1], [0, 1, 2]]);
+    shouldEqual([[0, 1], [0, 1, 2]], [iota(2), iota(3)]);
+    shouldEqual([iota(2), iota(3)], [[0, 1], [0, 1, 2]]);
 }
 
 /**
  * Verify that two values are not the same.
  * Throws: UnitTestException on failure
  */
-void shouldNotEqual(T, U)(in T value, in U expected, in string file = __FILE__,
-    in ulong line = __LINE__) if (is(typeof(value == expected) == bool))
+void shouldNotEqual(V, E)(V value, E expected, in string file = __FILE__, in ulong line = __LINE__)
 {
-    static if(is(T == class)) {
-        immutable eq = value.tupleof == expected.tupleof;
-    } else {
-        immutable eq = value == expected;
-    }
-    if(eq)
+    if (isEqual(value, expected))
     {
-        auto valueStr = () @trusted { return value.to!string; }();
-        static if (is(T == string))
-        {
-            valueStr = `"` ~ valueStr ~ `"`;
-        }
-        auto expectedStr = () @trusted { return expected.to!string; }();
-        static if (is(U == string))
-        {
-            expectedStr = `"` ~ expectedStr ~ `"`;
-        }
-
-        const msg = "Value " ~ valueStr ~ " is not supposed to be equal to " ~ expectedStr ~ "\n";
-        throw new UnitTestException([msg], file, line);
+        const msg = ["Value:",
+                     formatValue("", value).join(""),
+                     "is not expected to be equal to:",
+                     formatValue("", expected).join("")
+            ];
+        throw new UnitTestException(msg, file, line);
     }
+}
+
+unittest {
+    string getExceptionMsg(E)(lazy E expr) {
+        try
+        {
+            expr();
+        }
+        catch(UnitTestException ex)
+        {
+            return ex.toString;
+        }
+        assert(0, "Expression did not throw UnitTestException");
+    }
+
+
+    void assertExceptionMsg(E)(lazy E expr, string expected,
+                               in ulong line = __LINE__)
+    {
+        //updating the tests below as line numbers change is tedious.]
+        //instead, replace the number there with the actual line number
+        expected = expected.replace(":123", ":" ~ line.to!string);
+        immutable msg = getExceptionMsg(expr);
+        assert(msg == expected,
+               "\nExpected Exception:\n" ~ expected ~ "\nGot Exception:\n" ~ msg);
+    }
+
+    assertExceptionMsg(3.shouldEqual(5),
+                       "    source/unit_threaded/should.d:123 - Expected: 5\n"
+                       "    source/unit_threaded/should.d:123 -      Got: 3");
+
+    assertExceptionMsg("foo".shouldEqual("bar"),
+                       "    source/unit_threaded/should.d:123 - Expected: \"bar\"\n"
+                       "    source/unit_threaded/should.d:123 -      Got: \"foo\"");
+
+    assertExceptionMsg([1, 2, 4].shouldEqual([1, 2, 3]),
+                       "    source/unit_threaded/should.d:123 - Expected: [1, 2, 3]\n"
+                       "    source/unit_threaded/should.d:123 -      Got: [1, 2, 4]");
+
+    assertExceptionMsg([[0, 1, 2, 3, 4], [1], [2], [3], [4], [5]].shouldEqual([[0], [1], [2]]),
+                       "    source/unit_threaded/should.d:123 - Expected: [[0], [1], [2]]\n"
+                       "    source/unit_threaded/should.d:123 -      Got: [[0, 1, 2, 3, 4], [1], [2], [3], [4], [5]]");
+
+    assertExceptionMsg([[0, 1, 2, 3, 4, 5], [1], [2], [3]].shouldEqual([[0], [1], [2]]),
+                       "    source/unit_threaded/should.d:123 - Expected: [[0], [1], [2]]\n"
+                       "    source/unit_threaded/should.d:123 -      Got: [[0, 1, 2, 3, 4, 5], [1], [2], [3]]");
+
+
+    assertExceptionMsg([[0, 1, 2, 3, 4, 5], [1], [2], [3], [4], [5]].shouldEqual([[0]]),
+                       "    source/unit_threaded/should.d:123 - Expected: [[0]]\n"
+
+                       "    source/unit_threaded/should.d:123 -      Got: [\n"
+                       "    source/unit_threaded/should.d:123 -               [0, 1, 2, 3, 4, 5],\n"
+                       "    source/unit_threaded/should.d:123 -               [1],\n"
+                       "    source/unit_threaded/should.d:123 -               [2],\n"
+                       "    source/unit_threaded/should.d:123 -               [3],\n"
+                       "    source/unit_threaded/should.d:123 -               [4],\n"
+                       "    source/unit_threaded/should.d:123 -               [5],\n"
+                       "    source/unit_threaded/should.d:123 -           ]");
+
+    assertExceptionMsg(1.shouldNotEqual(1),
+                       "    source/unit_threaded/should.d:123 - Value:\n"
+                       "    source/unit_threaded/should.d:123 - 1\n"
+                       "    source/unit_threaded/should.d:123 - is not expected to be equal to:\n"
+                       "    source/unit_threaded/should.d:123 - 1");
+}
+
+unittest
+{
+    ubyte[] arr;
+    arr.shouldEqual([]);
 }
 
 unittest
@@ -401,29 +460,22 @@ private void fail(in string output, in string file, in ulong line)
     throw new UnitTestException([output], file, line);
 }
 
-private void failEqual(T, U)(in T value, in U expected, in string file, in ulong line)
-{
-    static if (isArray!T && !isSomeString!T)
-    {
-        const msg = formatArray("Expected: ", expected) ~ formatArray("     Got: ",
-            value);
-    }
-    else
-    {
-        const msg = ["Expected: " ~ formatValue(expected), "     Got: " ~ formatValue(value)];
-    }
 
-    throw new UnitTestException(msg, file, line);
+private string[] formatValue(T)(in string prefix, T value) {
+    static if(isSomeString!T) {
+        return [ prefix ~ `"` ~ value ~ `"`];
+    } else static if(isInputRange!T) {
+        return formatRange(prefix, value);
+    } else {
+        return [() @trusted{ return prefix ~ value.to!string; }()];
+    }
 }
 
-private string[] formatArray(T)(in string prefix, in T value) if (isArray!T)
-{
-    import std.range;
-
+private string[] formatRange(T)(in string prefix, T value) @trusted {
     //some versions of `to` are @system
     auto defaultLines = () @trusted{ return [prefix ~ value.to!string]; }();
 
-    static if (!isArray!(ElementType!T))
+    static if (!isInputRange!(ElementType!T))
         return defaultLines;
     else
     {
@@ -431,27 +483,95 @@ private string[] formatArray(T)(in string prefix, in T value) if (isArray!T)
         const tooBigForOneLine = (value.length > 5 && maxElementSize > 5) || maxElementSize > 10;
         if (!tooBigForOneLine)
             return defaultLines;
-        return [prefix ~ "["] ~ value.map!(a => "              " ~ formatValue(a) ~ ",").array ~ "          ]";
+        return [prefix ~ "["] ~
+            value.map!(a => formatValue("              ", a).join("") ~ ",").array ~
+            "          ]";
     }
 }
 
-unittest
+private bool isEqual(V, E)(in V value, in E expected)
+ if (!is(V == class) && (!isInputRange!V || !isInputRange!E) && is(typeof(value == expected) == bool))
 {
+    return value == expected;
+}
+
+private bool isEqual(V, E)(V value, E expected)
+if (!is(V == class) && isInputRange!V && isInputRange!E && is(typeof(value.front == expected.front) == bool))
+{
+    return equal(value, expected);
+}
+
+private bool isEqual(V, E)(V value, E expected)
+if (!is(V == class) &&
+    isInputRange!V && isInputRange!E && !is(typeof(value.front == expected.front) == bool) &&
+    isInputRange!(ElementType!V) && isInputRange!(ElementType!E))
+{
+    while (!value.empty && !expected.empty)
+    {
+        if (!equal(value.front, expected.front))
+            return false;
+
+        value.popFront;
+        expected.popFront;
+    }
+
+    return value.empty && expected.empty;
+}
+
+private bool isEqual(V, E)(V value, E expected)
+if (is(V == class) && is(E == class))
+{
+    static assert(is(typeof(() { string s1 = value.toString; string s2 = expected.toString;})),
+                  "Cannot compare instances of class " ~ V.stringof ~
+                  " or class " ~ E.stringof ~ " unless toString is overridden for both");
+
+    return value.tupleof == expected.tupleof;
+}
+
+
+unittest {
+    assert(isEqual(2, 2));
+    assert(!isEqual(2, 3));
+
+    assert(isEqual(2.1, 2.1));
+    assert(!isEqual(2.1, 2.2));
+
+    assert(isEqual("foo", "foo"));
+    assert(!isEqual("foo", "fooo"));
+
+    assert(isEqual([1, 2], [1, 2]));
+    assert(!isEqual([1, 2], [1, 2, 3]));
+
+    assert(isEqual(iota(2), [0, 1]));
+    assert(!isEqual(iota(2), [1, 2, 3]));
+
+    assert(isEqual([[0, 1], [0, 1, 2]], [iota(2), iota(3)]));
+    assert(isEqual([[0, 1], [0, 1, 2]], [[0, 1], [0, 1, 2]]));
+    assert(!isEqual([[0, 1], [0, 1, 4]], [iota(2), iota(3)]));
+    assert(!isEqual([[0, 1], [0]], [iota(2), iota(3)]));
+
+    assert(isEqual([0: 1], [0: 1]));
+
+    const constIntToInts = [1 : 2, 3 : 7, 9 : 345];
+    auto intToInts = [1 : 2, 3 : 7, 9 : 345];
+
+    assert(isEqual(intToInts, constIntToInts));
+    assert(isEqual(constIntToInts, intToInts));
+
+    class Foo
+    {
+        this(int i) { this.i = i; }
+        override string toString() const { return i.to!string; }
+        int i;
+    }
+
+    assert(isEqual(new Foo(5), new Foo(5)));
+    assert(!isEqual(new Foo(5), new Foo(4)));
+
     ubyte[] arr;
-    arr.shouldEqual([]);
+    assert(isEqual(arr, []));
 }
 
-private auto formatValue(T)(T element)
-{
-    static if (isSomeString!T)
-    {
-        return `"` ~ element.to!string ~ `"`;
-    }
-    else
-    {
-        return () @trusted{ return element.to!string; }();
-    }
-}
 
 private void assertOk(E)(lazy E expression)
 {
