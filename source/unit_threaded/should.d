@@ -748,10 +748,15 @@ unittest
  * Verify that t and u represent the same set (ordering is not important).
  * Throws: UnitTestException on failure.
  */
-void shouldBeSameSetAs(T, U)(T t, U u, in string file = __FILE__, in size_t line = __LINE__)
-if (isInputRange!T && isInputRange!U && is(typeof(t.front != u.front) == bool))
+void shouldBeSameSetAs(V, E)(V value, E expected, in string file = __FILE__, in size_t line = __LINE__)
+if (isInputRange!V && isInputRange!E && is(typeof(value.front != expected.front) == bool))
 {
-    shouldEqual(std.algorithm.sort(t.array), std.algorithm.sort(u.array));
+    if (!isSameSet(value, expected))
+    {
+        const msg = formatValue("Expected: ", expected) ~
+                    formatValue("     Got: ", value);
+        throw new UnitTestException(msg, file, line);
+    }
 }
 
 ///
@@ -763,17 +768,45 @@ unittest
 
     inOrder.shouldBeSameSetAs(noOrder);
     inOrder.shouldBeSameSetAs(oops).shouldThrow!UnitTestException;
+
+    struct Struct
+    {
+        int i;
+    }
+
+    [Struct(1), Struct(4)].shouldBeSameSetAs([Struct(4), Struct(1)]);
 }
 
+private bool isSameSet(T, U)(T t, U u) {
+    //sort makes the element types have to implement opCmp
+    //instead, try one by one
+    auto ta = t.array;
+    auto ua = u.array;
+    if (ta.length != ua.length) return false;
+    foreach(element; ta)
+    {
+        if (!ua.canFind(element)) return false;
+    }
+
+    return true;
+}
 
 /**
- * Verify that t and u do not represent the same set (ordering is not important).
+ * Verify that value and expected do not represent the same set (ordering is not important).
  * Throws: UnitTestException on failure.
  */
-void shouldNotBeSameSetAs(T, U)(T t, U u, in string file = __FILE__, in size_t line = __LINE__)
-if (isInputRange!T && isInputRange!U && is(typeof(t.front != u.front) == bool))
+void shouldNotBeSameSetAs(V, E)(V value, E expected, in string file = __FILE__, in size_t line = __LINE__)
+if (isInputRange!V && isInputRange!E && is(typeof(value.front != expected.front) == bool))
 {
-    shouldNotEqual(std.algorithm.sort(t.array), std.algorithm.sort(u.array));
+    if (isSameSet(value, expected))
+    {
+        const msg = ["Value:",
+                     formatValue("", value).join(""),
+                     "is not expected to be equal to:",
+                     formatValue("", expected).join("")
+            ];
+        throw new UnitTestException(msg, file, line);
+    }
 }
 
 
