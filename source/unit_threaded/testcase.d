@@ -58,8 +58,8 @@ private:
         try {
             expression();
         } catch(UnitTestException ex) {
-            fail(ex.msg);
-        } catch(Exception ex) {
+            fail(ex.toString());
+        } catch(Throwable ex) {
             fail("\n    " ~ ex.toString() ~ "\n");
         }
 
