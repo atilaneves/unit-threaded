@@ -18,5 +18,6 @@ int main(string[] args) {
         tests.pass.attributes,
         tests.pass.register,
         tests.pass.io,
+        tests.pass.fixtures,
         );
 }

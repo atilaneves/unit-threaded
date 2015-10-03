@@ -112,6 +112,8 @@ auto moduleTestClasses(alias module_)() pure nothrow {
             enum isTestClass = false;
         } else static if(!isAggregateType!(mixin(moduleMember))) {
             enum isTestClass = false;
+        } else static if(!__traits(compiles, mixin("new " ~ moduleMember))) {
+            enum isTestClass = false; //can't new it, can't use it
         } else {
             enum hasUnitTest = HasAttribute!(module_, moduleMember, UnitTest);
             enum hasTestMethod = __traits(hasMember, mixin(moduleMember), "test");
