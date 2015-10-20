@@ -1,3 +1,7 @@
+/**
+ * Implementations of $(D TestCase) child classes.
+ */
+
 module unit_threaded.testcase;
 
 import unit_threaded.should;
@@ -50,6 +54,7 @@ class TestCase
         {
             fail("\n    " ~ t.toString() ~ "\n");
         }
+
         if (_failed)
             print("\n\n");
         return _output;
@@ -63,7 +68,7 @@ class TestCase
     /**
      * The number of tests to run.
      */
-    ulong numTestsRun() @safe const pure nothrow
+    ulong numTestsRun() @property @safe const pure nothrow
     {
         return 1;
     }

@@ -1,31 +1,13 @@
+/**
+ * Compile-time reflection to find unittests and properties specified
+ * via UDAs.
+ */
+
 module unit_threaded.reflection;
 
 import unit_threaded.attrs;
-import std.traits : fullyQualifiedName, isSomeString;
+import std.traits : fullyQualifiedName, isSomeString, hasUDA;
 import std.typetuple : Filter;
-
-//copied from phobos 2.068
-template hasUDA(alias symbol, alias attribute)
-{
-    import std.typetuple : staticIndexOf;
-    import std.traits : staticMap;
-
-    static if (is(attribute == struct) || is(attribute == class))
-    {
-        template GetTypeOrExp(alias S)
-        {
-            static if (is(typeof(S)))
-                alias GetTypeOrExp = typeof(S);
-            else
-                alias GetTypeOrExp = S;
-        }
-        enum bool hasUDA = staticIndexOf!(attribute, staticMap!(GetTypeOrExp,
-                __traits(getAttributes, symbol))) != -1;
-    }
-    else
-        enum bool hasUDA = staticIndexOf!(attribute, __traits(getAttributes, symbol)) != -1;
-}
-
 
 /**
  * Unit test function type.
@@ -37,15 +19,15 @@ alias TestFunction = void function();
  */
 struct TestData
 {
-    string name;
-    TestFunction testFunction;
-    bool hidden;
-    bool shouldFail;
-    bool singleThreaded;
+    string name; /// The name of the unit test
+    TestFunction testFunction; /// The test function to call
+    bool hidden; /// If the test is hidden (i.e. will not run by default)
+    bool shouldFail; /// If the test is expected to fail
+    bool serial; /// If the test must be run serially
 }
 
 /**
- * Finds all test cases (functions, classes, built-in unittest blocks)
+ * Finds all unittest blocks in the given modules.
  * Template parameters are module symbols or their string representation.
  * Examples:
  * -----
@@ -53,11 +35,11 @@ struct TestData
  * auto testData = allTestData!(my.test.module, "other.test.module");
  * -----
  */
-TestData[] allTestData(MODULES...)() @safe pure nothrow
+TestData[] allTestData(Modules...)() @safe pure nothrow
 {
     TestData[] testData;
 
-    foreach (module_; MODULES)
+    foreach (module_; Modules)
     {
         static if (is(typeof(module_)) && isSomeString!(typeof(module_)))
         {
@@ -76,7 +58,7 @@ TestData[] allTestData(MODULES...)() @safe pure nothrow
 }
 
 /**
- * Finds all built-in unittest blocks in the given module_.
+ * Finds all built-in unittest blocks in the given module.
  * Params:
  *   module_ = The module to reflect on. Can be a symbol or a string.
  * Returns: An array of TestData structs
@@ -113,7 +95,7 @@ TestData[] moduleTestData(alias module_)() @safe pure nothrow
     {
         testData ~= TestData(unittestName!(test, index), &test,
             hasUDA!(test, hiddenTest), hasUDA!(test, shouldFail),
-            hasUDA!(test, singleThreaded),);
+            hasUDA!(test, serial),);
     }
     return testData;
 }

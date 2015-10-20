@@ -1,3 +1,8 @@
+/**
+ * This module implements $(D TestSuite), an aggregator for $(D TestCase)
+ * objects to run all tests.
+ */
+
 module unit_threaded.testsuite;
 
 import unit_threaded.testcase;
@@ -188,19 +193,10 @@ shared static this()
  * Replacement for the usual unittest runner. Since unit_threaded
  * runs the tests itself, the moduleUnitTester doesn't have to do anything.
  */
-private bool moduleUnitTester() {
-    //this is so unit-threaded's own tests run
-    foreach(module_; ModuleInfo) {
-        if(module_ && module_.unitTest) {
-            if(startsWith(module_.name, "unit_threaded.")) {
-                module_.unitTest()();
-            }
-        }
-    }
-
+private bool moduleUnitTester()
+{
     return true;
 }
-
 
 /**
  * Creates tests cases from the given modules.
@@ -224,11 +220,11 @@ private TestCase createTestCase(in TestData testData) @safe
 {
     auto testCase = new FunctionTestCase(testData);
 
-    if (testData.singleThreaded)
+    if (testData.serial)
     {
-        // @singleThreaded tests in the same module run sequentially.
+        // @serial tests in the same module run sequentially.
         // A CompositeTestCase is created for each module with at least
-        // one @singleThreaded test and subsequent @singleThreaded tests
+        // one @serial test and subsequent @serial tests
         // appended to it
         static CompositeTestCase[string] composites;
 

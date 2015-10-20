@@ -4,6 +4,6 @@ import unit_threaded.attrs;
 
 @hiddenTest("foo")
 @shouldFail("bar")
-@singleThreaded
+@serial
 void testAttrs() {
 }

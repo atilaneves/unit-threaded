@@ -2,13 +2,13 @@ module tests.fail.composite;
 
 import unit_threaded;
 
-@singleThreaded
+@serial
 @name("testFunction1") unittest
 {
     true.shouldBeTrue;
 }
 
-@singleThreaded
+@serial
 @name("testFunction2") unittest
 {
     false.shouldBeTrue;

@@ -1,3 +1,7 @@
+/**
+ * Command-line options for running unittests.
+ */
+
 module unit_threaded.options;
 
 import std.getopt;
