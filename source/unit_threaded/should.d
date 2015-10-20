@@ -49,7 +49,7 @@ private:
  */
 void shouldBeTrue(E)(lazy E condition, in string file = __FILE__, in size_t line = __LINE__)
 {
-    shouldEqual(condition, true);
+    shouldEqual(condition, true, file, line);
 }
 
 ///
@@ -64,7 +64,7 @@ unittest
  */
 void shouldBeFalse(E)(lazy E condition, in string file = __FILE__, in size_t line = __LINE__)
 {
-    shouldEqual(condition, false);
+    shouldEqual(condition, false, file, line);
 }
 
 ///
