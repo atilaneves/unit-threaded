@@ -6,6 +6,6 @@ Please consult the documentation in gen_ut_main_mixin.
 */
 module std.experimental.gen_ut_main;
 
-import unit_threaded.gen_ut_main_mixin;
+import unit_threaded.runtime;
 
 mixin genUtMain;
