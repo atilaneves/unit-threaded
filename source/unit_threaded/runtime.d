@@ -149,12 +149,10 @@ string writeUtMainFile(Options options) {
         return options.fileName;
     }
 
-    writeUtMainFile(options, findModuleNames(options.dirs));
-
-    return options.fileName;
+    return writeUtMainFile(options, findModuleNames(options.dirs));
 }
 
-private void writeUtMainFile(Options options, in string[] modules) {
+private string writeUtMainFile(Options options, in string[] modules) {
     if (!options.fileName) {
         options.fileName = buildPath(tempDir, getcwd, "ut.d");
     }
@@ -166,7 +164,7 @@ private void writeUtMainFile(Options options, in string[] modules) {
     if(!haveToUpdate(options, modules)) {
         writeln("Not writing to ", options.fileName, ": no changes detected");
         printUsage();
-        return;
+        return options.fileName;
     } else {
         writeln("Writing to unit test main file ", options.fileName);
         printUsage();
@@ -192,6 +190,8 @@ import unit_threaded;
                   "\n" ~ indent ~ ")\n" ~ indent ~ "(args);");
     wfile.writeln("}");
     wfile.close();
+
+    return options.fileName;
 }
 
 
