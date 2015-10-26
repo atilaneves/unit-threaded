@@ -107,10 +107,6 @@ Options getGenUtOptions(string[] args) {
         return options;
     }
 
-    if (!options.fileName) {
-        options.fileName = buildPath(tempDir, getcwd, "ut.d");
-    }
-
     options.dirs = args.length <= 1 ? ["."] : args[1 .. $];
 
     if (options.verbose) {
@@ -144,11 +140,11 @@ string[] findModuleNames(in string[] dirs) {
 }
 
 string writeUtMainFile(string[] args) {
-    const options = getGenUtOptions(args);
+    auto options = getGenUtOptions(args);
     return writeUtMainFile(options);
 }
 
-string writeUtMainFile(in Options options) {
+string writeUtMainFile(Options options) {
     if (options.earlyReturn) {
         return options.fileName;
     }
@@ -158,7 +154,11 @@ string writeUtMainFile(in Options options) {
     return options.fileName;
 }
 
-private void writeUtMainFile(in Options options, in string[] modules) {
+private void writeUtMainFile(Options options, in string[] modules) {
+    if (!options.fileName) {
+        options.fileName = buildPath(tempDir, getcwd, "ut.d");
+    }
+
     void printUsage() {
         writeln("Run with: rdmd -unittest ", options.fileName, ". Use -h for help.");
     }
