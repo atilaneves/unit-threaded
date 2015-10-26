@@ -45,7 +45,7 @@ rdmd ut.d -h # list command-line options
 -----
 */
 
-module unit_threaded.gen_ut_main_mixin;
+module unit_threaded.runtime;
 
 import std.stdio;
 import std.array : replace, array, join;
@@ -64,6 +64,7 @@ mixin template genUtMain() {
             writeUtMainFile(args);
             return 0;
         } catch(Exception ex) {
+            import std.stdio: stderr;
             stderr.writeln(ex.msg);
             return 1;
         }
@@ -142,11 +143,11 @@ string[] findModuleNames(in string[] dirs) {
         array;
 }
 
-private void writeUtMainFile(string[] args) {
+void writeUtMainFile(string[] args) {
     writeUtMainFile(getGenUtOptions(args));
 }
 
-private void writeUtMainFile(in Options options) {
+void writeUtMainFile(in Options options) {
     if (options.earlyReturn) {
         return;
     }
