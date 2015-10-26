@@ -47,182 +47,162 @@ rdmd ut.d -h # list command-line options
 
 module unit_threaded.gen_ut_main_mixin;
 
+import std.stdio;
+import std.array : replace, array, join;
+import std.conv : to;
+import std.algorithm : map;
+import std.string: strip;
+import std.exception : enforce;
+import std.file : exists, DirEntry, dirEntries, isDir, SpanMode;
+import std.path : buildNormalizedPath;
+
+
 mixin template genUtMain() {
 
-    import std.stdio;
-    import std.array : replace, array, join;
-    import std.conv : to;
-    import std.algorithm : map;
-    import std.string: strip;
-    import std.exception : enforce;
-    import std.file : exists, DirEntry, dirEntries, isDir, SpanMode;
-    import std.path : buildNormalizedPath;
-
-    int main(string[] args)
-    {
-        try
-        {
+    int main(string[] args) {
+        try {
             writeUtMainFile(args);
             return 0;
-        }
-        catch(Exception ex)
-        {
+        } catch(Exception ex) {
             stderr.writeln(ex.msg);
             return 1;
         }
     }
+}
 
-    private struct Options
-    {
-        bool verbose;
-        string fileName;
-        string[] dirs;
-        bool help;
-        bool showVersion;
 
-        bool earlyReturn() @safe pure nothrow const
-        {
-            return help || showVersion;
-        }
+private struct Options {
+    bool verbose;
+    string fileName;
+    string[] dirs;
+    bool help;
+    bool showVersion;
+
+    bool earlyReturn() @safe pure nothrow const {
+        return help || showVersion;
     }
+}
 
-    Options getGenUtOptions(string[] args)
-    {
-        import std.getopt;
 
-        Options options;
-        auto getOptRes = getopt(
-            args,
-            "verbose|v", "Verbose mode.", &options.verbose,
-            "file|f", "The filename to write. Will use a temporary if not set.", &options.fileName,
-            "version", "Show version.", &options.showVersion,
+Options getGenUtOptions(string[] args) {
+    import std.getopt;
+
+    Options options;
+    auto getOptRes = getopt(
+        args,
+        "verbose|v", "Verbose mode.", &options.verbose,
+        "file|f", "The filename to write. Will use a temporary if not set.", &options.fileName,
+        "version", "Show version.", &options.showVersion,
         );
 
-        if (getOptRes.helpWanted)
-        {
-            defaultGetoptPrinter("Usage: gen_ut_main [options] [testDir1] [testDir2]...", getOptRes.options);
-            options.help = true;
-            return options;
-        }
-
-        if (options.showVersion)
-        {
-            writeln("gen_ut_main version v0.0.1");
-            return options;
-        }
-
-        if (!options.fileName)
-        {
-            options.fileName = "ut.d";
-        }
-
-        options.dirs = args.length <= 1 ? ["tests"] : args[1 .. $];
-
-        if (options.verbose)
-        {
-            writeln(__FILE__, ": finding all test cases in ", options.dirs);
-        }
-
+    if (getOptRes.helpWanted) {
+        defaultGetoptPrinter("Usage: gen_ut_main [options] [testDir1] [testDir2]...", getOptRes.options);
+        options.help = true;
         return options;
     }
 
-
-    DirEntry[] findModuleEntries(in string[] dirs)
-    {
-
-        DirEntry[] modules;
-        foreach (dir; dirs)
-        {
-            enforce(isDir(dir), dir ~ " is not a directory name");
-            auto entries = dirEntries(dir, "*.d", SpanMode.depth);
-            auto normalised = entries.map!(a => DirEntry(buildNormalizedPath(a.name)));
-            modules ~= normalised.array;
-        }
-
-        return modules;
+    if (options.showVersion) {
+        writeln("gen_ut_main version v0.0.1");
+        return options;
     }
 
-    string[] findModuleNames(in string[] dirs)
-    {
-        import std.path : dirSeparator;
-
-        //cut off extension
-        return findModuleEntries(dirs).
-            map!(a => replace(a.name[0 .. $ - 2], dirSeparator, ".")).
-            array;
+    if (!options.fileName) {
+        options.fileName = "ut.d";
     }
 
-    private void writeUtMainFile(string[] args) {
-        writeUtMainFile(getGenUtOptions(args));
+    options.dirs = args.length <= 1 ? ["tests"] : args[1 .. $];
+
+    if (options.verbose) {
+        writeln(__FILE__, ": finding all test cases in ", options.dirs);
     }
 
-    private void writeUtMainFile(in Options options) {
-        if (options.earlyReturn)
-        {
-            return;
-        }
+    return options;
+}
 
-        writeUtMainFile(options, findModuleNames(options.dirs));
+
+DirEntry[] findModuleEntries(in string[] dirs) {
+
+    DirEntry[] modules;
+    foreach (dir; dirs) {
+        enforce(isDir(dir), dir ~ " is not a directory name");
+        auto entries = dirEntries(dir, "*.d", SpanMode.depth);
+        auto normalised = entries.map!(a => DirEntry(buildNormalizedPath(a.name)));
+        modules ~= normalised.array;
     }
 
-    private void writeUtMainFile(in Options options, in string[] modules)
-    {
-        void printUsage()
-        {
-            writeln("Run with: rdmd -unittest ", options.fileName, ". Use -h for help.");
-        }
+    return modules;
+}
 
-        if(!haveToUpdate(options, modules))
-        {
-            writeln("Not writing to ", options.fileName, ": no changes detected");
-            printUsage();
-            return;
-        }
-        else
-        {
-            writeln("Writing to unit test main file ", options.fileName);
-            printUsage();
-        }
+string[] findModuleNames(in string[] dirs) {
+    import std.path : dirSeparator;
 
-        auto wfile = File(options.fileName, "w");
-        wfile.write(modulesDbList(modules));
-        wfile.writeln(q{
+    //cut off extension
+    return findModuleEntries(dirs).
+        map!(a => replace(a.name[0 .. $ - 2], dirSeparator, ".")).
+        array;
+}
+
+private void writeUtMainFile(string[] args) {
+    writeUtMainFile(getGenUtOptions(args));
+}
+
+private void writeUtMainFile(in Options options) {
+    if (options.earlyReturn) {
+        return;
+    }
+
+    writeUtMainFile(options, findModuleNames(options.dirs));
+}
+
+private void writeUtMainFile(in Options options, in string[] modules) {
+    void printUsage() {
+        writeln("Run with: rdmd -unittest ", options.fileName, ". Use -h for help.");
+    }
+
+    if(!haveToUpdate(options, modules)) {
+        writeln("Not writing to ", options.fileName, ": no changes detected");
+        printUsage();
+        return;
+    } else {
+        writeln("Writing to unit test main file ", options.fileName);
+        printUsage();
+    }
+
+    auto wfile = File(options.fileName, "w");
+    wfile.write(modulesDbList(modules));
+    wfile.writeln(q{
 //Automatically generated by unit_threaded.gen_ut_main, do not edit by hand.
-import std.stdio;
-import unit_threaded;
+            import std.stdio;
+            import unit_threaded;
 
-            });
+        });
 
-        wfile.writeln("int main(string[] args)");
-        wfile.writeln("{");
-        wfile.writeln(`    writeln("\nAutomatically generated file ` ~
-                      options.fileName.replace("\\", "\\\\") ~ `");`);
-        wfile.writeln("    writeln(`Running unit tests from dirs " ~ options.dirs.to!string ~ "`);");
+    wfile.writeln("int main(string[] args)");
+    wfile.writeln("{");
+    wfile.writeln(`    writeln("\nAutomatically generated file ` ~
+                  options.fileName.replace("\\", "\\\\") ~ `");`);
+    wfile.writeln("    writeln(`Running unit tests from dirs " ~ options.dirs.to!string ~ "`);");
 
-        immutable indent = "                     ";
-        wfile.writeln("    return runTests!(\n" ~
-                      modules.map!(a => indent ~ `"` ~ a ~ `"`).join(",\n") ~
-                      "\n" ~ indent ~ ")\n" ~ indent ~ "(args);");
-        wfile.writeln("}");
-        wfile.close();
+    immutable indent = "                     ";
+    wfile.writeln("    return runTests!(\n" ~
+                  modules.map!(a => indent ~ `"` ~ a ~ `"`).join(",\n") ~
+                  "\n" ~ indent ~ ")\n" ~ indent ~ "(args);");
+    wfile.writeln("}");
+    wfile.close();
+}
+
+
+private bool haveToUpdate(in Options options, in string[] modules) {
+    if (!options.fileName.exists) {
+        return true;
     }
 
-
-    private bool haveToUpdate(in Options options, in string[] modules)
-    {
-        if (!options.fileName.exists)
-        {
-            return true;
-        }
-
-        auto file = File(options.fileName);
-        return file.readln.strip != modulesDbList(modules);
-    }
+    auto file = File(options.fileName);
+    return file.readln.strip != modulesDbList(modules);
+}
 
 
-    //used to not update the file if the file list hasn't changed
-    private string modulesDbList(in string[] modules) @safe pure nothrow
-    {
-        return "//" ~ modules.join(",");
-    }
+//used to not update the file if the file list hasn't changed
+private string modulesDbList(in string[] modules) @safe pure nothrow {
+    return "//" ~ modules.join(",");
 }
