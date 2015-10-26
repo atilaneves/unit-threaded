@@ -62,7 +62,7 @@ mixin template genUtMain() {
     {
         try
         {
-            writeUtMainFile(getGenUtOptions(args));
+            writeUtMainFile(args);
             return 0;
         }
         catch(Exception ex)
@@ -150,6 +150,10 @@ mixin template genUtMain() {
         return findModuleEntries(dirs).
             map!(a => replace(a.name[0 .. $ - 2], dirSeparator, ".")).
             array;
+    }
+
+    private void writeUtMainFile(string[] args) {
+        writeUtMainFile(getGenUtOptions(args));
     }
 
     private void writeUtMainFile(in Options options) {
