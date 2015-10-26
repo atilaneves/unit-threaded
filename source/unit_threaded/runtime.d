@@ -53,7 +53,7 @@ import std.conv : to;
 import std.algorithm : map;
 import std.string: strip;
 import std.exception : enforce;
-import std.file : exists, DirEntry, dirEntries, isDir, SpanMode, tempDir, getcwd;
+import std.file : exists, DirEntry, dirEntries, isDir, SpanMode, tempDir, getcwd, dirName, mkdirRecurse;
 import std.path : buildNormalizedPath, buildPath;
 
 
@@ -103,7 +103,7 @@ Options getGenUtOptions(string[] args) {
     }
 
     if (options.showVersion) {
-        writeln("gen_ut_main version v0.0.1");
+        writeln("unit_threaded.runtime version v0.0.1");
         return options;
     }
 
@@ -154,7 +154,7 @@ string writeUtMainFile(Options options) {
 
 private string writeUtMainFile(Options options, in string[] modules) {
     if (!options.fileName) {
-        options.fileName = buildPath(tempDir, getcwd, "ut.d");
+        options.fileName = buildPath(tempDir, getcwd[1..$], "ut.d");
     }
 
     void printUsage() {
@@ -169,6 +169,10 @@ private string writeUtMainFile(Options options, in string[] modules) {
         writeln("Writing to unit test main file ", options.fileName);
         printUsage();
     }
+
+    const dirName = options.fileName.dirName;
+    dirName.exists || mkdirRecurse(dirName);
+
 
     auto wfile = File(options.fileName, "w");
     wfile.write(modulesDbList(modules));
