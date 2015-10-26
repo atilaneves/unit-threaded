@@ -72,7 +72,7 @@ mixin template genUtMain() {
 }
 
 
-private struct Options {
+struct Options {
     bool verbose;
     string fileName;
     string[] dirs;
