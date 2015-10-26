@@ -143,16 +143,19 @@ string[] findModuleNames(in string[] dirs) {
         array;
 }
 
-void writeUtMainFile(string[] args) {
-    writeUtMainFile(getGenUtOptions(args));
+string writeUtMainFile(string[] args) {
+    const options = getGenUtOptions(args);
+    return writeUtMainFile(options);
 }
 
-void writeUtMainFile(in Options options) {
+string writeUtMainFile(in Options options) {
     if (options.earlyReturn) {
-        return;
+        return options.fileName;
     }
 
     writeUtMainFile(options, findModuleNames(options.dirs));
+
+    return options.fileName;
 }
 
 private void writeUtMainFile(in Options options, in string[] modules) {
