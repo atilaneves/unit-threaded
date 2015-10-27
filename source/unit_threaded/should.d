@@ -154,7 +154,7 @@ unittest {
         //instead, replace the number there with the actual line number
         expected = expected.replace(":123", ":" ~ line.to!string);
         immutable msg = getExceptionMsg(expr);
-        assert(msg == expected,
+        assert(msg.endsWith(expected),
                "\nExpected Exception:\n" ~ expected ~ "\nGot Exception:\n" ~ msg);
     }
 
