@@ -157,17 +157,11 @@ private string writeUtMainFile(Options options, in string[] modules) {
         options.fileName = buildPath(tempDir, getcwd[1..$], "ut.d");
     }
 
-    void printUsage() {
-        writeln("Run with: rdmd -unittest ", options.fileName, ". Use -h for help.");
-    }
-
     if(!haveToUpdate(options, modules)) {
         writeln("Not writing to ", options.fileName, ": no changes detected");
-        printUsage();
         return options.fileName;
     } else {
         writeln("Writing to unit test main file ", options.fileName);
-        printUsage();
     }
 
     const dirName = options.fileName.dirName;
