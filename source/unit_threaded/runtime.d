@@ -158,10 +158,10 @@ private string writeUtMainFile(Options options, in string[] modules) {
     }
 
     if(!haveToUpdate(options, modules)) {
-        writeln("Not writing to ", options.fileName, ": no changes detected");
+        if(options.verbose) writeln("Not writing to ", options.fileName, ": no changes detected");
         return options.fileName;
     } else {
-        writeln("Writing to unit test main file ", options.fileName);
+        if(options.verbose) writeln("Writing to unit test main file ", options.fileName);
     }
 
     const dirName = options.fileName.dirName;
