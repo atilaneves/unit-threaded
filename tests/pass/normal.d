@@ -67,6 +67,10 @@ unittest {
     assert(true); //unit test block that always passes
 }
 
+@("third_unit_test")
+unittest {
+    3.shouldEqual(3);
+}
 
 private class MyClass {
     int i;

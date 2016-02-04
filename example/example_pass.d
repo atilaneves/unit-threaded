@@ -1,11 +1,14 @@
 #!/usr/bin/rdmd -unittest
 
 import unit_threaded.runner;
-import tests.pass.normal; ///must be imported to be used as a symbol
-import tests.pass.delayed; ///must be imported to be used as a symbol
-import tests.pass.attributes; ///must be imported to be used as a symbol
-import tests.pass.register; ///must be imported to be used as a symbol
-import tests.pass.io; ///must be imported to be used as a symbol
+
+//these must all be imported in order to be used as a symbol
+import tests.pass.normal;
+import tests.pass.delayed;
+import tests.pass.attributes;
+import tests.pass.register;
+import tests.pass.io;
+import tests.pass.fixtures;
 
 import std.stdio;
 

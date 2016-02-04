@@ -70,13 +70,19 @@ auto moduleUnitTests(alias module_)() pure nothrow {
         import std.conv;
         mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
 
-        enum isName(alias T) = is(typeof(T)) && is(typeof(T) == Name);
+        enum isNameAttr(alias T) = is(typeof(T)) && is(typeof(T) == Name);
+        enum isString(alias T) = is(typeof(T)) && isSomeString!(typeof(T));
+        enum isName(alias T) = isNameAttr!T || isString!T;
         alias names = Filter!(isName, __traits(getAttributes, test));
         static assert(names.length == 0 || names.length == 1, "Found multiple Name UDAs on unittest");
         enum prefix = fullyQualifiedName!module_ ~ ".";
 
-        static if(names.length == 1) {
-            return prefix ~ names[0].value;
+        enum hasName = names.length == 1;
+        static if(hasName) {
+            static if(is(typeof(names[0]) == Name))
+                return prefix ~ names[0].value;
+            else
+                return prefix ~ names[0];
         } else {
             string name;
             try {
