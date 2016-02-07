@@ -52,7 +52,9 @@ from the top-level directory of the repository.
 The built-in D unittest blocks are included automatically, as seen in
 the output of both example programs
 (`example.tests.pass_tests.unittest` and its homologue in
-[`example_fail`](example/example_fail)).
+[`example_fail`](example/example_fail)). A name will be automatically
+generated for them. The user can specify a name by decorating them
+with a string UDA or the included `@Name` UDA.
 
 The easiest way to run tests is by doing what the example code does:
 calling `runTests()` in [`runner.d`](unit_threaded/runner.d) with
@@ -85,6 +87,12 @@ expected to fail, an also requires a compile-time string.
 relevant bug is fixed or not-yet-implemented functionality is done,
 the test will then fail, which makes them harder to sweep
 under the carpet and forget about.
+
+It is possible to instantiate a function test case multiple times,
+once per value to be passed in. To do so, simply declare a test
+function that takes on parameter and add UDAs of that type to
+the test function. The `testValues` function in the
+[attributes test](tests/pass/attributes.d).
 
 Since D packages are just directories and there the compiler can't
 read the filesystem at compile-time, there is no way to automatically
