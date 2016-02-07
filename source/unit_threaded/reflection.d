@@ -179,7 +179,7 @@ private struct TestFunctionSuffix {
 }
 
 
-private TestData[] moduleTestData(alias module_, alias pred)() pure nothrow {
+private TestData[] moduleTestData(alias module_, alias pred)() pure {
     mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
     TestData[] testData;
     foreach(moduleMember; __traits(allMembers, module_)) {
