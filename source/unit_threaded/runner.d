@@ -20,18 +20,15 @@ import std.algorithm : map, filter, count;
  * runtime unittest runner. This mixin should be used instead of
  * $(D runTests) if Phobos is linked as a shared library.
  */
-mixin template runTestsMixin(Modules...)
-{
+mixin template runTestsMixin(Modules...) {
 
-    shared static this()
-    {
+    shared static this() {
         import unit_threaded.testsuite : replaceModuleUnitTester;
 
         replaceModuleUnitTester;
     }
 
-    int main(string[] args)
-    {
+    int main(string[] args) {
         return runTests!Modules(args);
     }
 }
@@ -45,8 +42,7 @@ mixin template runTestsMixin(Modules...)
  *   args = Arguments passed to main.
  * Returns: An integer suitable for the program's return code.
  */
-int runTests(Modules...)(string[] args)
-{
+int runTests(Modules...)(string[] args) {
     return runTests(args, allTestData!Modules);
 }
 
@@ -59,8 +55,7 @@ int runTests(Modules...)(string[] args)
  *   testData = Data about the tests to run.
  * Returns: An integer suitable for the program's return code.
  */
-int runTests(string[] args, in TestData[] testData)
-{
+int runTests(string[] args, in TestData[] testData) {
     const options = getOptions(args);
     handleCmdLineOptions(options, testData);
     if (options.exit)
@@ -70,21 +65,19 @@ int runTests(string[] args, in TestData[] testData)
     return suite.run ? 0 : 1;
 }
 
-private void handleCmdLineOptions(in Options options, in TestData[] testData)
-{
-    if (options.list)
-    {
+private void handleCmdLineOptions(in Options options, in TestData[] testData) {
+    if (options.list) {
         import std.stdio;
 
         writeln("Listing tests:");
-        foreach (test; testData.map!(a => a.name))
-        {
+        foreach (test; testData.map!(a => a.name)) {
             writeln(test);
         }
     }
 
     if (options.debugOutput)
         enableDebugOutput();
+
     if (options.forceEscCodes)
         forceEscCodes();
 }

@@ -34,16 +34,14 @@ struct TestSuite
      * options = The options to run tests with.
      * testData = The information about the tests to run.
      */
-    this(in Options options, in TestData[] testData)
-    {
+    this(in Options options, in TestData[] testData) {
         _options = options;
         _testData = testData;
         _testCases = createTestCases(testData, options.testsToRun);
         WriterThread.start;
     }
 
-    ~this()
-    {
+    ~this() {
         WriterThread.get.join;
     }
 
@@ -51,10 +49,8 @@ struct TestSuite
      * Runs all test cases.
      * Returns: true if no test failed, false otherwise.
      */
-    bool run()
-    {
-        if (!_testCases.length)
-        {
+    bool run() {
+        if (!_testCases.length) {
             utWritelnRed("Error! No tests to run for args: ");
             utWriteln(_options.testsToRun);
             return false;
@@ -62,8 +58,7 @@ struct TestSuite
 
         immutable elapsed = doRun();
 
-        if (!numTestsRun)
-        {
+        if (!numTestsRun) {
             utWriteln("Did not run any tests!!!");
             return false;
         }
@@ -71,20 +66,15 @@ struct TestSuite
         utWriteln("\nTime taken: ", elapsed);
         utWrite(numTestsRun, " test(s) run, ");
         const failuresStr = text(_failures.length, " failed");
-        if (_failures.length)
-        {
+        if (_failures.length) {
             utWriteRed(failuresStr);
-        }
-        else
-        {
+        } else {
             utWrite(failuresStr);
         }
 
-        void printAbout(string attr)(in string msg)
-        {
+        void printAbout(string attr)(in string msg) {
             const num = _testData.filter!(a => mixin("a. " ~ attr)).count;
-            if (num)
-            {
+            if (num) {
                 utWrite(", ");
                 utWriteYellow(num, " " ~ msg);
             }
@@ -95,8 +85,7 @@ struct TestSuite
 
         utWriteln(".\n");
 
-        if (_failures.length)
-        {
+        if (_failures.length) {
             utWritelnRed("Unit tests failed!\n");
             return false; //oops
         }
@@ -118,17 +107,13 @@ private:
      * Runs the tests with the given options.
      * Returns: how long it took to run.
      */
-    Duration doRun()
-    {
+    Duration doRun() {
         auto tests = getTests();
         _stopWatch.start();
 
-        if (_options.multiThreaded)
-        {
+        if (_options.multiThreaded) {
             _failures = reduce!((a, b) => a ~ b)(_failures, taskPool.amap!runTest(tests));
-        }
-        else
-        {
+        } else {
             foreach (test; tests)
                 _failures ~= test();
         }
@@ -139,11 +124,9 @@ private:
         return cast(Duration) _stopWatch.peek();
     }
 
-    auto getTests()
-    {
+    auto getTests() {
         auto tests = _testCases.dup;
-        if (_options.random)
-        {
+        if (_options.random) {
             import std.random;
 
             auto generator = Random(_options.seed);
@@ -154,12 +137,10 @@ private:
         return tests;
     }
 
-    void handleFailures() const
-    {
+    void handleFailures() const {
         if (!_failures.empty)
             utWriteln("");
-        foreach (failure; _failures)
-        {
+        foreach (failure; _failures) {
             utWrite("Test ", failure, " ");
             utWriteRed("failed");
             utWriteln(".");
@@ -168,8 +149,7 @@ private:
             utWriteln("");
     }
 
-    @property ulong numTestsRun() @trusted const
-    {
+    @property ulong numTestsRun() @trusted const {
         return _testCases.map!(a => a.numTestsRun).reduce!((a, b) => a + b);
     }
 }
@@ -178,15 +158,13 @@ private:
  * Replace the D runtime's normal unittest block tester. If this is not done,
  * the tests will run twice.
  */
-void replaceModuleUnitTester()
-{
+void replaceModuleUnitTester() {
     import core.runtime;
 
     Runtime.moduleUnitTester = &moduleUnitTester;
 }
 
-shared static this()
-{
+shared static this() {
     replaceModuleUnitTester();
 }
 
@@ -194,8 +172,7 @@ shared static this()
  * Replacement for the usual unittest runner. Since unit_threaded
  * runs the tests itself, the moduleUnitTester doesn't really have to do anything.
  */
-private bool moduleUnitTester()
-{
+private bool moduleUnitTester() {
     //this is so unit-threaded's own tests run
     foreach(module_; ModuleInfo) {
         if(module_ && module_.unitTest) {
