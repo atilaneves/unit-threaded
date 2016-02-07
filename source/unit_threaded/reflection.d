@@ -44,7 +44,7 @@ const(TestData)[] allTestData(MOD_STRINGS...)() if(allSatisfy!(isSomeString, typ
  * Template parameters are module symbols
  */
 const(TestData)[] allTestData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
-    auto allTestsWithFunc(string expr, MOD_SYMBOLS...)() pure nothrow {
+    auto allTestsWithFunc(string expr, MOD_SYMBOLS...)() pure {
         //tests is whatever type expr returns
         ReturnType!(mixin(expr ~ q{!(MOD_SYMBOLS[0])})) tests;
         foreach(module_; TypeTuple!MOD_SYMBOLS) {
@@ -142,7 +142,7 @@ TestData[] moduleTestClasses(alias module_)() pure nothrow {
  * Finds all test functions in the given module.
  * Returns an array of TestData structs
  */
-TestData[] moduleTestFunctions(alias module_)() pure nothrow {
+TestData[] moduleTestFunctions(alias module_)() pure {
 
     template isTestFunction(alias module_, string moduleMember) {
         mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
@@ -189,7 +189,7 @@ private TestData[] moduleTestData(alias module_, alias pred)() pure {
         static if(notPrivate && pred!(module_, moduleMember) &&
                   !HasAttribute!(module_, moduleMember, DontTest)) {
 
-            TestFunctionSuffix[] getTestFunctions(alias module_, string moduleMember)() pure nothrow {
+            TestFunctionSuffix[] getTestFunctions(alias module_, string moduleMember)() {
                 //returns delegates for test functions, null for test classes
                 static if(__traits(compiles, &__traits(getMember, module_, moduleMember))) {
                     enum func = &__traits(getMember, module_, moduleMember);
