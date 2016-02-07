@@ -98,7 +98,6 @@ private:
     TestCase[] _tests;
 }
 
-
 class ShouldFailTestCase: TestCase {
     this(TestCase testCase) {
         this.testCase = testCase;
@@ -124,6 +123,10 @@ class FunctionTestCase: TestCase {
     this(immutable TestData data) pure nothrow {
         _name = data.name;
         _func = data.testFunction;
+
+        if(data.suffix) {
+            _name ~= "." ~ data.suffix;
+        }
     }
 
     override void test() {
