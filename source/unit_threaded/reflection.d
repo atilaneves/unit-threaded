@@ -184,9 +184,28 @@ private TestData[] moduleTestData(alias module_, alias pred)() pure nothrow {
                   !HasAttribute!(module_, moduleMember, DontTest)) {
 
             TestFunction getTestFunction(alias module_, string moduleMember)() pure nothrow {
-                //returns a function pointer for test functions, null for test classes
+                //returns a delegate for test functions, null for test classes
                 static if(__traits(compiles, &__traits(getMember, module_, moduleMember))) {
-                    return (){ __traits(getMember, module_, moduleMember)(); };
+                    enum func = &__traits(getMember, module_, moduleMember);
+                    enum arity = arity!func;
+
+                    static assert(arity == 0 || arity == 1, "Test functions may take at most one parameter");
+
+                    static if(arity == 0)
+                        return (){ func(); }; //simple case, just call it
+                    else {
+                        //check to see if the function has UDAs to call it with
+                        alias params = Parameters!func;
+                        static assert(params.length == 1, "Test functions may take at most one parameter");
+
+                        alias values = GetAttributes!(module_, moduleMember, params[0]);
+                        import std.conv;
+                        static assert(values.length > 0,
+                                      text("Test functions with a parameter of type <", params[0].stringof,
+                                       "> must have value UDAs of the same type"));
+
+                        return () { foreach(v; values) func(v); };
+                    }
                 } else {
                     return null;
                 }

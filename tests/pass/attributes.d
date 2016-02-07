@@ -70,3 +70,8 @@ unittest {
 unittest {
     3.shouldEqual(5);
 }
+
+@(42, 5)
+void testValues(int i) {
+    i.shouldEqual(42);
+}

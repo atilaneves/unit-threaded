@@ -22,6 +22,16 @@ template HasAttribute(alias module_, string member, alias attribute) {
     }
 }
 
+/**
+ * For the given module, return true if this module's member has
+ * the given UDA. UDAs can be types or values.
+ */
+template GetAttributes(alias module_, string member, A) {
+    mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
+    enum isAttribute(alias T) = is(TypeOf!T == A);
+    alias GetAttributes = Filter!(isAttribute, __traits(getAttributes, mixin(member)));
+}
+
 
 /**
  * Utility to allow checking UDAs regardless of whether the template
