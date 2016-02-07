@@ -48,3 +48,20 @@ void testShouldFail() {
 void testShouldFailWithOtherException() {
     throw new Exception("This should not be seen");
 }
+
+@Name("first_unit_test")
+unittest {
+    writelnUt("First unit test block\n");
+    assert(true); //unit test block that always passes
+}
+
+@Name("second_unit_test")
+unittest {
+    writelnUt("Second unit test block\n");
+    assert(true); //unit test block that always passes
+}
+
+@("third_unit_test")
+unittest {
+    3.shouldEqual(3);
+}

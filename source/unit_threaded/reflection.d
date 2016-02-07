@@ -75,9 +75,10 @@ auto moduleUnitTests(alias module_)() pure nothrow {
         enum isName(alias T) = isNameAttr!T || isString!T;
         alias names = Filter!(isName, __traits(getAttributes, test));
         static assert(names.length == 0 || names.length == 1, "Found multiple Name UDAs on unittest");
-        enum prefix = fullyQualifiedName!module_ ~ ".";
 
+        enum prefix = fullyQualifiedName!module_ ~ ".";
         enum hasName = names.length == 1;
+
         static if(hasName) {
             static if(is(typeof(names[0]) == Name))
                 return prefix ~ names[0].value;
