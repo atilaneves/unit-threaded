@@ -61,7 +61,7 @@ private TestCase createTestCase(in TestData testData) {
     if(testData.singleThreaded) {
         // @Serial tests in the same module run sequentially.
         // A CompositeTestCase is created for each module with at least
-        // one @Serial test and subsequent @SingleThreaded tests
+        // one @Serial test and subsequent @Serial tests
         // appended to it
         static CompositeTestCase[string] serialComposites;
 
