@@ -70,20 +70,26 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
         import std.conv;
         mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
 
-        enum isNameAttr(alias T) = is(typeof(T)) && is(typeof(T) == Name);
-        enum isString(alias T) = is(typeof(T)) && isSomeString!(typeof(T));
-        enum isName(alias T) = isNameAttr!T || isString!T;
-        alias names = Filter!(isName, __traits(getAttributes, test));
-        static assert(names.length == 0 || names.length == 1, "Found multiple Name UDAs on unittest");
+        enum nameAttrs = getUDAs!(test, Name);
+        static assert(nameAttrs.length == 0 || nameAttrs.length == 1, "Found multiple Name UDAs on unittest");
 
+        template isStringUDA(alias T) {
+            static if(__traits(compiles, is(typeof(T)) && isSomeString!T))
+                enum isStringUDA = is(typeof(T)) && isSomeString!T;
+            else
+                enum isStringUDA = false;
+        }
+
+        enum strAttrs = Filter!(isStringUDA, __traits(getAttributes, test));
+
+        enum hasName = nameAttrs.length || strAttrs.length == 1;
         enum prefix = fullyQualifiedName!module_ ~ ".";
-        enum hasName = names.length == 1;
 
         static if(hasName) {
-            static if(is(typeof(names[0]) == Name))
-                return prefix ~ names[0].value;
+            static if(nameAttrs.length == 1)
+                return prefix ~ nameAttrs[0].value;
             else
-                return prefix ~ names[0];
+                return prefix ~ strAttrs[0];
         } else {
             string name;
             try {
@@ -97,9 +103,9 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
     TestData[] testData;
     foreach(index, test; __traits(getUnitTests, module_)) {
         enum name = unittestName!(test, index);
-        enum hidden = false;
-        enum shouldFail = false;
-        enum singleThreaded = false;
+        enum hidden = hasUDA!(test, HiddenTest);
+        enum shouldFail = hasUDA!(test, ShouldFail);
+        enum singleThreaded = hasUDA!(test, Serial);
         enum builtin = true;
         testData ~= TestData(name, (){ test(); }, hidden, shouldFail, singleThreaded, builtin);
     }

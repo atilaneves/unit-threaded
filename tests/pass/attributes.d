@@ -65,3 +65,8 @@ unittest {
 unittest {
     3.shouldEqual(3);
 }
+
+@ShouldFail
+unittest {
+    3.shouldEqual(5);
+}
