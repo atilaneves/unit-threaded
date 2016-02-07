@@ -98,7 +98,6 @@ private:
     TestCase[] _tests;
 }
 
-
 class ShouldFailTestCase: TestCase {
     this(TestCase testCase) {
         this.testCase = testCase;

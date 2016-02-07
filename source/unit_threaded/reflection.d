@@ -11,9 +11,9 @@ import std.typetuple;
 alias void function() TestFunction;
 struct TestData {
     string name;
+    TestFunction testFunction; ///only used for functions, null for classes
     bool hidden;
     bool shouldFail;
-    TestFunction testFunction; ///only used for functions, null for classes
     bool singleThreaded;
     bool builtin;
 }
@@ -101,7 +101,7 @@ auto moduleUnitTests(alias module_)() pure nothrow {
         enum shouldFail = false;
         enum singleThreaded = false;
         enum builtin = true;
-        testData ~= TestData(name, hidden, shouldFail, &test, singleThreaded, builtin);
+        testData ~= TestData(name, &test, hidden, shouldFail, singleThreaded, builtin);
     }
     return testData;
 }
@@ -187,9 +187,9 @@ private auto moduleTestCases(alias module_, alias pred)() pure nothrow {
             }
 
             testData ~= TestData(fullyQualifiedName!module_~ "." ~ moduleMember,
+                                 getTestFunction!(module_, moduleMember),
                                  HasAttribute!(module_, moduleMember, HiddenTest),
                                  HasAttribute!(module_, moduleMember, ShouldFail),
-                                 getTestFunction!(module_, moduleMember),
                                  HasAttribute!(module_, moduleMember, SingleThreaded));
         }
     }
