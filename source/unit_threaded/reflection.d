@@ -35,7 +35,7 @@ const(TestData)[] allTestData(MOD_STRINGS...)() if(allSatisfy!(isSomeString, typ
 
     enum modulesString =  getModulesString;
     mixin("import " ~ modulesString ~ ";");
-    mixin("return allTestCaseData!(" ~ modulesString ~ ");");
+    mixin("return allTestData!(" ~ modulesString ~ ");");
 }
 
 
