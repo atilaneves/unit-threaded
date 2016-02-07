@@ -189,34 +189,8 @@ private TestData[] moduleTestData(alias module_, alias pred)() pure nothrow {
         static if(notPrivate && pred!(module_, moduleMember) &&
                   !HasAttribute!(module_, moduleMember, DontTest)) {
 
-            TestData[] getFunctionTestData(alias module_, string moduleMember)() pure nothrow {
-                TestData[] data;
-                auto functions = getTestFunctions!(module_, moduleMember);
-                if(functions.length) {
-                    foreach(f; functions) {
-                        //if there is more than one function, they're all single threaded - multiple values per test call.
-                        immutable singleThreaded = functions.length > 1 || HasAttribute!(module_, moduleMember, Serial);
-                        immutable builtin = false;
-                        data ~= TestData(fullyQualifiedName!module_~ "." ~ moduleMember,
-                                         f.testFunction,
-                                         HasAttribute!(module_, moduleMember, HiddenTest),
-                                         HasAttribute!(module_, moduleMember, ShouldFail),
-                                         singleThreaded,
-                                         builtin,
-                                         f.suffix);
-                    }
-                } else { //test class
-                    data ~= TestData(fullyQualifiedName!module_~ "." ~ moduleMember,
-                                     null,
-                                     HasAttribute!(module_, moduleMember, HiddenTest),
-                                     HasAttribute!(module_, moduleMember, ShouldFail),
-                                     HasAttribute!(module_, moduleMember, Serial));
-                }
-                return data;
-            }
-
             TestFunctionSuffix[] getTestFunctions(alias module_, string moduleMember)() pure nothrow {
-                //returns delegates for test functions, empty for test classes
+                //returns delegates for test functions, null for test classes
                 static if(__traits(compiles, &__traits(getMember, module_, moduleMember))) {
                     enum func = &__traits(getMember, module_, moduleMember);
                     enum arity = arity!func;
@@ -241,11 +215,24 @@ private TestData[] moduleTestData(alias module_, alias pred)() pure nothrow {
                         return functions;
                     }
                 } else {
-                    return [];
+                    //test class
+                    return [TestFunctionSuffix(null)];
                 }
             }
 
-            testData ~= getFunctionTestData!(module_, moduleMember)();
+            auto functions = getTestFunctions!(module_, moduleMember);
+            foreach(f; functions) {
+                //if there is more than one function, they're all single threaded - multiple values per test call.
+                immutable singleThreaded = functions.length > 1 || HasAttribute!(module_, moduleMember, Serial);
+                immutable builtin = false;
+                testData ~= TestData(fullyQualifiedName!module_~ "." ~ moduleMember,
+                                     f.testFunction,
+                                     HasAttribute!(module_, moduleMember, HiddenTest),
+                                     HasAttribute!(module_, moduleMember, ShouldFail),
+                                     singleThreaded,
+                                     builtin,
+                                     f.suffix);
+            }
         }
     }
 
