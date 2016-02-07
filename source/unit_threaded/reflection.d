@@ -8,7 +8,7 @@ import std.typetuple;
 /**
  * Common data for test functions and test classes
  */
-alias void function() TestFunction;
+alias void delegate() TestFunction;
 struct TestData {
     string name;
     TestFunction testFunction; ///only used for functions, null for classes
@@ -62,7 +62,7 @@ const(TestData)[] allTestCaseData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString
  * Finds all built-in unittest blocks in the given module.
  * @return An array of TestData structs
  */
-auto moduleUnitTests(alias module_)() pure nothrow {
+TestData[] moduleUnitTests(alias module_)() pure nothrow {
 
     // Return a name for a unittest block. If no @Name UDA is found a name is
     // created automatically, else the UDA is used.
@@ -101,7 +101,7 @@ auto moduleUnitTests(alias module_)() pure nothrow {
         enum shouldFail = false;
         enum singleThreaded = false;
         enum builtin = true;
-        testData ~= TestData(name, &test, hidden, shouldFail, singleThreaded, builtin);
+        testData ~= TestData(name, (){ test(); }, hidden, shouldFail, singleThreaded, builtin);
     }
     return testData;
 }
@@ -111,7 +111,7 @@ auto moduleUnitTests(alias module_)() pure nothrow {
  * Finds all test classes (classes implementing a test() function)
  * in the given module
  */
-auto moduleTestClasses(alias module_)() pure nothrow {
+TestData[] moduleTestClasses(alias module_)() pure nothrow {
 
     template isTestClass(alias module_, string moduleMember) {
         mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
@@ -128,14 +128,14 @@ auto moduleTestClasses(alias module_)() pure nothrow {
         }
     }
 
-    return moduleTestCases!(module_, isTestClass);
+    return moduleTestData!(module_, isTestClass);
 }
 
 /**
  * Finds all test functions in the given module.
  * Returns an array of TestData structs
  */
-auto moduleTestFunctions(alias module_)() pure nothrow {
+TestData[] moduleTestFunctions(alias module_)() pure nothrow {
 
     template isTestFunction(alias module_, string moduleMember) {
         mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
@@ -163,11 +163,11 @@ auto moduleTestFunctions(alias module_)() pure nothrow {
         }
     }
 
-    return moduleTestCases!(module_, isTestFunction);
+    return moduleTestData!(module_, isTestFunction);
 }
 
 
-private auto moduleTestCases(alias module_, alias pred)() pure nothrow {
+private TestData[] moduleTestData(alias module_, alias pred)() pure nothrow {
     mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
     TestData[] testData;
     foreach(moduleMember; __traits(allMembers, module_)) {
@@ -180,7 +180,7 @@ private auto moduleTestCases(alias module_, alias pred)() pure nothrow {
             TestFunction getTestFunction(alias module_, string moduleMember)() pure nothrow {
                 //returns a function pointer for test functions, null for test classes
                 static if(__traits(compiles, &__traits(getMember, module_, moduleMember))) {
-                    return &__traits(getMember, module_, moduleMember);
+                    return (){ __traits(getMember, module_, moduleMember)(); };
                 } else {
                     return null;
                 }
