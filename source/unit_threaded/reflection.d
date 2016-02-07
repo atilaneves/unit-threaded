@@ -16,6 +16,7 @@ struct TestData {
     bool shouldFail;
     bool singleThreaded;
     bool builtin;
+    string suffix; // append to end of getPath
 }
 
 
@@ -172,6 +173,11 @@ TestData[] moduleTestFunctions(alias module_)() pure nothrow {
     return moduleTestData!(module_, isTestFunction);
 }
 
+private struct TestFunctionSuffix {
+    TestFunction testFunction;
+    string suffix;
+}
+
 
 private TestData[] moduleTestData(alias module_, alias pred)() pure nothrow {
     mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
@@ -190,23 +196,26 @@ private TestData[] moduleTestData(alias module_, alias pred)() pure nothrow {
                     foreach(f; functions) {
                         //if there is more than one function, they're all single threaded - multiple values per test call.
                         immutable singleThreaded = functions.length > 1 || HasAttribute!(module_, moduleMember, Serial);
+                        immutable builtin = false;
                         data ~= TestData(fullyQualifiedName!module_~ "." ~ moduleMember,
-                                         f,
+                                         f.testFunction,
                                          HasAttribute!(module_, moduleMember, HiddenTest),
                                          HasAttribute!(module_, moduleMember, ShouldFail),
-                                         singleThreaded);
+                                         singleThreaded,
+                                         builtin,
+                                         f.suffix);
                     }
                 } else { //test class
                     data ~= TestData(fullyQualifiedName!module_~ "." ~ moduleMember,
                                      null,
                                      HasAttribute!(module_, moduleMember, HiddenTest),
                                      HasAttribute!(module_, moduleMember, ShouldFail),
-                                     HasAttribute!(module_, moduleMember, SingleThreaded));
+                                     HasAttribute!(module_, moduleMember, Serial));
                 }
                 return data;
             }
 
-            TestFunction[] getTestFunctions(alias module_, string moduleMember)() pure nothrow {
+            TestFunctionSuffix[] getTestFunctions(alias module_, string moduleMember)() pure nothrow {
                 //returns delegates for test functions, empty for test classes
                 static if(__traits(compiles, &__traits(getMember, module_, moduleMember))) {
                     enum func = &__traits(getMember, module_, moduleMember);
@@ -215,7 +224,7 @@ private TestData[] moduleTestData(alias module_, alias pred)() pure nothrow {
                     static assert(arity == 0 || arity == 1, "Test functions may take at most one parameter");
 
                     static if(arity == 0)
-                        return [ (){ func(); } ]; //simple case, just call it
+                        return [ TestFunctionSuffix((){ func(); }) ]; //simple case, just call it
                     else {
                         //check to see if the function has UDAs to call it with
                         alias params = Parameters!func;
@@ -227,8 +236,8 @@ private TestData[] moduleTestData(alias module_, alias pred)() pure nothrow {
                                       text("Test functions with a parameter of type <", params[0].stringof,
                                        "> must have value UDAs of the same type"));
 
-                        TestFunction[] functions;
-                        foreach(v; values) functions ~= (){ func(v); };
+                        TestFunctionSuffix[] functions;
+                        foreach(v; values) functions ~= TestFunctionSuffix((){ func(v); }, v.to!string);
                         return functions;
                     }
                 } else {
