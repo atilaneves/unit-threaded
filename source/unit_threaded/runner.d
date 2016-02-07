@@ -1,102 +1,90 @@
+/**
+ * This module implements functions to run the unittests with
+ * command-line options.
+ */
+
 module unit_threaded.runner;
 
-import unit_threaded.factory;
 import unit_threaded.testsuite;
-import unit_threaded.io;
 import unit_threaded.options;
-import unit_threaded.testcase;
-import unit_threaded.reflection: allTestCaseData;
+import unit_threaded.io : enableDebugOutput, forceEscCodes;
+import unit_threaded.testcase : TestData;
+import unit_threaded.reflection : allTestData;
 
-import std.stdio;
-import std.traits;
-import std.typetuple;
-import std.concurrency;
-import std.conv;
-import std.algorithm;
-import core.thread;
+import std.conv : text;
+import std.algorithm : map, filter, count;
 
+/**
+ * Runs all tests in passed-in modules. Modules can be symbols or
+ * strings. Generates a main function and substitutes the default D
+ * runtime unittest runner. This mixin should be used instead of
+ * $(D runTests) if Phobos is linked as a shared library.
+ */
+mixin template runTestsMixin(Modules...)
+{
+
+    shared static this()
+    {
+        import unit_threaded.testsuite : replaceModuleUnitTester;
+
+        replaceModuleUnitTester;
+    }
+
+    int main(string[] args)
+    {
+        return runTests!Modules(args);
+    }
+}
 
 /**
  * Runs all tests in passed-in modules. Modules can be symbols
  * or strings. Arguments are taken from the command-line.
  * -s Can be passed to run in single-threaded mode. The rest
  * of argv is considered to be test names to be run.
- * Returns: integer suitable for program return code.
+ * Params:
+ *   args = Arguments passed to main.
+ * Returns: An integer suitable for the program's return code.
  */
-int runTests(MODULES...)(string[] args) {
-    return runTests(args, allTestCaseData!MODULES);
+int runTests(Modules...)(string[] args)
+{
+    return runTests(args, allTestData!Modules);
 }
 
-int runTests(string[] args, in TestData[] testData) {
+/**
+ * Runs all tests in passed-in testData. Arguments are taken from the
+ * command-line. `-s` Can be passed to run in single-threaded mode. The
+ * rest of argv is considered to be test names to be run.
+ * Params:
+ *   args = Arguments passed to main.
+ *   testData = Data about the tests to run.
+ * Returns: An integer suitable for the program's return code.
+ */
+int runTests(string[] args, in TestData[] testData)
+{
     const options = getOptions(args);
+    handleCmdLineOptions(options, testData);
+    if (options.exit)
+        return 0;
 
-    if(options.list) {
+    auto suite = TestSuite(options, testData);
+    return suite.run ? 0 : 1;
+}
+
+private void handleCmdLineOptions(in Options options, in TestData[] testData)
+{
+    if (options.list)
+    {
+        import std.stdio;
+
         writeln("Listing tests:");
-        foreach(test; testData.map!(a => a.name)) {
+        foreach (test; testData.map!(a => a.name))
+        {
             writeln(test);
         }
     }
 
-    if(options.exit) return 0;
-    if(options.debugOutput) enableDebugOutput();
-    if(options.forceEscCodes) forceEscCodes();
-
-    immutable success = runTests(options, testData);
-    return success ? 0 : 1;
-}
-
-
-bool runTests(in Options options, in TestData[] testData) {
-    WriterThread.get(); //make sure this is up
-    scope(exit) WriterThread.get().join();
-
-    //sleep to give WriterThread some time to set up. Otherwise,
-    //tests with output could write to stdout in the meanwhile
-    Thread.sleep(5.msecs);
-
-    auto testCases = createTestCases(testData, options.testsToRun);
-    if(!testCases) {
-        utWritelnRed("Error! No tests to run for args: ");
-        utWriteln(options.testsToRun);
-        return false;
-    }
-
-    auto suite = TestSuite(testCases);
-    immutable elapsed = suite.run(options);
-
-    if(!suite.numTestsRun) {
-        writeln("Did not run any tests!!!");
-        return false;
-    }
-
-    utWriteln("\nTime taken: ", elapsed);
-    utWrite(suite.numTestsRun, " test(s) run, ");
-    const failuresStr = text(suite.numFailures, " failed");
-    if(suite.numFailures) {
-        utWriteRed(failuresStr);
-    } else {
-        utWrite(failuresStr);
-    }
-
-    void printAbout(string attr)(in string msg) {
-        const num = testData.filter!(a => mixin("a. " ~ attr)).count;
-        if(num) {
-            utWrite(", ");
-            utWriteYellow(num, " " ~ msg);
-        }
-    }
-
-    printAbout!"hidden"("hidden");
-    printAbout!"shouldFail"("failing as expected");
-
-    utWriteln(".\n");
-
-    if(!suite.passed) {
-        utWritelnRed("Unit tests failed!\n");
-        return false; //oops
-    }
-
-    utWritelnGreen("OK!\n");
-
-    return true;
+    if (options.debugOutput)
+        enableDebugOutput();
+    if (options.forceEscCodes)
+        forceEscCodes();
 }
