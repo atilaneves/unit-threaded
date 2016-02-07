@@ -2,8 +2,6 @@ unit-threaded
 =============
 [![Build Status](https://travis-ci.org/atilaneves/unit-threaded.png?branch=master)](https://travis-ci.org/atilaneves/unit-threaded)
 
-**On Linux, use one of ld.bfd, dmd 2.063 or dmd >= 2.065. dmd 2.064.2 + ld.gold won't work. No problem on Windows.**
-
 Multi-threaded unit test framework for D. Based on similar work for
 [C++11](https://bitbucket.org/atilaneves/unit-thread).
 
