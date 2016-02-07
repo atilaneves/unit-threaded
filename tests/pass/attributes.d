@@ -71,7 +71,7 @@ unittest {
     3.shouldEqual(5);
 }
 
-@(42, 5)
+@(42, 2)
 void testValues(int i) {
-    i.shouldEqual(42);
+    (i % 2 == 0).shouldBeTrue;
 }

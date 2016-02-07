@@ -183,8 +183,31 @@ private TestData[] moduleTestData(alias module_, alias pred)() pure nothrow {
         static if(notPrivate && pred!(module_, moduleMember) &&
                   !HasAttribute!(module_, moduleMember, DontTest)) {
 
-            TestFunction getTestFunction(alias module_, string moduleMember)() pure nothrow {
-                //returns a delegate for test functions, null for test classes
+            TestData[] getFunctionTestData(alias module_, string moduleMember)() pure nothrow {
+                TestData[] data;
+                auto functions = getTestFunctions!(module_, moduleMember);
+                if(functions.length) {
+                    foreach(f; functions) {
+                        //if there is more than one function, they're all single threaded - multiple values per test call.
+                        immutable singleThreaded = functions.length > 1 || HasAttribute!(module_, moduleMember, Serial);
+                        data ~= TestData(fullyQualifiedName!module_~ "." ~ moduleMember,
+                                         f,
+                                         HasAttribute!(module_, moduleMember, HiddenTest),
+                                         HasAttribute!(module_, moduleMember, ShouldFail),
+                                         singleThreaded);
+                    }
+                } else { //test class
+                    data ~= TestData(fullyQualifiedName!module_~ "." ~ moduleMember,
+                                     null,
+                                     HasAttribute!(module_, moduleMember, HiddenTest),
+                                     HasAttribute!(module_, moduleMember, ShouldFail),
+                                     HasAttribute!(module_, moduleMember, SingleThreaded));
+                }
+                return data;
+            }
+
+            TestFunction[] getTestFunctions(alias module_, string moduleMember)() pure nothrow {
+                //returns delegates for test functions, empty for test classes
                 static if(__traits(compiles, &__traits(getMember, module_, moduleMember))) {
                     enum func = &__traits(getMember, module_, moduleMember);
                     enum arity = arity!func;
@@ -192,7 +215,7 @@ private TestData[] moduleTestData(alias module_, alias pred)() pure nothrow {
                     static assert(arity == 0 || arity == 1, "Test functions may take at most one parameter");
 
                     static if(arity == 0)
-                        return (){ func(); }; //simple case, just call it
+                        return [ (){ func(); } ]; //simple case, just call it
                     else {
                         //check to see if the function has UDAs to call it with
                         alias params = Parameters!func;
@@ -204,18 +227,16 @@ private TestData[] moduleTestData(alias module_, alias pred)() pure nothrow {
                                       text("Test functions with a parameter of type <", params[0].stringof,
                                        "> must have value UDAs of the same type"));
 
-                        return () { foreach(v; values) func(v); };
+                        TestFunction[] functions;
+                        foreach(v; values) functions ~= (){ func(v); };
+                        return functions;
                     }
                 } else {
-                    return null;
+                    return [];
                 }
             }
 
-            testData ~= TestData(fullyQualifiedName!module_~ "." ~ moduleMember,
-                                 getTestFunction!(module_, moduleMember),
-                                 HasAttribute!(module_, moduleMember, HiddenTest),
-                                 HasAttribute!(module_, moduleMember, ShouldFail),
-                                 HasAttribute!(module_, moduleMember, SingleThreaded));
+            testData ~= getFunctionTestData!(module_, moduleMember)();
         }
     }
 
