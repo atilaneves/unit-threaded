@@ -59,19 +59,22 @@ private TestCase createTestCase(in TestData testData) {
     auto testCase = createImpl();
 
     if(testData.singleThreaded) {
-        // @SingleThreaded tests in the same module run sequentially.
+        // @Serial tests in the same module run sequentially.
         // A CompositeTestCase is created for each module with at least
-        // one @SingleThreaded test and subsequent @SingleThreaded tests
+        // one @Serial test and subsequent @SingleThreaded tests
         // appended to it
-        static CompositeTestCase[string] composites;
+        static CompositeTestCase[string] serialComposites;
 
         const moduleName = testData.name.splitter(".").
             array[0 .. $ - 1].
             reduce!((a, b) => a ~ "." ~ b);
 
-        if(moduleName !in composites) composites[moduleName] = new CompositeTestCase;
-        composites[moduleName] ~= testCase;
-        return composites[moduleName];
+        if(moduleName !in serialComposites) {
+            serialComposites[moduleName] = new CompositeTestCase;
+        }
+
+        serialComposites[moduleName] ~= testCase;
+        return serialComposites[moduleName];
     }
 
     if(testData.shouldFail) {

@@ -110,7 +110,7 @@ Tests can be run in random order. To do so, use the `-r` option.
 A seed will be printed so that the same run can be repeated by
 using the `--seed` option. This implies running in a single thread.
 
-Since code under test might not be thread-safe, the `@SingleThreaded`
+Since code under test might not be thread-safe, the `@Serial`
 attribute can be used on a test. This causes all tests in the same
 module that have this attribute to be executed sequentially so they
 don't interleave with one another.

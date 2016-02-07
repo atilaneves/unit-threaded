@@ -2,7 +2,9 @@ module unit_threaded.attrs;
 
 enum UnitTest; //opt-in to registration
 enum DontTest; //opt-out of registration
-enum SingleThreaded; //run tests in the module in one thread
+enum Serial; //run tests in the module in one thread / serially
+
+alias SingleThreaded = Serial;
 
 ///Hide test. Not run by default but can be run.
 struct HiddenTest {
