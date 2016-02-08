@@ -50,11 +50,11 @@ module unit_threaded.runtime;
 import std.stdio;
 import std.array : replace, array, join;
 import std.conv : to;
-import std.algorithm : map;
+import std.algorithm : map, filter;
 import std.string: strip;
 import std.exception : enforce;
 import std.file : exists, DirEntry, dirEntries, isDir, SpanMode, tempDir, getcwd, dirName, mkdirRecurse;
-import std.path : buildNormalizedPath, buildPath;
+import std.path : buildNormalizedPath, buildPath, baseName;
 
 
 mixin template genUtMain() {
@@ -135,6 +135,7 @@ string[] findModuleNames(in string[] dirs) {
 
     //cut off extension
     return findModuleEntries(dirs).
+        filter!(a => a.baseName != "package.d").
         map!(a => replace(a.name[0 .. $ - 2], dirSeparator, ".")).
         array;
 }
