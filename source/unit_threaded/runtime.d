@@ -50,11 +50,11 @@ module unit_threaded.runtime;
 import std.stdio;
 import std.array : replace, array, join;
 import std.conv : to;
-import std.algorithm : map, filter;
+import std.algorithm : map, filter, startsWith, endsWith, remove;
 import std.string: strip;
 import std.exception : enforce;
 import std.file : exists, DirEntry, dirEntries, isDir, SpanMode, tempDir, getcwd, dirName, mkdirRecurse;
-import std.path : buildNormalizedPath, buildPath, baseName;
+import std.path : buildNormalizedPath, buildPath, baseName, relativePath, dirSeparator;
 
 
 mixin template genUtMain() {
@@ -78,6 +78,7 @@ struct Options {
     string[] dirs;
     bool help;
     bool showVersion;
+    string[] includes;
 
     bool earlyReturn() @safe pure nothrow const {
         return help || showVersion;
@@ -93,6 +94,7 @@ Options getGenUtOptions(string[] args) {
         args,
         "verbose|v", "Verbose mode.", &options.verbose,
         "file|f", "The filename to write. Will use a temporary if not set.", &options.fileName,
+        "I", "Import paths", &options.includes,
         "version", "Show version.", &options.showVersion,
         );
 
@@ -117,26 +119,43 @@ Options getGenUtOptions(string[] args) {
 }
 
 
-DirEntry[] findModuleEntries(in string[] dirs) {
+DirEntry[] findModuleEntries(in Options options) {
 
     DirEntry[] modules;
-    foreach (dir; dirs) {
+    foreach (dir; options.dirs) {
         enforce(isDir(dir), dir ~ " is not a directory name");
         auto entries = dirEntries(dir, "*.d", SpanMode.depth);
-        auto normalised = entries.map!(a => DirEntry(buildNormalizedPath(a.name)));
-        modules ~= normalised.array;
+        auto normalised = entries.map!(a => buildNormalizedPath(a.name));
+
+        modules ~= normalised.
+            map!(a => DirEntry(a)).array;
     }
 
     return modules;
 }
 
-string[] findModuleNames(in string[] dirs) {
-    import std.path : dirSeparator;
 
-    //cut off extension
-    return findModuleEntries(dirs).
+string[] findModuleNames(in Options options) {
+    import std.path : dirSeparator, stripExtension;
+
+    // if a user passes -Isrc and a file is called src/foo/bar.d,
+    // the module name should be foo.bar, not src.foo.bar,
+    // so this function subtracts import path options
+    string relativeToImportDirs(string path) {
+        foreach(string importPath; options.includes) {
+            if(!importPath.endsWith(dirSeparator)) importPath ~= dirSeparator;
+            if(path.startsWith(importPath)) {
+                return path.replace(importPath, "");
+            }
+        }
+
+        return path;
+    }
+
+    return findModuleEntries(options).
         filter!(a => a.baseName != "package.d").
-        map!(a => replace(a.name[0 .. $ - 2], dirSeparator, ".")).
+        map!(a => relativeToImportDirs(a.name)).
+        map!(a => replace(a.stripExtension, dirSeparator, ".")).
         array;
 }
 
@@ -150,7 +169,7 @@ string writeUtMainFile(Options options) {
         return options.fileName;
     }
 
-    return writeUtMainFile(options, findModuleNames(options.dirs));
+    return writeUtMainFile(options, findModuleNames(options));
 }
 
 private string writeUtMainFile(Options options, in string[] modules) {
