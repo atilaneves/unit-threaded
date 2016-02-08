@@ -94,7 +94,7 @@ Options getGenUtOptions(string[] args) {
         args,
         "verbose|v", "Verbose mode.", &options.verbose,
         "file|f", "The filename to write. Will use a temporary if not set.", &options.fileName,
-        "I", "Import paths", &options.includes,
+        "I", "Import paths as would be passed to the compiler", &options.includes,
         "version", "Show version.", &options.showVersion,
         );
 
@@ -105,7 +105,7 @@ Options getGenUtOptions(string[] args) {
     }
 
     if (options.showVersion) {
-        writeln("unit_threaded.runtime version v0.0.1");
+        writeln("unit_threaded.runtime version v0.5.7");
         return options;
     }
 
