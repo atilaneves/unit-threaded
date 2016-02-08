@@ -74,15 +74,7 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
         enum nameAttrs = getUDAs!(test, Name);
         static assert(nameAttrs.length == 0 || nameAttrs.length == 1, "Found multiple Name UDAs on unittest");
 
-        template isStringUDA(alias T) {
-            static if(__traits(compiles, is(typeof(T)) && isSomeString!T))
-                enum isStringUDA = is(typeof(T)) && isSomeString!T;
-            else
-                enum isStringUDA = false;
-        }
-
         enum strAttrs = Filter!(isStringUDA, __traits(getAttributes, test));
-
         enum hasName = nameAttrs.length || strAttrs.length == 1;
         enum prefix = fullyQualifiedName!module_ ~ ".";
 
@@ -111,6 +103,18 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
         testData ~= TestData(name, (){ test(); }, hidden, shouldFail, singleThreaded, builtin);
     }
     return testData;
+}
+
+private template isStringUDA(alias T) {
+    static if(__traits(compiles, isSomeString!(typeof(T))))
+        enum isStringUDA = isSomeString!(typeof(T));
+    else
+        enum isStringUDA = false;
+}
+
+unittest {
+    static assert(isStringUDA!"foo");
+    static assert(!isStringUDA!5);
 }
 
 
