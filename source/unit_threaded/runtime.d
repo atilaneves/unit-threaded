@@ -153,7 +153,7 @@ string[] findModuleNames(in Options options) {
     }
 
     return findModuleEntries(options).
-        filter!(a => a.baseName != "package.d").
+        filter!(a => a.baseName != "package.d" && a.baseName != "reggaefile.d").
         map!(a => relativeToImportDirs(a.name)).
         map!(a => replace(a.stripExtension, dirSeparator, ".")).
         array;
