@@ -143,6 +143,7 @@ string[] findModuleNames(in Options options) {
     // so this function subtracts import path options
     string relativeToImportDirs(string path) {
         foreach(string importPath; options.includes) {
+            importPath = relativePath(importPath);
             if(!importPath.endsWith(dirSeparator)) importPath ~= dirSeparator;
             if(path.startsWith(importPath)) {
                 return path.replace(importPath, "");
