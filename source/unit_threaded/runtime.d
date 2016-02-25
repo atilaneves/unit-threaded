@@ -105,7 +105,7 @@ Options getGenUtOptions(string[] args) {
     }
 
     if (options.showVersion) {
-        writeln("unit_threaded.runtime version v0.5.7");
+        writeln("unit_threaded.runtime version v0.5.11");
         return options;
     }
 
@@ -121,13 +121,19 @@ Options getGenUtOptions(string[] args) {
 
 DirEntry[] findModuleEntries(in Options options) {
 
+    import std.algorithm: splitter, canFind;
+
     DirEntry[] modules;
     foreach (dir; options.dirs) {
         enforce(isDir(dir), dir ~ " is not a directory name");
         auto entries = dirEntries(dir, "*.d", SpanMode.depth);
         auto normalised = entries.map!(a => buildNormalizedPath(a.name));
 
+        bool isHiddenDir(string p) { return p.startsWith("."); }
+        bool anyHiddenDir(string p) { return p.splitter(dirSeparator).canFind!isHiddenDir; }
+
         modules ~= normalised.
+            filter!(a => !anyHiddenDir(a)).
             map!(a => DirEntry(a)).array;
     }
 

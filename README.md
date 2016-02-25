@@ -38,7 +38,45 @@ writelnUt debug messages.
 8. Ability to temporarily hide tests from being run by default whilst
 stil being able to run them
 
-Usage
+Quick start with dub
+----------------------
+dub can run tests itself with `dub test`. Unfortunately, due to the nature
+of D's compile-time reflection, a test runner file listing all modules
+to reflect on must exist. Since this is a tedious task and easily automated,
+unit-threaded has a dub configuration called `gen_ut_main` to do just that.
+To use unit-threaded with a dub project, use a `unittest` configuration as
+exemplified in this `dub.json`:
+
+    {
+        "name": "myproject",
+        "targetType": "executable",
+        "targetPath": "bin",
+        "configurations": [
+            { "name": "executable" },
+            {
+                "name": "unittest",
+                "preBuildCommands": ["dub run unit-threaded -c gen_ut_main -- -f bin/ut.d"],
+                "mainSourceFile": "bin/ut.d",
+                "excludedSourceFiles": "main.d",
+                "dependencies": {
+                    "unit-threaded": "~>0.5.10"
+                }
+            }
+        ]
+    }
+
+`excludedSourceFiles` is there to not compile the file containing the
+`main` function to avoid linker errors. As an alternative to using
+`excludedSourceFiles`, the "real" `main` can be versioned out:
+
+    version(unittest) {}
+    else {
+        void main() {
+            //...
+        }
+    }
+
+Writing tests
 -----
 
 The library is all in the `unit_threaded` package. There are two

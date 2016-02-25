@@ -1,8 +1,22 @@
 import unit_threaded.runtime;
+import unit_threaded.dub;
+import std.algorithm;
+import std.array;
+import std.stdio;
+import std.getopt;
 
-void main(string[] args) {
-    Options options;
-    options.dirs = ["."];
-    options.fileName = args.length > 1 ? args[1] : "bin/ut.d";
-    writeUtMainFile(options);
+
+
+int main(string[] args) {
+    try {
+        auto options = getGenUtOptions(args);
+        if(options.earlyReturn) return 0;
+
+        dubify(options);
+        writeUtMainFile(options);
+        return 0;
+    } catch(Exception ex) {
+        stderr.writeln("Error: ", ex.msg);
+        return 1;
+    }
 }
