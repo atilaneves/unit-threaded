@@ -8,11 +8,17 @@
     "targetType": "library",
     "configurations": [
         { "name": "library" },
-        { "name": "unittest",
-          "targetType": "executable",
-          "sourcePaths": ["tests/pass"],
-          "sourceFiles": ["example/example_pass.d"],
-          "mainSourceFile": "example/example_pass.d"
+        {
+            "name": "unittest",
+            "targetType": "executable",
+            "sourcePaths": ["tests/pass"],
+            "sourceFiles": ["example/example_pass.d"],
+            "mainSourceFile": "example/example_pass.d"
+        },
+        {
+            "name": "gen_ut_main",
+            "targetType": "executable",
+            "mainSourceFile": "gen/gen_ut_main.d"
         }
     ]
 }
