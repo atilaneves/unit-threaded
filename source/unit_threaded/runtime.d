@@ -136,7 +136,7 @@ DirEntry[] findModuleEntries(in Options options) {
 
 
 string[] findModuleNames(in Options options) {
-    import std.path : dirSeparator, stripExtension;
+    import std.path : dirSeparator, stripExtension, absolutePath;
 
     // if a user passes -Isrc and a file is called src/foo/bar.d,
     // the module name should be foo.bar, not src.foo.bar,
@@ -155,6 +155,7 @@ string[] findModuleNames(in Options options) {
 
     return findModuleEntries(options).
         filter!(a => a.baseName != "package.d" && a.baseName != "reggaefile.d").
+        filter!(a => a.absolutePath != options.fileName.absolutePath).
         map!(a => relativeToImportDirs(a.name)).
         map!(a => replace(a.stripExtension, dirSeparator, ".")).
         array;
