@@ -13,29 +13,20 @@ import unit_threaded;
 mixin genUtMain;
 -----
 
-Or just use rdmd with the included gen_ut_main,
-which does the above. The examples below use the second option.
+Generally however, this code will be used by the gen_ut_main
+dub configuration via `dub run`.
 
-By default, genUtMain will look for unit tests in a $(D tests)
-folder and write a program out to a file named $(D ut.d). To change
+By default, genUtMain will look for unit tests in CWD
+and write a program out to a temporary file. To change
 the file to write to, use the $(D -f) option. To change what
 directories to look in, simply pass them in as the remaining
 command-line arguments.
 
-Examples:
------
-# write ut.d that finds unit tests from files in the tests directory
-rdmd $PHOBOS/std/experimental/testing/gen_ut_main.d
-
-# write foo.d that finds unit tests from the src and other directories
-rdmd $PHOBOS/std/experimental/testing/gen_ut_main.d -f foo.d src other
------
-
-The resulting $(D ut.d) file (or as named by the $(D -f) option) is
-also a program that must be compiled and, when run, will run the unit
-tests found. By default, it will run all tests. To run one test or
-all tests in a particular package, pass them in as command-line arguments.
-The $(D -h) option will list all command-line options.
+The resulting file is also a program that must be compiled and, when
+run, will run the unit tests found. By default, it will run all
+tests. To run one test or all tests in a particular package, pass them
+in as command-line arguments.  The $(D -h) option will list all
+command-line options.
 
 Examples (assuming the generated file is called $(D ut.d)):
 -----
