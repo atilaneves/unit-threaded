@@ -22,30 +22,30 @@ for larger projects it lacks some functionality:
 So I wrote this library in and for a language with built-in support
 for unit tests. Its goals are:
 
-1. To run in parallel (by default) for maximal speed and turnaround
-for TDD
-2. To make it easy to write tests (functions as test cases)
-3. No test registration. Tests are discovered with D's compile-time
-reflection
-4. Support for built-in `unittest` blocks
-5. To be able to run specific tests or group of tests via
+1. To run in parallel by default
+2. Support for built-in `unittest` blocks - no need to reinvent the wheel
+3. To be able to run specific tests or group of tests via
 the command-line
-6. Suppress tested code stdio and stderr output by default (important
+4. No test registration. Tests are discovered with D's compile-time
+reflection
+5. Suppress tested code stdio and stderr output by default (important
 when running in multiple threads).
-7. Have a special mode that only works when using a single thread
+6. Have a special mode that only works when using a single thread
 under which tested code output is turned back on, as well as special
 writelnUt debug messages.
-8. Ability to temporarily hide tests from being run by default whilst
+7. Ability to temporarily hide tests from being run by default whilst
 stil being able to run them
 
 Quick start with dub
 ----------------------
-dub can run tests itself with `dub test`. Unfortunately, due to the nature
-of D's compile-time reflection, a test runner file listing all modules
-to reflect on must exist. Since this is a tedious task and easily automated,
-unit-threaded has a dub configuration called `gen_ut_main` to do just that.
-To use unit-threaded with a dub project, use a `unittest` configuration as
-exemplified in this `dub.json`:
+
+dub runs tests with `dub test`. Unfortunately, due to the nature of
+D's compile-time reflection, to use this library a test runner file
+listing all modules to reflect on must exist. Since this is a tedious
+task and easily automated, unit-threaded has a dub configuration
+called `gen_ut_main` to do just that.  To use unit-threaded with a dub
+project, you can use a `unittest` configuration as exemplified in this
+`dub.json`:
 
     {
         "name": "myproject",
@@ -84,6 +84,23 @@ simply attach a string UDA to it:
         assert(2 + 3 == 5);
     }
 
+
+You can also have multiple configurations for running unit tests, e.g. one that uses
+the standard D runtime unittest runner and one that uses unit-threaded:
+
+    "configurations": [
+        {"name": "unittest"},
+        {
+          "name": "ut",
+          "preBuildCommands: ["dub run unit-threaded -c gen_ut_main -- -f bin/ut.d"],
+          "mainSourceFile": "bin/ut.d",
+          ...
+        }
+    ]
+
+In this example, `dub test` runs as usual if you don't use this
+library, and `dub test -c ut` runs with the unit-threaded test runner.
+
 To use unit-threaded's assertions or UDA-based features, you must import the library:
 
     version(unittest) { import unit_threaded; }
@@ -92,14 +109,17 @@ To use unit-threaded's assertions or UDA-based features, you must import the lib
         adder(2 + 3).shouldEqual(5);
     }
 
+If using a custom dub configuration for unit-threaded as shown above, a version
+block can be used on `Have_unit_threaded` (this is added by dub to the build).
+
+
 Advanced Usage
 -------------
 
-The library is all in the `unit_threaded` package. There are two
-example programs in the [`example`](example/) folder, one with passing
-unit tests and the other failing, to show what the output looks like
-in each case. Because of the way D packages work, they must be run
-from the top-level directory of the repository.
+There are two example programs in the [`example`](example/) folder,
+one with passing unit tests and the other failing, to show what the
+output looks like in each case. Because of the way D packages work,
+they must be run from the top-level directory of the repository.
 
 The built-in D unittest blocks are included automatically, as seen in
 the output of both example programs
