@@ -104,9 +104,16 @@ library, and `dub test -c ut` runs with the unit-threaded test runner.
 To use unit-threaded's assertions or UDA-based features, you must import the library:
 
     version(unittest) { import unit_threaded; }
+    else              { enum ShouldFail; } // so production builds compile
+
     int adder(int i, int j) { return i + j; }
+
     @("Test adder") unittest {
         adder(2 + 3).shouldEqual(5);
+    }
+
+    @("Test adder fails", ShouldFail) unittest {
+        adder(2 + 3).shouldEqual(7);
     }
 
 If using a custom dub configuration for unit-threaded as shown above, a version
