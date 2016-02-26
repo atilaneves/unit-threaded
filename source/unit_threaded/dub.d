@@ -98,7 +98,7 @@ DubInfo getDubInfo(in bool verbose) {
     if(verbose)
         writeln("Running dub describe");
 
-    immutable args = ["dub", "describe"];
+    immutable args = ["dub", "describe", "-c", "unittest"];
     immutable res = execute(args);
     enforce(res.status == 0, text("Could not execute ", args.join(" "), ":\n", res.output));
     return getDubInfo(res.output.find("{"));
@@ -113,7 +113,9 @@ bool isDubProject() {
 // set import paths from dub information
 void dubify(ref Options options) {
     if(!isDubProject) return;
-    options.includes = getDubInfo(options.verbose).packages.
+    auto dubInfo = getDubInfo(options.verbose);
+    options.includes = dubInfo.packages.
         map!(a => a.importPaths.map!(b => buildPath(a.path, b)).array).
         reduce!((a, b) => a ~ b).array;
+    options.files = dubInfo.packages[0].files;
 }

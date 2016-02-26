@@ -70,6 +70,7 @@ struct Options {
     bool help;
     bool showVersion;
     string[] includes;
+    string[] files;
 
     bool earlyReturn() @safe pure nothrow const {
         return help || showVersion;
