@@ -23,10 +23,8 @@ shared static this() {
 private bool moduleUnitTester() {
     //this is so unit-threaded's own tests run
     foreach(module_; ModuleInfo) {
-        if(module_ && module_.unitTest) {
-            if(startsWith(module_.name, "unit_threaded.")) {
-                module_.unitTest()();
-            }
+        if(module_ && module_.unitTest && module_.name.startsWith("unit_threaded")) {
+            module_.unitTest()();
         }
     }
 
