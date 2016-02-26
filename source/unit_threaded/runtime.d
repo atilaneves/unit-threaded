@@ -97,7 +97,7 @@ Options getGenUtOptions(string[] args) {
     }
 
     if (options.showVersion) {
-        writeln("unit_threaded.runtime version v0.5.11");
+        writeln("unit_threaded.runtime version v0.6.0");
         return options;
     }
 

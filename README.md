@@ -59,7 +59,7 @@ project, you can use a `unittest` configuration as exemplified in this
                 "mainSourceFile": "bin/ut.d",
                 "excludedSourceFiles": "main.d",
                 "dependencies": {
-                    "unit-threaded": "~>0.5.10"
+                    "unit-threaded": "~>0.6.0"
                 }
             }
         ]
