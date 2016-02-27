@@ -97,7 +97,7 @@ Options getGenUtOptions(string[] args) {
     }
 
     if (options.showVersion) {
-        writeln("unit_threaded.runtime version v0.6.0");
+        writeln("unit_threaded.runtime version v0.6.1");
         return options;
     }
 
@@ -114,6 +114,17 @@ Options getGenUtOptions(string[] args) {
 DirEntry[] findModuleEntries(in Options options) {
 
     import std.algorithm: splitter, canFind;
+    import std.array: array, empty;
+
+    // dub list of files, don't bother reading the filesystem since
+    // dub has done it already
+    if(!options.files.empty) {
+        return options.files.
+            filter!(a => a != options.fileName).
+            map!(a => buildNormalizedPath(a)).
+            map!(a => DirEntry(a))
+            .array;
+    }
 
     DirEntry[] modules;
     foreach (dir; options.dirs) {
