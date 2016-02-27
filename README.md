@@ -76,8 +76,8 @@ project, you can use a `unittest` configuration as exemplified in this
         }
     }
 
-Your unittest blocks will now be run in threads. To name each unittest,
-simply attach a string UDA to it:
+Your unittest blocks will now be run in threads and can be run individually.
+To name each unittest, simply attach a string UDA to it:
 
     @("Test that 2 + 3 is 5")
     unittest {
