@@ -89,17 +89,17 @@ You can also have multiple configurations for running unit tests, e.g. one that 
 the standard D runtime unittest runner and one that uses unit-threaded:
 
     "configurations": [
-        {"name": "unittest"},
+        {"name": "ut_default"},
         {
-          "name": "ut",
+          "name": "unittest",
           "preBuildCommands: ["dub run unit-threaded -c gen_ut_main -- -f bin/ut.d"],
           "mainSourceFile": "bin/ut.d",
           ...
         }
     ]
 
-In this example, `dub test` runs as usual if you don't use this
-library, and `dub test -c ut` runs with the unit-threaded test runner.
+In this example, `dub test -c ut_default` runs as usual if you don't use this
+library, and `dub test` runs with the unit-threaded test runner.
 
 To use unit-threaded's assertions or UDA-based features, you must import the library:
 
