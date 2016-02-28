@@ -8,10 +8,11 @@ import std.meta;
  * the given UDA. UDAs can be types or values.
  */
 template HasAttribute(alias module_, string member, alias attribute) {
+    mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
+
     static if(!__traits(compiles, __traits(getAttributes, mixin(member))))
         enum HasAttribute = false;
     else {
-        mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
         enum isAttribute(alias T) = is(TypeOf!T == attribute);
         alias attrs = Filter!(isAttribute, __traits(getAttributes, mixin(member)));
 
