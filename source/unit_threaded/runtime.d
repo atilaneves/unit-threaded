@@ -118,7 +118,7 @@ DirEntry[] findModuleEntries(in Options options) {
 
     // dub list of files, don't bother reading the filesystem since
     // dub has done it already
-    if(!options.files.empty) {
+    if(!options.files.empty && options.dirs == ["."]) {
         return options.files.
             filter!(a => a != options.fileName).
             map!(a => buildNormalizedPath(a)).
