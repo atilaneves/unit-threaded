@@ -3,6 +3,7 @@ module unit_threaded.tests.module_with_tests;
 import unit_threaded.attrs;
 
 version(unittest) {
+    import std.meta;
     import unit_threaded.should;
 
     //test functions
@@ -27,6 +28,9 @@ version(unittest) {
 
     @HiddenTest void withHidden() {}
     void withoutHidden() { }
+
+    //other non-test members
+    alias seq = AliasSeq!(int, float, string);
 }
 
 
