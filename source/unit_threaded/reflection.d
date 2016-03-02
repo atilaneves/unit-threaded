@@ -150,7 +150,8 @@ TestData[] moduleTestFunctions(alias module_)() pure {
 
     template isTestFunction(alias module_, string moduleMember) {
         mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
-        static if(isSomeFunction!(mixin(moduleMember))) {
+        // AliasSeq aren't passed as a single argument, but isSomeFunction only takes one
+        static if(AliasSeq!(mixin(moduleMember)).length == 1 && isSomeFunction!(mixin(moduleMember))) {
             enum isTestFunction = hasTestPrefix!(module_, moduleMember) ||
                 HasAttribute!(module_, moduleMember, UnitTest);
         } else {
