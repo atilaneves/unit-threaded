@@ -146,14 +146,15 @@ unittest {
         assert(0, "Expression did not throw UnitTestException");
     }
 
-
     void assertExceptionMsg(E)(lazy E expr, string expected,
                                in size_t line = __LINE__)
     {
         import std.string: stripLeft;
-        //updating the tests below as line numbers change is tedious.]
+        import std.path: dirSeparator;
+
+        //updating the tests below as line numbers change is tedious.
         //instead, replace the number there with the actual line number
-        expected = expected.replace(":123", ":" ~ line.to!string);
+        expected = expected.replace(":123", ":" ~ line.to!string).replace("/", dirSeparator);
         auto msg = getExceptionMsg(expr);
         auto expLines = expected.split("\n").map!stripLeft;
         auto msgLines = msg.split("\n").map!stripLeft;
