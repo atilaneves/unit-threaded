@@ -72,16 +72,33 @@ struct TestSuite
             utWrite(failuresStr);
         }
 
-        void printAbout(string attr)(in string msg) {
-            const num = _testData.filter!(a => mixin("a. " ~ attr)).count;
-            if (num) {
-                utWrite(", ");
-                utWriteYellow(num, " " ~ msg);
-            }
+        ulong numTestsWithAttr(string attr)() {
+           return _testData.filter!(a => mixin("a. " ~ attr)).count;
         }
 
-        printAbout!"hidden"("hidden");
-        printAbout!"shouldFail"("failing as expected");
+        void printHidden() {
+            const num = numTestsWithAttr!"hidden";
+            if(!num) return;
+            utWrite(", ");
+            utWriteYellow(num, " ", "hidden");
+        }
+
+        void printShouldFail() {
+            const total = numTestsWithAttr!"shouldFail";
+            ulong num = total;
+
+            foreach(f; _failures) {
+                const data = _testData.filter!(a => a.name == f).front;
+                if(data.shouldFail) --num;
+            }
+
+            if(!total) return;
+            utWrite(", ");
+            utWriteYellow(num, "/", total, " ", "failing as expected");
+        }
+
+        printHidden();
+        printShouldFail();
 
         utWriteln(".\n");
 

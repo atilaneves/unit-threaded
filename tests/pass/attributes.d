@@ -75,3 +75,9 @@ unittest {
 void testValues(int i) {
     (i % 2 == 0).shouldBeTrue;
 }
+
+
+@ShouldFail
+void testShouldFailWithAssertionInTestFunction() {
+     assert(false);
+}
