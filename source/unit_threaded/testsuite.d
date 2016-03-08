@@ -88,7 +88,7 @@ struct TestSuite
             ulong num = total;
 
             foreach(f; _failures) {
-                const data = _testData.filter!(a => a.name == f).front;
+                const data = _testData.filter!(a => a.getPath == f).front;
                 if(data.shouldFail) --num;
             }
 

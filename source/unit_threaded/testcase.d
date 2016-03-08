@@ -121,12 +121,8 @@ private:
 
 class FunctionTestCase: TestCase {
     this(immutable TestData data) pure nothrow {
-        _name = data.name;
+        _name = data.getPath;
         _func = data.testFunction;
-
-        if(data.suffix) {
-            _name ~= "." ~ data.suffix;
-        }
     }
 
     override void test() {

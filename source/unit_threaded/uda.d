@@ -53,7 +53,6 @@ private template TypeOf(alias T) {
 
 
 unittest {
-
     import unit_threaded.attrs;
     import unit_threaded.tests.module_with_attrs;
 
@@ -65,4 +64,6 @@ unittest {
     //check for non-value UDAs
     static assert(HasAttribute!(unit_threaded.tests.module_with_attrs, "testAttrs", SingleThreaded));
     static assert(!HasAttribute!(unit_threaded.tests.module_with_attrs, "testAttrs", DontTest));
+
+    static assert(HasAttribute!(unit_threaded.tests.module_with_attrs, "testValues", ShouldFail));
 }

@@ -50,8 +50,13 @@ TestCase[] createTestCases(in TestData[] testData, in string[] testsToRun = []) 
 
 private TestCase createTestCase(in TestData testData) {
     TestCase createImpl() {
-        if(testData.testFunction is null) return cast(TestCase) Object.factory(testData.name);
-        return testData.builtin ? new BuiltinTestCase(testData) : new FunctionTestCase(testData);
+        TestCase testCase;
+        if(testData.testFunction is null) // a class, then
+            testCase = cast(TestCase) Object.factory(testData.name);
+        else
+            testCase = testData.builtin ? new BuiltinTestCase(testData) : new FunctionTestCase(testData);
+
+        return testData.shouldFail ? new ShouldFailTestCase(testCase) : testCase;
     }
 
     auto testCase = createImpl();
@@ -67,16 +72,14 @@ private TestCase createTestCase(in TestData testData) {
             array[0 .. $ - 1].
             reduce!((a, b) => a ~ "." ~ b);
 
+        // create one if not already there
         if(moduleName !in serialComposites) {
             serialComposites[moduleName] = new CompositeTestCase;
         }
 
+        // add the current test to the composite
         serialComposites[moduleName] ~= testCase;
         return serialComposites[moduleName];
-    }
-
-    if(testData.shouldFail) {
-        return new ShouldFailTestCase(testCase);
     }
 
     assert(testCase !is null || testData.testFunction is null,

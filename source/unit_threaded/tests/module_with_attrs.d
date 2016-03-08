@@ -5,5 +5,9 @@ import unit_threaded.attrs;
 @HiddenTest("foo")
 @ShouldFail("bar")
 @SingleThreaded
-void testAttrs() {
-}
+void testAttrs() { }
+
+
+@ShouldFail
+@(1, 2, 3)
+void testValues(int i) { }

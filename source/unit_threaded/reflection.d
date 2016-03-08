@@ -17,6 +17,12 @@ struct TestData {
     bool singleThreaded;
     bool builtin;
     string suffix; // append to end of getPath
+
+    string getPath() const pure nothrow {
+        string path = name.dup;
+        if(suffix) path ~= "." ~ suffix;
+        return path;
+    }
 }
 
 
@@ -180,7 +186,7 @@ TestData[] moduleTestFunctions(alias module_)() pure {
 
 private struct TestFunctionSuffix {
     TestFunction testFunction;
-    string suffix;
+    string suffix; // used for values automatically passed to functions
 }
 
 
@@ -194,9 +200,20 @@ private TestData[] moduleTestData(alias module_, alias pred)() pure {
         static if(notPrivate && pred!(module_, moduleMember) &&
                   !HasAttribute!(module_, moduleMember, DontTest)) {
 
+            /*
+             This function returns an array because it might find a test function that takes
+             a parameter with UDAs of the appropriate type. One "real" test function is returned
+             for each one of those. Examples:
+             ------
+             void testFoo() {} // -> the array contains one element, testFoo
+             @(1, 2, 3) void testBar(int) {} // The array contains 3 elements, one for each UDA value
+             ------
+             */
+
             TestFunctionSuffix[] getTestFunctions(alias module_, string moduleMember)() {
                 //returns delegates for test functions, null for test classes
                 static if(__traits(compiles, &__traits(getMember, module_, moduleMember))) {
+
                     enum func = &__traits(getMember, module_, moduleMember);
                     enum arity = arity!func;
 
@@ -205,7 +222,9 @@ private TestData[] moduleTestData(alias module_, alias pred)() pure {
                     static if(arity == 0)
                         return [ TestFunctionSuffix((){ func(); }) ]; //simple case, just call it
                     else {
-                        //check to see if the function has UDAs to call it with
+
+                        // check to see if the function has UDAs for parameters to be passed to it
+
                         alias params = Parameters!func;
                         static assert(params.length == 1, "Test functions may take at most one parameter");
 
@@ -227,9 +246,11 @@ private TestData[] moduleTestData(alias module_, alias pred)() pure {
 
             auto functions = getTestFunctions!(module_, moduleMember);
             foreach(f; functions) {
-                //if there is more than one function, they're all single threaded - multiple values per test call.
+                //if there is more than one function, they're all single threaded - multiple values per test call
+                //this is slightly hackish but works and actually makes sense - it causes factory to make
+                //a CompositeTestCase out of them
                 immutable singleThreaded = functions.length > 1 || HasAttribute!(module_, moduleMember, Serial);
-                immutable builtin = false;
+                enum builtin = false;
                 testData ~= TestData(fullyQualifiedName!module_~ "." ~ moduleMember,
                                      f.testFunction,
                                      HasAttribute!(module_, moduleMember, HiddenTest),
