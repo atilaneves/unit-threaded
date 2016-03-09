@@ -1,3 +1,7 @@
+/**
+ A module with tests to test the compile-time reflection
+ */
+
 module unit_threaded.tests.module_with_tests;
 
 import unit_threaded.attrs;
@@ -16,6 +20,9 @@ version(unittest) {
     private void someFun() {}
     private void testosterone() {}
     private void tes() {}
+
+    //non-test non-functions
+    int testInt;
 
     //test classes
     class FooTest { void test() { } }

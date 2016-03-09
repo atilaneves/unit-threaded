@@ -31,12 +31,14 @@ private bool moduleUnitTester() {
     return true;
 }
 
+private CompositeTestCase[string] serialComposites;
 
 /**
  * Creates tests cases from the given modules.
  * If testsToRun is empty, it means run all tests.
  */
 TestCase[] createTestCases(in TestData[] testData, in string[] testsToRun = []) {
+    serialComposites = null;
     bool[TestCase] tests;
     foreach(const data; testData) {
         if(!isWantedTest(data, testsToRun)) continue;
@@ -51,7 +53,7 @@ TestCase[] createTestCases(in TestData[] testData, in string[] testsToRun = []) 
 private TestCase createTestCase(in TestData testData) {
     TestCase createImpl() {
         TestCase testCase;
-        if(testData.testFunction is null) // a class, then
+        if(testData.isTestClass)
             testCase = cast(TestCase) Object.factory(testData.name);
         else
             testCase = testData.builtin ? new BuiltinTestCase(testData) : new FunctionTestCase(testData);
@@ -66,8 +68,6 @@ private TestCase createTestCase(in TestData testData) {
         // A CompositeTestCase is created for each module with at least
         // one @Serial test and subsequent @Serial tests
         // appended to it
-        static CompositeTestCase[string] serialComposites;
-
         const moduleName = testData.name.splitter(".").
             array[0 .. $ - 1].
             reduce!((a, b) => a ~ "." ~ b);

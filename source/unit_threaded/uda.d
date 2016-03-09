@@ -67,3 +67,40 @@ unittest {
 
     static assert(HasAttribute!(unit_threaded.tests.module_with_attrs, "testValues", ShouldFail));
 }
+
+template isTypesAttr(alias T) {
+    import unit_threaded.attrs;
+    enum isTypesAttr = is(T) && is(T:Types!U, U...);
+}
+
+
+/*
+ @Types is different from the other UDAs since it's a templated struct
+ None of the templates above work so we special case it here
+*/
+
+/// If a test has the @Types UDA
+enum HasTypes(alias T) = GetTypes!T.length > 0;
+
+/// Returns the types in the @Types UDA associated to a test
+template GetTypes(alias T) {
+    static if(!__traits(compiles, __traits(getAttributes, T))) {
+        alias GetTypes = AliasSeq!();
+    } else {
+        alias types = Filter!(isTypesAttr, __traits(getAttributes, T));
+        static if(types.length > 0)
+            alias GetTypes = TemplateArgsOf!(types[0]);
+        else
+            alias GetTypes = AliasSeq!();
+    }
+}
+
+
+///
+unittest {
+    import unit_threaded.attrs;
+    @Types!(int, float) int i;
+    static assert(HasTypes!i);
+    static assert(is(GetTypes!i == AliasSeq!(int, float)));
+
+}

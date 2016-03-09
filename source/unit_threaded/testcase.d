@@ -42,7 +42,7 @@ class TestCase {
     }
 
     void printToScreen() const {
-        utWrite(_output);
+        if(!_silent) utWrite(_output);
     }
 
     void setup() { } ///override to run before test()
@@ -50,9 +50,12 @@ class TestCase {
     abstract void test();
     ulong numTestsRun() const { return 1; }
 
+    package void silence() @safe pure nothrow { _silent = true; }
+
 private:
     bool _failed;
     string _output;
+    bool _silent;
 
     bool check(E)(lazy E expression) {
         try {
@@ -91,6 +94,10 @@ class CompositeTestCase: TestCase {
 
     override ulong numTestsRun() const {
         return _tests.length;
+    }
+
+    package TestCase[] tests() @safe pure nothrow {
+        return _tests;
     }
 
 private:
