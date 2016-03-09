@@ -20,7 +20,8 @@ struct TestData {
 
     string getPath() const pure nothrow {
         string path = name.dup;
-        if(suffix) path ~= "." ~ suffix;
+        import std.array: empty;
+        if(!suffix.empty) path ~= "." ~ suffix;
         return path;
     }
 
@@ -128,6 +129,18 @@ unittest {
 }
 
 
+// if this member is a test function or class, given the predicate
+private template PassesTestPred(alias module_, alias pred, string moduleMember) {
+    mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
+    enum notPrivate = __traits(compiles, mixin(moduleMember)); //only way I know to check if private
+    static if(notPrivate)
+        enum PassesTestPred = notPrivate && pred!(module_, moduleMember) &&
+                              !HasAttribute!(module_, moduleMember, DontTest);
+    else
+        enum PassesTestPred = false;
+}
+
+
 /**
  * Finds all test classes (classes implementing a test() function)
  * in the given module
@@ -149,7 +162,16 @@ TestData[] moduleTestClasses(alias module_)() pure nothrow {
         }
     }
 
-    return moduleTestData!(module_, isTestClass);
+
+    mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
+    TestData[] testData;
+    foreach(moduleMember; __traits(allMembers, module_)) {
+        static if(PassesTestPred!(module_, isTestClass, moduleMember)) {
+            testData ~= memberTestData!(module_, moduleMember);
+        }
+    }
+
+    return testData;
 }
 
 /**
@@ -195,35 +217,22 @@ TestData[] moduleTestFunctions(alias module_)() pure {
         }
     }
 
-    return moduleTestData!(module_, isTestFunction);
-}
 
-
-private struct TestFunctionWithSuffix {
-    TestFunction testFunction;
-    string suffix; // used for values automatically passed to functions
-    static TestFunctionWithSuffix testClass() @safe pure nothrow {
-        return TestFunctionWithSuffix();
-    }
+    return moduleTestFunctionsImpl!(module_, isTestFunction);
 }
 
 
 // this funtion returns TestData for either classes or test functions
 // built-in unittest modules are handled by moduleUnitTests
-private TestData[] moduleTestData(alias module_, alias pred)() pure {
+private TestData[] moduleTestFunctionsImpl(alias module_, alias pred)() pure {
     mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
     TestData[] testData;
     foreach(moduleMember; __traits(allMembers, module_)) {
 
-        enum notPrivate = __traits(compiles, mixin(moduleMember)); //only way I know to check if private
-
-        static if(notPrivate && pred!(module_, moduleMember) &&
-                  !HasAttribute!(module_, moduleMember, DontTest)) {
-
+        static if(PassesTestPred!(module_, pred, moduleMember)) {
             /*
               Get all the test functions for this module member. There might be more than one
-              when using parametrized unit tests. It might instead be a class, in which
-              case there are no test functions, but we return an array of 1 in that case.
+              when using parametrized unit tests.
 
               Examples:
               ------
@@ -232,68 +241,57 @@ private TestData[] moduleTestData(alias module_, alias pred)() pure {
               @Types!(int, float) void testBaz(T)() {} //The array contains 2 elements, one for each type
               ------
             */
+            // if the predicate returned true (which is always the case here), then it's either
+            // a regular function or a templated one. If regular is has a pointer to it
+            enum isRegularFunction = __traits(compiles, &__traits(getMember, module_, moduleMember));
 
-            TestFunctionWithSuffix[] getTestFunctions(alias module_, string moduleMember)() {
-                // if the predicate returned true (which is always the case here), then it's
-                // either a function or a class. If it's a function, it has a pointer to it
-                enum isFunction = __traits(compiles, &__traits(getMember, module_, moduleMember));
+            static if(isRegularFunction) {
 
-                static if(isFunction) {
-                    enum func = &__traits(getMember, module_, moduleMember);
-                    enum arity = arity!func;
+                enum func = &__traits(getMember, module_, moduleMember);
+                enum arity = arity!func;
 
-                    static assert(arity == 0 || arity == 1, "Test functions may take at most one parameter");
+                static assert(arity == 0 || arity == 1, "Test functions may take at most one parameter");
 
-                    static if(arity == 0)
-                        // the reason we're creating a lambda to call the function is that test functions
-                        // are ordinary functions, but we're storing delegates
-                        return [ TestFunctionWithSuffix((){ func(); }) ]; //simple case, just call it
-                    else {
+                static if(arity == 0)
+                    // the reason we're creating a lambda to call the function is that test functions
+                    // are ordinary functions, but we're storing delegates
+                    testData ~= memberTestData!(module_, moduleMember)(() { func(); }); //simple case, just call the function
+                else {
 
-                        // check to see if the function has UDAs for value parameters to be passed to it
+                    // the function takes a parameter, check if it has UDAs for value parameters to be passed to it
+                    alias params = Parameters!func;
+                    static assert(params.length == 1, "Test functions may take at most one parameter");
 
-                        alias params = Parameters!func;
-                        static assert(params.length == 1, "Test functions may take at most one parameter");
+                    alias values = GetAttributes!(module_, moduleMember, params[0]);
 
-                        alias values = GetAttributes!(module_, moduleMember, params[0]);
-
-                        import std.conv;
-                        static assert(values.length > 0,
-                                      text("Test functions with a parameter of type <", params[0].stringof,
+                    import std.conv;
+                    static assert(values.length > 0,
+                                  text("Test functions with a parameter of type <", params[0].stringof,
                                        "> must have value UDAs of the same type"));
 
-                        TestFunctionWithSuffix[] functions;
-                        foreach(v; values) functions ~= TestFunctionWithSuffix((){ func(v); }, v.to!string);
-                        return functions;
-                    }
-                } else static if(HasTypes!(mixin(moduleMember))) {
-                    alias types = GetTypes!(mixin(moduleMember));
-                    TestFunctionWithSuffix[] functions;
-                    foreach(type; types) functions ~= TestFunctionWithSuffix(() { mixin(moduleMember ~ `!(` ~ type.stringof ~ `)();`); }, type.stringof);
-                    return functions;
-                } else {
-                    return [TestFunctionWithSuffix.testClass];
+                    foreach(v; values) testData ~= memberTestData!(module_, moduleMember)(() { func(v); }, v.to!string);
                 }
-            }
-
-            auto functions = getTestFunctions!(module_, moduleMember);
-            foreach(f; functions) {
-                //if there is more than one function, they're all single threaded - multiple values per test call
-                //this is slightly hackish but works and actually makes sense - it causes unit_threaded.factory to make
-                //a CompositeTestCase out of them
-                immutable enforceSerial = functions.length > 1;
-                testData ~= memberTestData!(module_, moduleMember)(enforceSerial, f.testFunction, f.suffix);
+            } else static if(HasTypes!(mixin(moduleMember))) { //template function with @Types
+                alias types = GetTypes!(mixin(moduleMember));
+                foreach(type; types) {
+                    testData ~= memberTestData!(module_, moduleMember)(() { mixin(moduleMember ~ `!(` ~ type.stringof ~ `)();`); }, type.stringof);
+                }
             }
         }
     }
 
     return testData;
+
 }
 
 // TestData for a member of a module (either a test function or test class)
-private TestData memberTestData(alias module_, string moduleMember)(bool enforceSerial = false, TestFunction testFunction = null, string suffix = "") {
+private TestData memberTestData(alias module_, string moduleMember)(TestFunction testFunction = null, string suffix = "") {
+    //if there is a suffix, all tests sharing that suffix are single threaded with multiple values per "real" test
+    //this is slightly hackish but works and actually makes sense - it causes unit_threaded.factory to make
+    //a CompositeTestCase out of them
+    immutable singleThreaded = HasAttribute!(module_, moduleMember, Serial) || suffix != "";
     enum builtin = false;
-    immutable singleThreaded = HasAttribute!(module_, moduleMember, Serial) || enforceSerial;
+
     return TestData(fullyQualifiedName!module_~ "." ~ moduleMember,
                     testFunction,
                     HasAttribute!(module_, moduleMember, HiddenTest),
