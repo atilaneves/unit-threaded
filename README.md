@@ -47,47 +47,53 @@ called `gen_ut_main` to do just that.  To use unit-threaded with a dub
 project, you can use a `unittest` configuration as exemplified in this
 `dub.json`:
 
-    {
-        "name": "myproject",
-        "targetType": "executable",
-        "targetPath": "bin",
-        "configurations": [
-            { "name": "executable" },
-            {
-                "name": "unittest",
-                "preBuildCommands": ["dub run unit-threaded -c gen_ut_main -- -f bin/ut.d"],
-                "mainSourceFile": "bin/ut.d",
-                "excludedSourceFiles": "src/main.d",
-                "dependencies": {
-                    "unit-threaded": "~>0.6.0"
-                }
+```json
+{
+    "name": "myproject",
+    "targetType": "executable",
+    "targetPath": "bin",
+    "configurations": [
+        { "name": "executable" },
+        {
+            "name": "unittest",
+            "preBuildCommands": ["dub run unit-threaded -c gen_ut_main -- -f bin/ut.d"],
+            "mainSourceFile": "bin/ut.d",
+            "excludedSourceFiles": "src/main.d",
+            "dependencies": {
+                "unit-threaded": "~>0.6.0"
             }
-        ]
-    }
+        }
+    ]
+}
+```
 
 `excludedSourceFiles` is there to not compile the file containing the
 `main` function to avoid linker errors. As an alternative to using
 `excludedSourceFiles`, the "real" `main` can be versioned out:
 
-    version(unittest) {}
-    else {
-        void main() {
-            //...
-        }
+```d
+version(unittest) {}
+else {
+    void main() {
+        //...
     }
+}
+```
 
 Your unittest blocks will now be run in threads and can be run individually.
 To name each unittest, simply attach a string UDA to it:
 
-    @("Test that 2 + 3 is 5")
-    unittest {
-        assert(2 + 3 == 5);
-    }
-
+```d
+@("Test that 2 + 3 is 5")
+unittest {
+    assert(2 + 3 == 5);
+}
+```
 
 You can also have multiple configurations for running unit tests, e.g. one that uses
 the standard D runtime unittest runner and one that uses unit-threaded:
 
+```json
     "configurations": [
         {"name": "ut_default"},
         {
@@ -97,24 +103,27 @@ the standard D runtime unittest runner and one that uses unit-threaded:
           ...
         }
     ]
+```
 
 In this example, `dub test -c ut_default` runs as usual if you don't use this
 library, and `dub test` runs with the unit-threaded test runner.
 
 To use unit-threaded's assertions or UDA-based features, you must import the library:
 
-    version(unittest) { import unit_threaded; }
-    else              { enum ShouldFail; } // so production builds compile
+```d
+version(unittest) { import unit_threaded; }
+else              { enum ShouldFail; } // so production builds compile
 
-    int adder(int i, int j) { return i + j; }
+int adder(int i, int j) { return i + j; }
 
-    @("Test adder") unittest {
-        adder(2 + 3).shouldEqual(5);
-    }
+@("Test adder") unittest {
+    adder(2 + 3).shouldEqual(5);
+}
 
-    @("Test adder fails", ShouldFail) unittest {
-        adder(2 + 3).shouldEqual(7);
-    }
+@("Test adder fails", ShouldFail) unittest {
+    adder(2 + 3).shouldEqual(7);
+}
+```
 
 If using a custom dub configuration for unit-threaded as shown above, a version
 block can be used on `Have_unit_threaded` (this is added by dub to the build).
