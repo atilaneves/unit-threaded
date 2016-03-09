@@ -23,6 +23,10 @@ struct TestData {
         if(suffix) path ~= "." ~ suffix;
         return path;
     }
+
+    bool isTestClass() @safe const pure nothrow {
+        return testFunction is null;
+    }
 }
 
 
@@ -154,15 +158,31 @@ TestData[] moduleTestClasses(alias module_)() pure nothrow {
  */
 TestData[] moduleTestFunctions(alias module_)() pure {
 
+    enum isTypesAttr(alias T) = is(T) && is(T:Types!U, U...);
+
     template isTestFunction(alias module_, string moduleMember) {
         mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
+
         // AliasSeq aren't passed as a single argument, but isSomeFunction only takes one
         static if(AliasSeq!(mixin(moduleMember)).length == 1 && isSomeFunction!(mixin(moduleMember))) {
+
             enum isTestFunction = hasTestPrefix!(module_, moduleMember) ||
-                HasAttribute!(module_, moduleMember, UnitTest);
-        } else {
+                                  HasAttribute!(module_, moduleMember, UnitTest);
+
+            // next we handle the case where it could be a template function, e.g.
+            // ----------
+            // void testTypes(T)() { }
+            // ---------
+        } else static if(AliasSeq!(mixin(moduleMember)).length == 1 &&
+                         hasTestPrefix!(module_, moduleMember) &&
+                         HasTypes!(mixin(moduleMember))) {
+
+            alias types = GetTypes!(mixin(moduleMember));
+            enum isTestFunction = is(typeof((){
+                mixin(moduleMember ~ `!` ~ types[0].stringof ~ `;`);
+            }));
+        } else
             enum isTestFunction = false;
-        }
     }
 
     template hasTestPrefix(alias module_, string member) {
@@ -172,8 +192,7 @@ TestData[] moduleTestFunctions(alias module_)() pure {
         enum prefix = "test";
         enum minSize = prefix.length + 1;
 
-        static if(isSomeFunction!(mixin(member)) &&
-                  member.length >= minSize && member[0 .. prefix.length] == prefix &&
+        static if(member.length >= minSize && member[0 .. prefix.length] == prefix &&
                   isUpper(member[prefix.length])) {
             enum hasTestPrefix = true;
         } else {
@@ -229,6 +248,7 @@ private TestData[] moduleTestData(alias module_, alias pred)() pure {
                         static assert(params.length == 1, "Test functions may take at most one parameter");
 
                         alias values = GetAttributes!(module_, moduleMember, params[0]);
+
                         import std.conv;
                         static assert(values.length > 0,
                                       text("Test functions with a parameter of type <", params[0].stringof,
@@ -238,6 +258,11 @@ private TestData[] moduleTestData(alias module_, alias pred)() pure {
                         foreach(v; values) functions ~= TestFunctionSuffix((){ func(v); }, v.to!string);
                         return functions;
                     }
+                } else static if(HasTypes!(mixin(moduleMember))) {
+                    alias types = GetTypes!(mixin(moduleMember));
+                    TestFunctionSuffix[] functions;
+                    foreach(type; types) functions ~= TestFunctionSuffix(() { mixin(moduleMember ~ `!(` ~ type.stringof ~ `)();`); }, type.stringof);
+                    return functions;
                 } else {
                     //test class
                     return [TestFunctionSuffix(null)];
@@ -286,8 +311,7 @@ unittest {
 }
 
 unittest {
-    const expected = addModPrefix([ "testFoo", "testBar", "funcThatShouldShowUpCosOfAttr",
-                                    "testValues.1", "testValues.2", "testValues.3" ]);
+    const expected = addModPrefix([ "testFoo", "testBar", "funcThatShouldShowUpCosOfAttr"]);
     const actual = moduleTestFunctions!(unit_threaded.tests.module_with_tests).map!(a => a.getPath).array;
     assertEqual(actual, expected);
 }
@@ -303,7 +327,6 @@ unittest {
 unittest {
     import unit_threaded.factory;
     import unit_threaded.testcase;
-
     import core.exception;
 
     const testData = allTestData!(unit_threaded.tests.parametrized).filter!(a => a.name.endsWith("testValues")).array;
@@ -314,6 +337,32 @@ unittest {
     // the first and third test should pass, the second should fail
     composite.tests[0]();
     composite.tests[2]();
+
+    try {
+        composite.tests[1].silence;
+        composite.tests[1]();
+        assert(false);
+    } catch(AssertError) { }
+}
+
+
+@("Test that parametrized type tests work")
+unittest {
+    import unit_threaded.factory;
+    import unit_threaded.testcase;
+    import core.exception;
+
+    const testData = allTestData!(unit_threaded.tests.parametrized).filter!(a => a.name.endsWith("testTypes")).array;
+    const expected = addModPrefix(["testTypes.int", "testTypes.float"], "unit_threaded.tests.parametrized");
+    const actual = testData.map!(a => a.getPath).array;
+    assertEqual(actual, expected);
+
+    // there should only be on test case which is a composite of the 2 testTypes
+    auto composite = cast(CompositeTestCase)createTestCases(testData)[0];
+    auto tests = composite.tests;
+
+    // the first should pass, the second should fail
+    composite.tests[0]();
 
     try {
         composite.tests[1].silence;

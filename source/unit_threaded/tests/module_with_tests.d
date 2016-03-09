@@ -21,6 +21,9 @@ version(unittest) {
     private void testosterone() {}
     private void tes() {}
 
+    //non-test non-functions
+    int testInt;
+
     //test classes
     class FooTest { void test() { } }
     class BarTest { void test() { } }
@@ -35,11 +38,6 @@ version(unittest) {
 
     //other non-test members
     alias seq = AliasSeq!(int, float, string);
-
-    @(1, 2, 3)
-    void testValues(int i) {
-        assert(i % 2 != 0);
-    }
 }
 
 
@@ -56,10 +54,4 @@ unittest {
 @Name("myUnitTest")
 unittest {
     assert(true);
-}
-
-
-@Types!(int, byte)
-void testTypes(T)() {
-    assert(T.init == 0);
 }

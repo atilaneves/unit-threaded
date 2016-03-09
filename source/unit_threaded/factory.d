@@ -51,7 +51,7 @@ TestCase[] createTestCases(in TestData[] testData, in string[] testsToRun = []) 
 private TestCase createTestCase(in TestData testData) {
     TestCase createImpl() {
         TestCase testCase;
-        if(testData.testFunction is null) // a class, then
+        if(testData.isTestClass)
             testCase = cast(TestCase) Object.factory(testData.name);
         else
             testCase = testData.builtin ? new BuiltinTestCase(testData) : new FunctionTestCase(testData);

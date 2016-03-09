@@ -21,4 +21,17 @@ struct Name {
     string value;
 }
 
-template Types(T...) {}
+/** Attachs these types to the a parametrized unit test.
+    The attached template function will be instantiated with
+    each type listed, e.g.
+
+    ----------------
+    @Types!(int, byte) void testInit(T)() { T.init.shouldEqual(0); }
+    ----------------
+
+    These would mean two testInit test runs.
+
+    Normally this would be a template but I don't know how to write
+ *  the UDA code to filter a template out
+ */
+struct Types(T...) {}

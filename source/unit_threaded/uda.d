@@ -67,3 +67,35 @@ unittest {
 
     static assert(HasAttribute!(unit_threaded.tests.module_with_attrs, "testValues", ShouldFail));
 }
+
+template isTypesAttr(alias T) {
+    import unit_threaded.attrs;
+    enum isTypesAttr = is(T) && is(T:Types!U, U...);
+}
+
+template HasTypes(alias T) {
+    import unit_threaded.attrs;
+
+    static if(__traits(compiles, __traits(getAttributes, T))) {
+        enum HasTypes = Filter!(isTypesAttr, __traits(getAttributes, T)).length == 1;
+    }
+    else
+        enum HasTypes = false;
+}
+
+template GetTypes(alias T) {
+    static if(HasTypes!T)
+        alias GetTypes = TemplateArgsOf!(Filter!(isTypesAttr, __traits(getAttributes, T))[0]);
+    else
+        alias GetTypes = AliasSeq!();
+}
+
+
+unittest {
+    import unit_threaded.attrs;
+
+    @Types!(int, float) int i;
+    static assert(HasTypes!i);
+    static assert(is(GetTypes!i == AliasSeq!(int, float)));
+
+}

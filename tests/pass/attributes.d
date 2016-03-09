@@ -88,3 +88,8 @@ void testShouldFailWithAssertionInTestFunction() {
 void testIssue14(int i) {
     (i % 2 == 0).shouldBeFalse;
 }
+
+@Types!(int, byte)
+void testTemplate(T)() {
+    T.init.shouldEqual(0);
+}
