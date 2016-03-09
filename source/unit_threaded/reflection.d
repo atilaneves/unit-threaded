@@ -163,16 +163,9 @@ TestData[] moduleTestClasses(alias module_)() pure nothrow {
     }
 
 
-    mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
-    TestData[] testData;
-    foreach(moduleMember; __traits(allMembers, module_)) {
-        static if(PassesTestPred!(module_, isTestClass, moduleMember)) {
-            testData ~= memberTestData!(module_, moduleMember);
-        }
-    }
-
-    return testData;
+    return moduleTestData!(module_, isTestClass, memberTestData);
 }
+
 
 /**
  * Finds all test functions in the given module.
@@ -218,66 +211,77 @@ TestData[] moduleTestFunctions(alias module_)() pure {
     }
 
 
-    return moduleTestFunctionsImpl!(module_, isTestFunction);
+    return moduleTestData!(module_, isTestFunction, createFuncTestData);
 }
+
+private TestData[] createFuncTestData(alias module_, string moduleMember)() {
+    mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
+    /*
+      Get all the test functions for this module member. There might be more than one
+      when using parametrized unit tests.
+
+      Examples:
+      ------
+      void testFoo() {} // -> the array contains one element, testFoo
+      @(1, 2, 3) void testBar(int) {} // The array contains 3 elements, one for each UDA value
+      @Types!(int, float) void testBaz(T)() {} //The array contains 2 elements, one for each type
+      ------
+    */
+    // if the predicate returned true (which is always the case here), then it's either
+    // a regular function or a templated one. If regular is has a pointer to it
+    enum isRegularFunction = __traits(compiles, &__traits(getMember, module_, moduleMember));
+
+    static if(isRegularFunction) {
+
+        enum func = &__traits(getMember, module_, moduleMember);
+        enum arity = arity!func;
+
+        static assert(arity == 0 || arity == 1, "Test functions may take at most one parameter");
+
+        static if(arity == 0)
+            // the reason we're creating a lambda to call the function is that test functions
+            // are ordinary functions, but we're storing delegates
+            return [ memberTestData!(module_, moduleMember)(() { func(); }) ]; //simple case, just call the function
+        else {
+
+            // the function takes a parameter, check if it has UDAs for value parameters to be passed to it
+            alias params = Parameters!func;
+            static assert(params.length == 1, "Test functions may take at most one parameter");
+
+            alias values = GetAttributes!(module_, moduleMember, params[0]);
+
+            import std.conv;
+            static assert(values.length > 0,
+                          text("Test functions with a parameter of type <", params[0].stringof,
+                               "> must have value UDAs of the same type"));
+
+            TestData[] testData;
+            foreach(v; values) testData ~= memberTestData!(module_, moduleMember)(() { func(v); }, v.to!string);
+            return testData;
+        }
+    } else static if(HasTypes!(mixin(moduleMember))) { //template function with @Types
+        alias types = GetTypes!(mixin(moduleMember));
+        TestData[] testData;
+        foreach(type; types) {
+            testData ~= memberTestData!(module_, moduleMember)(() { mixin(moduleMember ~ `!(` ~ type.stringof ~ `)();`); }, type.stringof);
+        }
+        return testData;
+    }
+}
+
 
 
 // this funtion returns TestData for either classes or test functions
 // built-in unittest modules are handled by moduleUnitTests
-private TestData[] moduleTestFunctionsImpl(alias module_, alias pred)() pure {
+// pred determines what qualifies as a test
+// createTestData must return TestData[]
+private TestData[] moduleTestData(alias module_, alias pred, alias createTestData)() pure {
     mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
     TestData[] testData;
     foreach(moduleMember; __traits(allMembers, module_)) {
 
-        static if(PassesTestPred!(module_, pred, moduleMember)) {
-            /*
-              Get all the test functions for this module member. There might be more than one
-              when using parametrized unit tests.
-
-              Examples:
-              ------
-              void testFoo() {} // -> the array contains one element, testFoo
-              @(1, 2, 3) void testBar(int) {} // The array contains 3 elements, one for each UDA value
-              @Types!(int, float) void testBaz(T)() {} //The array contains 2 elements, one for each type
-              ------
-            */
-            // if the predicate returned true (which is always the case here), then it's either
-            // a regular function or a templated one. If regular is has a pointer to it
-            enum isRegularFunction = __traits(compiles, &__traits(getMember, module_, moduleMember));
-
-            static if(isRegularFunction) {
-
-                enum func = &__traits(getMember, module_, moduleMember);
-                enum arity = arity!func;
-
-                static assert(arity == 0 || arity == 1, "Test functions may take at most one parameter");
-
-                static if(arity == 0)
-                    // the reason we're creating a lambda to call the function is that test functions
-                    // are ordinary functions, but we're storing delegates
-                    testData ~= memberTestData!(module_, moduleMember)(() { func(); }); //simple case, just call the function
-                else {
-
-                    // the function takes a parameter, check if it has UDAs for value parameters to be passed to it
-                    alias params = Parameters!func;
-                    static assert(params.length == 1, "Test functions may take at most one parameter");
-
-                    alias values = GetAttributes!(module_, moduleMember, params[0]);
-
-                    import std.conv;
-                    static assert(values.length > 0,
-                                  text("Test functions with a parameter of type <", params[0].stringof,
-                                       "> must have value UDAs of the same type"));
-
-                    foreach(v; values) testData ~= memberTestData!(module_, moduleMember)(() { func(v); }, v.to!string);
-                }
-            } else static if(HasTypes!(mixin(moduleMember))) { //template function with @Types
-                alias types = GetTypes!(mixin(moduleMember));
-                foreach(type; types) {
-                    testData ~= memberTestData!(module_, moduleMember)(() { mixin(moduleMember ~ `!(` ~ type.stringof ~ `)();`); }, type.stringof);
-                }
-            }
-        }
+        static if(PassesTestPred!(module_, pred, moduleMember))
+            testData ~= createTestData!(module_, moduleMember);
     }
 
     return testData;
