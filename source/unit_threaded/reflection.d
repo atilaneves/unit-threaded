@@ -198,12 +198,18 @@ TestData[] moduleTestFunctions(alias module_)() pure {
     return moduleTestData!(module_, isTestFunction);
 }
 
-private struct TestFunctionSuffix {
+
+private struct TestFunctionWithSuffix {
     TestFunction testFunction;
     string suffix; // used for values automatically passed to functions
+    static TestFunctionWithSuffix testClass() @safe pure nothrow {
+        return TestFunctionWithSuffix();
+    }
 }
 
 
+// this funtion returns TestData for either classes or test functions
+// built-in unittest modules are handled by moduleUnitTests
 private TestData[] moduleTestData(alias module_, alias pred)() pure {
     mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
     TestData[] testData;
@@ -224,7 +230,7 @@ private TestData[] moduleTestData(alias module_, alias pred)() pure {
              ------
              */
 
-            TestFunctionSuffix[] getTestFunctions(alias module_, string moduleMember)() {
+            TestFunctionWithSuffix[] getTestFunctions(alias module_, string moduleMember)() {
                 //returns delegates for test functions, null for test classes
                 static if(__traits(compiles, &__traits(getMember, module_, moduleMember))) {
 
@@ -234,7 +240,7 @@ private TestData[] moduleTestData(alias module_, alias pred)() pure {
                     static assert(arity == 0 || arity == 1, "Test functions may take at most one parameter");
 
                     static if(arity == 0)
-                        return [ TestFunctionSuffix((){ func(); }) ]; //simple case, just call it
+                        return [ TestFunctionWithSuffix((){ func(); }) ]; //simple case, just call it
                     else {
 
                         // check to see if the function has UDAs for parameters to be passed to it
@@ -249,18 +255,17 @@ private TestData[] moduleTestData(alias module_, alias pred)() pure {
                                       text("Test functions with a parameter of type <", params[0].stringof,
                                        "> must have value UDAs of the same type"));
 
-                        TestFunctionSuffix[] functions;
-                        foreach(v; values) functions ~= TestFunctionSuffix((){ func(v); }, v.to!string);
+                        TestFunctionWithSuffix[] functions;
+                        foreach(v; values) functions ~= TestFunctionWithSuffix((){ func(v); }, v.to!string);
                         return functions;
                     }
                 } else static if(HasTypes!(mixin(moduleMember))) {
                     alias types = GetTypes!(mixin(moduleMember));
-                    TestFunctionSuffix[] functions;
-                    foreach(type; types) functions ~= TestFunctionSuffix(() { mixin(moduleMember ~ `!(` ~ type.stringof ~ `)();`); }, type.stringof);
+                    TestFunctionWithSuffix[] functions;
+                    foreach(type; types) functions ~= TestFunctionWithSuffix(() { mixin(moduleMember ~ `!(` ~ type.stringof ~ `)();`); }, type.stringof);
                     return functions;
                 } else {
-                    //test class
-                    return [TestFunctionSuffix(null)];
+                    return [TestFunctionWithSuffix.testClass];
                 }
             }
 
