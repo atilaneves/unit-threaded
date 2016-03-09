@@ -73,21 +73,18 @@ template isTypesAttr(alias T) {
     enum isTypesAttr = is(T) && is(T:Types!U, U...);
 }
 
-template HasTypes(alias T) {
-    import unit_threaded.attrs;
-
-    static if(__traits(compiles, __traits(getAttributes, T))) {
-        enum HasTypes = Filter!(isTypesAttr, __traits(getAttributes, T)).length == 1;
-    }
-    else
-        enum HasTypes = false;
-}
+enum HasTypes(alias T) = GetTypes!T.length > 0;
 
 template GetTypes(alias T) {
-    static if(HasTypes!T)
-        alias GetTypes = TemplateArgsOf!(Filter!(isTypesAttr, __traits(getAttributes, T))[0]);
-    else
+    static if(!__traits(compiles, __traits(getAttributes, T))) {
         alias GetTypes = AliasSeq!();
+    } else {
+        alias types = Filter!(isTypesAttr, __traits(getAttributes, T));
+        static if(types.length > 0)
+            alias GetTypes = TemplateArgsOf!(types[0]);
+        else
+            alias GetTypes = AliasSeq!();
+    }
 }
 
 

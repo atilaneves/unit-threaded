@@ -163,26 +163,21 @@ TestData[] moduleTestFunctions(alias module_)() pure {
     template isTestFunction(alias module_, string moduleMember) {
         mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
 
-        // AliasSeq aren't passed as a single argument, but isSomeFunction only takes one
-        static if(AliasSeq!(mixin(moduleMember)).length == 1 && isSomeFunction!(mixin(moduleMember))) {
-
+        static if(AliasSeq!(mixin(moduleMember)).length != 1) {
+            enum isTestFunction = false;
+        } else static if(isSomeFunction!(mixin(moduleMember))) {
             enum isTestFunction = hasTestPrefix!(module_, moduleMember) ||
                                   HasAttribute!(module_, moduleMember, UnitTest);
-
-            // next we handle the case where it could be a template function, e.g.
-            // ----------
-            // void testTypes(T)() { }
-            // ---------
-        } else static if(AliasSeq!(mixin(moduleMember)).length == 1 &&
-                         hasTestPrefix!(module_, moduleMember) &&
-                         HasTypes!(mixin(moduleMember))) {
-
+        } else {
+            // in this case we handle the possibility of a template function with
+            // the @Types UDA attached to it
             alias types = GetTypes!(mixin(moduleMember));
-            enum isTestFunction = is(typeof((){
-                mixin(moduleMember ~ `!` ~ types[0].stringof ~ `;`);
-            }));
-        } else
-            enum isTestFunction = false;
+            enum isTestFunction = hasTestPrefix!(module_, moduleMember) &&
+                                  types.length > 0 &&
+                                  is(typeof(() {
+                                      mixin(moduleMember ~ `!` ~ types[0].stringof ~ `;`);
+                                  }));
+        }
     }
 
     template hasTestPrefix(alias module_, string member) {
