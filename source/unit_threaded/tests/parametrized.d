@@ -12,7 +12,7 @@ version(unittest) {
         assert(i % 2 != 0);
     }
 
-    @Types!(int, float)
+    @Types!(float, int)
     void testTypes(T)() {
         assert(T.init == 0);
     }

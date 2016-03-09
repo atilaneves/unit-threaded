@@ -221,29 +221,36 @@ private TestData[] moduleTestData(alias module_, alias pred)() pure {
                   !HasAttribute!(module_, moduleMember, DontTest)) {
 
             /*
-             This function returns an array because it might find a test function that takes
-             a parameter with UDAs of the appropriate type. One "real" test function is returned
-             for each one of those. Examples:
-             ------
-             void testFoo() {} // -> the array contains one element, testFoo
-             @(1, 2, 3) void testBar(int) {} // The array contains 3 elements, one for each UDA value
-             ------
-             */
+              Get all the test functions for this module member. There might be more than one
+              when using parametrized unit tests. It might instead be a class, in which
+              case there are no test functions, but we return an array of 1 in that case.
+
+              Examples:
+              ------
+              void testFoo() {} // -> the array contains one element, testFoo
+              @(1, 2, 3) void testBar(int) {} // The array contains 3 elements, one for each UDA value
+              @Types!(int, float) void testBaz(T)() {} //The array contains 2 elements, one for each type
+              ------
+            */
 
             TestFunctionWithSuffix[] getTestFunctions(alias module_, string moduleMember)() {
-                //returns delegates for test functions, null for test classes
-                static if(__traits(compiles, &__traits(getMember, module_, moduleMember))) {
+                // if the predicate returned true (which is always the case here), then it's
+                // either a function or a class. If it's a function, it has a pointer to it
+                enum isFunction = __traits(compiles, &__traits(getMember, module_, moduleMember));
 
+                static if(isFunction) {
                     enum func = &__traits(getMember, module_, moduleMember);
                     enum arity = arity!func;
 
                     static assert(arity == 0 || arity == 1, "Test functions may take at most one parameter");
 
                     static if(arity == 0)
+                        // the reason we're creating a lambda to call the function is that test functions
+                        // are ordinary functions, but we're storing delegates
                         return [ TestFunctionWithSuffix((){ func(); }) ]; //simple case, just call it
                     else {
 
-                        // check to see if the function has UDAs for parameters to be passed to it
+                        // check to see if the function has UDAs for value parameters to be passed to it
 
                         alias params = Parameters!func;
                         static assert(params.length == 1, "Test functions may take at most one parameter");
@@ -272,17 +279,10 @@ private TestData[] moduleTestData(alias module_, alias pred)() pure {
             auto functions = getTestFunctions!(module_, moduleMember);
             foreach(f; functions) {
                 //if there is more than one function, they're all single threaded - multiple values per test call
-                //this is slightly hackish but works and actually makes sense - it causes factory to make
+                //this is slightly hackish but works and actually makes sense - it causes unit_threaded.factory to make
                 //a CompositeTestCase out of them
-                immutable singleThreaded = functions.length > 1 || HasAttribute!(module_, moduleMember, Serial);
-                enum builtin = false;
-                testData ~= TestData(fullyQualifiedName!module_~ "." ~ moduleMember,
-                                     f.testFunction,
-                                     HasAttribute!(module_, moduleMember, HiddenTest),
-                                     HasAttribute!(module_, moduleMember, ShouldFail),
-                                     singleThreaded,
-                                     builtin,
-                                     f.suffix);
+                immutable enforceSerial = functions.length > 1;
+                testData ~= memberTestData!(module_, moduleMember)(enforceSerial, f.testFunction, f.suffix);
             }
         }
     }
@@ -290,6 +290,18 @@ private TestData[] moduleTestData(alias module_, alias pred)() pure {
     return testData;
 }
 
+// TestData for a member of a module (either a test function or test class)
+private TestData memberTestData(alias module_, string moduleMember)(bool enforceSerial = false, TestFunction testFunction = null, string suffix = "") {
+    enum builtin = false;
+    immutable singleThreaded = HasAttribute!(module_, moduleMember, Serial) || enforceSerial;
+    return TestData(fullyQualifiedName!module_~ "." ~ moduleMember,
+                    testFunction,
+                    HasAttribute!(module_, moduleMember, HiddenTest),
+                    HasAttribute!(module_, moduleMember, ShouldFail),
+                    singleThreaded,
+                    builtin,
+                    suffix);
+}
 
 version(unittest) {
 
@@ -333,14 +345,16 @@ unittest {
 
     // there should only be on test case which is a composite of the 3 values in testValues
     auto composite = cast(CompositeTestCase)createTestCases(testData)[0];
+    auto tests = composite.tests;
+    assertEqual(tests.length, 3);
 
     // the first and third test should pass, the second should fail
-    composite.tests[0]();
-    composite.tests[2]();
+    tests[0]();
+    tests[2]();
 
     try {
-        composite.tests[1].silence;
-        composite.tests[1]();
+        tests[1].silence;
+        tests[1]();
         assert(false);
     } catch(AssertError) { }
 }
@@ -353,20 +367,21 @@ unittest {
     import core.exception;
 
     const testData = allTestData!(unit_threaded.tests.parametrized).filter!(a => a.name.endsWith("testTypes")).array;
-    const expected = addModPrefix(["testTypes.int", "testTypes.float"], "unit_threaded.tests.parametrized");
+    const expected = addModPrefix(["testTypes.float", "testTypes.int"], "unit_threaded.tests.parametrized");
     const actual = testData.map!(a => a.getPath).array;
     assertEqual(actual, expected);
 
     // there should only be on test case which is a composite of the 2 testTypes
     auto composite = cast(CompositeTestCase)createTestCases(testData)[0];
     auto tests = composite.tests;
+    assertEqual(tests.map!(a => a.getPath).array, expected);
 
-    // the first should pass, the second should fail
-    composite.tests[0]();
+    // the second should pass, the first should fail
+    tests[1]();
 
     try {
-        composite.tests[1].silence;
-        composite.tests[1]();
+        tests[0].silence;
+        tests[0]();
         assert(false);
     } catch(AssertError) { }
 }
