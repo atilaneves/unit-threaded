@@ -93,7 +93,7 @@ unittest {
 You can also have multiple configurations for running unit tests, e.g. one that uses
 the standard D runtime unittest runner and one that uses unit-threaded:
 
-```json
+
     "configurations": [
         {"name": "ut_default"},
         {
@@ -103,7 +103,7 @@ the standard D runtime unittest runner and one that uses unit-threaded:
           ...
         }
     ]
-```
+
 
 In this example, `dub test -c ut_default` runs as usual if you don't use this
 library, and `dub test` runs with the unit-threaded test runner.
