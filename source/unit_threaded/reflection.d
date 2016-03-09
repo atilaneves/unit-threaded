@@ -266,15 +266,17 @@ private TestData[] moduleTestData(alias module_, alias pred)() pure {
 }
 
 
+version(unittest) {
 
-import unit_threaded.tests.module_with_tests; //defines tests and non-tests
-import unit_threaded.asserts;
-import std.algorithm;
-import std.array;
+    import unit_threaded.tests.module_with_tests; //defines tests and non-tests
+    import unit_threaded.asserts;
+    import std.algorithm;
+    import std.array;
 
-//helper function for the unittest blocks below
-private auto addModPrefix(string[] elements, string module_ = "unit_threaded.tests.module_with_tests") nothrow {
-    return elements.map!(a => module_ ~ "." ~ a).array;
+    //helper function for the unittest blocks below
+    private auto addModPrefix(string[] elements, string module_ = "unit_threaded.tests.module_with_tests") nothrow {
+        return elements.map!(a => module_ ~ "." ~ a).array;
+    }
 }
 
 unittest {
@@ -284,8 +286,9 @@ unittest {
 }
 
 unittest {
-    const expected = addModPrefix([ "testFoo", "testBar", "funcThatShouldShowUpCosOfAttr" ]);
-    const actual = moduleTestFunctions!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
+    const expected = addModPrefix([ "testFoo", "testBar", "funcThatShouldShowUpCosOfAttr",
+                                    "testValues.1", "testValues.2", "testValues.3" ]);
+    const actual = moduleTestFunctions!(unit_threaded.tests.module_with_tests).map!(a => a.getPath).array;
     assertEqual(actual, expected);
 }
 
@@ -294,4 +297,27 @@ unittest {
     const expected = addModPrefix(["unittest0", "unittest1", "myUnitTest"]);
     const actual = moduleUnitTests!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
     assertEqual(actual, expected);
+}
+
+@("Test that parametrized value tests work")
+unittest {
+    import unit_threaded.factory;
+    import unit_threaded.testcase;
+
+    import core.exception;
+
+    const testData = allTestData!(unit_threaded.tests.parametrized).filter!(a => a.name.endsWith("testValues")).array;
+
+    // there should only be on test case which is a composite of the 3 values in testValues
+    auto composite = cast(CompositeTestCase)createTestCases(testData)[0];
+
+    // the first and third test should pass, the second should fail
+    composite.tests[0]();
+    composite.tests[2]();
+
+    try {
+        composite.tests[1].silence;
+        composite.tests[1]();
+        assert(false);
+    } catch(AssertError) { }
 }

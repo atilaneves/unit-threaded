@@ -1,3 +1,7 @@
+/**
+ A module with tests to test the compile-time reflection
+ */
+
 module unit_threaded.tests.module_with_tests;
 
 import unit_threaded.attrs;
@@ -31,6 +35,11 @@ version(unittest) {
 
     //other non-test members
     alias seq = AliasSeq!(int, float, string);
+
+    @(1, 2, 3)
+    void testValues(int i) {
+        assert(i % 2 != 0);
+    }
 }
 
 
@@ -47,4 +56,10 @@ unittest {
 @Name("myUnitTest")
 unittest {
     assert(true);
+}
+
+
+@Types!(int, byte)
+void testTypes(T)() {
+    assert(T.init == 0);
 }

@@ -20,3 +20,5 @@ struct ShouldFail {
 struct Name {
     string value;
 }
+
+template Types(T...) {}
