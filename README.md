@@ -119,9 +119,70 @@ To use unit-threaded's assertions or UDA-based features, you must import the lib
 If using a custom dub configuration for unit-threaded as shown above, a version
 block can be used on `Have_unit_threaded` (this is added by dub to the build).
 
+Advanced Usage, Attributes
+--------------------------
 
-Advanced Usage
--------------
+`@ShouldFail` is used to decorate a test that is
+expected to fail, and can be passed a string to explain why.
+`@ShouldFail` should be preferred to `@HiddenTest`. If the
+relevant bug is fixed or not-yet-implemented functionality is done,
+the test will then fail, which makes them harder to sweep
+under the carpet and forget about.
+
+Since code under test might not be thread-safe, the `@Serial`
+attribute can be used on a test. This causes all tests in the same
+module that have this attribute to be executed sequentially so they
+don't interleave with one another.
+
+The `@UnitTest` and `@DontTest` attributes are explained below.
+
+There is support for parametrized tests. This means running the test
+code multiple times, either with different values or different types.
+At the moment this feature cannot be used with the built-in unittest
+blocks.
+
+For values, declare a test function that takes exactly one parameter
+of the type of the value to pass to it and add UDAs with the values
+desired, e.g.
+
+```d
+@(2, 4, 6)
+void testEven(int i) {
+    (i % 0 == 2).shouldBeTrue;
+}
+```
+
+This will run the testEven code 3 times, and the reporting will consider
+it to be 3 separate tests.
+
+For types, use the `@Types` UDA on a template function with exactly
+one compile-time parameter:
+
+```d
+@Types!(int, byte)
+void testInit(T)() {
+    T.init.shouldEqual(0);
+}
+```
+
+
+Command-line Parameters
+-----------------------
+
+There is support for debug prints in the tests with the `-d` switch.
+This is only supported in single-threaded mode (`-s`). Setting `-d`
+without `-s` will trigger a warning followed by the forceful use of
+`-s`.  TestCases and test functions can print debug output with the
+function `writelnUt` available [here](source/unit_threaded/io.d).
+
+Tests can be run in random order instead of in threads.  To do so, use
+the `-r` option.  A seed will be printed so that the same run can be
+repeated by using the `--seed` option. This implies running in a
+single thread.
+
+
+Test Registration and Test Runner
+---------------------------------
 
 There are two example programs in the [`example`](example/) folder,
 one with passing unit tests and the other failing, to show what the
@@ -145,8 +206,8 @@ There is no need to register tests. The registration is implicit
 and happens with:
 
 * D's `unittest`` blocks
-* Classes that derive from `TestCase` and override `test()`
 * Functions with a camelCase name beginning with `test` (e.g. `testFoo()`)
+* Classes that derive from `TestCase` and override `test()`
 
 The modules to be reflected on must be specified when calling
 `runTests`, but that's usually done as shown in the dub configuration
@@ -163,19 +224,6 @@ by passing its name as a command-line argument. `HiddenTest` takes
 a compile-time string to list the reason why the test is hidden. This
 would usually be a bug id but can be anything the user wants.
 
-Similarly, `@ShouldFail` is used to decorate a test that is
-expected to fail, an also requires a compile-time string.
-`@ShouldFail` should be preferred to `@HiddenTest`. If the
-relevant bug is fixed or not-yet-implemented functionality is done,
-the test will then fail, which makes them harder to sweep
-under the carpet and forget about.
-
-It is possible to instantiate a function test case multiple times,
-once per value to be passed in. To do so, simply declare a test
-function that takes on parameter and add UDAs of that type to
-the test function. The `testValues` function in the
-[attributes test](tests/pass/attributes.d) is an example of this.
-
 Since D packages are just directories and there the compiler can't
 read the filesystem at compile-time, there is no way to automatically
 add all tests in a package.  To mitigate this and avoid having to
@@ -183,21 +231,7 @@ manually write the name of all the modules containing tests,
 a dub configuration called `gen_ut_main` runs unit-threaded as
 a command-line utility to write the file for you.
 
-There is support for debug prints in the tests with the `-d` switch.
-This is only supported in single-threaded mode (`-s`). Setting `-d`
-without `-s` will trigger a warning followed by the forceful use of
-`-s`.  TestCases and test functions can print debug output with the
-function `writelnUt` available [here](source/unit_threaded/io.d).
 
-Tests can be run in random order instead of in threads.  To do so, use
-the `-r` option.  A seed will be printed so that the same run can be
-repeated by using the `--seed` option. This implies running in a
-single thread.
-
-Since code under test might not be thread-safe, the `@Serial`
-attribute can be used on a test. This causes all tests in the same
-module that have this attribute to be executed sequentially so they
-don't interleave with one another.
 
 Related Projects
 ----------------
