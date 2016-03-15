@@ -145,14 +145,24 @@ don't interleave with one another.
 
 The `@UnitTest` and `@DontTest` attributes are explained below.
 
-There is support for parametrized tests. This means running the test
+There is support for parameterized tests. This means running the test
 code multiple times, either with different values or different types.
 At the moment this feature cannot be used with the built-in unittest
 blocks.
 
-For values, declare a test function that takes exactly one parameter
-of the type of the value to pass to it and add UDAs with the values
-desired, e.g.
+For values and built-in unit tests, use the `@Values` UDA to supply
+test values and `getValue` with the appropriate type to retrive them:
+
+```d
+@Values(2, 4, 6)
+unittest {
+    assert(getValue!int % 0 == 2);
+}
+```
+
+You can also declare a test function that takes exactly
+one parameter of the type of the value to pass to it and add UDAs with
+the values desired, e.g.
 
 ```d
 @(2, 4, 6)
@@ -161,8 +171,8 @@ void testEven(int i) {
 }
 ```
 
-This will run the testEven code 3 times, and the reporting will consider
-it to be 3 separate tests.
+In both cases the test code will be run 3 times, and the reporting
+will consider it to be 3 separate tests.
 
 For types, use the `@Types` UDA on a template function with exactly
 one compile-time parameter:
@@ -173,6 +183,9 @@ void testInit(T)() {
     T.init.shouldEqual(0);
 }
 ```
+
+The `@Name` UDA can be used instead of a plain string in order to name
+a `unittest` block.
 
 
 Command-line Parameters

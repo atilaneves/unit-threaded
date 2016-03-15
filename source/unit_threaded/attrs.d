@@ -37,10 +37,6 @@ struct Name {
 struct Types(T...) {}
 
 
-struct ValuesImpl(T) {
-    T[] values;
-}
-
 /**
  Used as a UDA for built-in unittests to enable value-parametrized tests.
  Example:
@@ -54,6 +50,10 @@ struct ValuesImpl(T) {
  */
 ValuesImpl!T Values(T)(T[] values...) {
     return ValuesImpl!T(values.dup);
+}
+
+struct ValuesImpl(T) {
+    T[] values;
 }
 
 /**
