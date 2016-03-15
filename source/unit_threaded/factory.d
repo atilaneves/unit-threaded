@@ -13,23 +13,6 @@ import std.array;
 import std.string;
 import core.runtime;
 
-/**
- * Replace the D runtime's normal unittest block tester with our own
- */
-shared static this() {
-    Runtime.moduleUnitTester = &moduleUnitTester;
-}
-
-private bool moduleUnitTester() {
-    //this is so unit-threaded's own tests run
-    foreach(module_; ModuleInfo) {
-        if(module_ && module_.unitTest && module_.name.startsWith("unit_threaded")) {
-            module_.unitTest()();
-        }
-    }
-
-    return true;
-}
 
 private CompositeTestCase[string] serialComposites;
 
