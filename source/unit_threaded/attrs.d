@@ -35,3 +35,35 @@ struct Name {
  *  the UDA code to filter a template out
  */
 struct Types(T...) {}
+
+
+struct ValuesImpl(T) {
+    T[] values;
+}
+
+/**
+ Used as a UDA for built-in unittests to enable value-parametrized tests.
+ Example:
+ -------
+ @Values(1, 2, 3) unittest { assert(getValue!int % 2 == 0); }
+ -------
+ The example above results in unit_threaded running the unit tests 3 times,
+ once for each value declared.
+
+ See `getValue`.
+ */
+ValuesImpl!T Values(T)(T[] values...) {
+    return ValuesImpl!T(values.dup);
+}
+
+/**
+ Retrieves the current test value of type T in a built-in unittest.
+ See `Values`.
+ */
+T getValue(T)() {
+    return ValueHolder!T.value;
+}
+
+package struct ValueHolder(T) {
+    static T value;
+}

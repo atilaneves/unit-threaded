@@ -7,6 +7,6 @@ import std.conv;
 /**
  * Helper to call the standard assert
  */
-void assertEqual(T, U)(T t, U u) {
-    assert(t == u, "\nExp: " ~ to!string(u) ~ "\nGot: " ~ to!string(t));
+void assertEqual(T, U)(T t, U u, string file = __FILE__, ulong line = __LINE__) @trusted /* std.conv.to */ {
+    assert(t == u, "\n" ~ file ~ ":" ~ line.to!string ~ "\nExp: " ~ u.to!string ~ "\nGot: " ~ t.to!string);
 }

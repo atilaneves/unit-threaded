@@ -192,10 +192,10 @@ shared static this() {
 private bool moduleUnitTester() {
     //this is so unit-threaded's own tests run
     foreach(module_; ModuleInfo) {
-        if(module_ && module_.unitTest) {
-            if(startsWith(module_.name, "unit_threaded.")) {
-                module_.unitTest()();
-            }
+        if(module_ && module_.unitTest &&
+           module_.name.startsWith("unit_threaded") && // we want to run the "normal" unit tests
+           !module_.name.startsWith("unit_threaded.tests")) { //but not the ones from the test modules
+            module_.unitTest()();
         }
     }
 

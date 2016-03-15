@@ -111,7 +111,22 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
         enum shouldFail = hasUDA!(test, ShouldFail);
         enum singleThreaded = hasUDA!(test, Serial);
         enum builtin = true;
-        testData ~= TestData(name, (){ test(); }, hidden, shouldFail, singleThreaded, builtin);
+
+        // let's check for @Values UDAs, which are actually of type ValuesImpl
+        enum isValues(alias T) = is(typeof(T)) && is(typeof(T):ValuesImpl!U, U);
+        enum valuesUDAs = Filter!(isValues, __traits(getAttributes, test));
+        static if(valuesUDAs.length == 0) {
+            testData ~= TestData(name, (){ test(); }, hidden, shouldFail, singleThreaded, builtin);
+        } else {
+            static assert(valuesUDAs.length == 1, "Can only use @Values once");
+            foreach(value; valuesUDAs[0].values) {
+                // force single threaded so a composite test case is created
+                // we set a global static to the value the test expects then call the test function,
+                // which can retrieve the value with getValue!T
+                testData ~= TestData(name, () { ValueHolder!(typeof(value)).value = value; test(); },
+                                     hidden, shouldFail, true /*serial*/, builtin);
+            }
+        }
     }
     return testData;
 }
@@ -263,7 +278,9 @@ private TestData[] createFuncTestData(alias module_, string moduleMember)() {
         alias types = GetTypes!(mixin(moduleMember));
         TestData[] testData;
         foreach(type; types) {
-            testData ~= memberTestData!(module_, moduleMember)(() { mixin(moduleMember ~ `!(` ~ type.stringof ~ `)();`); }, type.stringof);
+            testData ~= memberTestData!(module_, moduleMember)(() {
+                    mixin(moduleMember ~ `!(` ~ type.stringof ~ `)();`);
+                }, type.stringof);
         }
         return testData;
     }
@@ -337,28 +354,39 @@ unittest {
     assertEqual(actual, expected);
 }
 
+version(unittest) {
+    import unit_threaded.testcase: TestCase;
+    private void assertFail(TestCase test, string file = __FILE__, ulong line = __LINE__) {
+        import core.exception;
+        import std.conv;
+
+        try {
+            test.silence;
+            assert(test() != [], file ~ ":" ~ line.to!string ~ " Test was expected to fail but didn't");
+            assert(false, file ~ ":" ~ line.to!string ~ " Expected test case " ~ test.getPath ~
+                   " to fail with AssertError but it didn't");
+        } catch(AssertError) {}
+    }
+}
+
 @("Test that parametrized value tests work")
 unittest {
     import unit_threaded.factory;
     import unit_threaded.testcase;
-    import core.exception;
 
     const testData = allTestData!(unit_threaded.tests.parametrized).filter!(a => a.name.endsWith("testValues")).array;
 
     // there should only be on test case which is a composite of the 3 values in testValues
     auto composite = cast(CompositeTestCase)createTestCases(testData)[0];
+    assert(composite !is null, "Wrong dynamic type for TestCase");
     auto tests = composite.tests;
     assertEqual(tests.length, 3);
 
     // the first and third test should pass, the second should fail
-    tests[0]();
-    tests[2]();
+    assertEqual(tests[0](), []);
+    assertEqual(tests[2](), []);
 
-    try {
-        tests[1].silence;
-        tests[1]();
-        assert(false);
-    } catch(AssertError) { }
+    assertFail(tests[1]);
 }
 
 
@@ -366,7 +394,6 @@ unittest {
 unittest {
     import unit_threaded.factory;
     import unit_threaded.testcase;
-    import core.exception;
 
     const testData = allTestData!(unit_threaded.tests.parametrized).filter!(a => a.name.endsWith("testTypes")).array;
     const expected = addModPrefix(["testTypes.float", "testTypes.int"], "unit_threaded.tests.parametrized");
@@ -375,15 +402,34 @@ unittest {
 
     // there should only be on test case which is a composite of the 2 testTypes
     auto composite = cast(CompositeTestCase)createTestCases(testData)[0];
+    assert(composite !is null, "Wrong dynamic type for TestCase");
     auto tests = composite.tests;
     assertEqual(tests.map!(a => a.getPath).array, expected);
 
     // the second should pass, the first should fail
-    tests[1]();
+    assertEqual(tests[1](), []);
 
-    try {
-        tests[0].silence;
-        tests[0]();
-        assert(false);
-    } catch(AssertError) { }
+    assertFail(tests[0]);
+}
+
+@("Test that value parametrized built-in unittest blocks work")
+unittest {
+    import unit_threaded.factory;
+    import unit_threaded.testcase;
+
+    const testData = allTestData!(unit_threaded.tests.parametrized).filter!(a => a.name.endsWith("builtinValues")).array;
+
+    // there should only be on test case which is a composite of the 4 values
+    auto composite = cast(CompositeTestCase)createTestCases(testData)[0];
+    assert(composite !is null, "Wrong dynamic type for TestCase");
+    auto tests = composite.tests;
+    assertEqual(tests.length, 4);
+
+    // these should be ok
+    assertEqual(tests[1](), []);
+    assertEqual(tests[3](), []);
+
+    //these should fail
+    assertFail(tests[0]);
+    assertFail(tests[2]);
 }
