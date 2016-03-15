@@ -4,8 +4,9 @@
 
 module unit_threaded.tests.parametrized;
 
+import unit_threaded.attrs;
+
 version(unittest) {
-    import unit_threaded;
 
     @(1, 2, 3)
     void testValues(int i) {
@@ -16,4 +17,12 @@ version(unittest) {
     void testTypes(T)() {
         assert(T.init == 0);
     }
+}
+
+@("builtinValues")
+@Values(2, 3, 4, 5)
+unittest {
+    import std.conv;
+    immutable i = getValue!int;
+    assert(i % 2 != 0, i.to!string ~ " is not odd");
 }
