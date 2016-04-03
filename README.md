@@ -58,7 +58,7 @@ project, you can use a `unittest` configuration as exemplified in this
             "name": "unittest",
             "preBuildCommands": ["dub run unit-threaded -c gen_ut_main -- -f bin/ut.d"],
             "mainSourceFile": "bin/ut.d",
-            "excludedSourceFiles": "src/main.d",
+            "excludedSourceFiles": ["src/main.d"],
             "dependencies": {
                 "unit-threaded": "~>0.6.0"
             }
