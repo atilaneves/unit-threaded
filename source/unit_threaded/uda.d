@@ -1,5 +1,6 @@
 module unit_threaded.uda;
 
+import unit_threaded.meta;
 import std.traits;
 import std.meta;
 
@@ -8,7 +9,7 @@ import std.meta;
  * the given UDA. UDAs can be types or values.
  */
 template HasAttribute(alias module_, string member, alias attribute) {
-    mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
+    mixin(importMember!module_(member));
 
     static if(!__traits(compiles, __traits(getAttributes, mixin(member))))
         enum HasAttribute = false;
@@ -32,7 +33,7 @@ template HasAttribute(alias module_, string member, alias attribute) {
  * the given UDA. UDAs can be types or values.
  */
 template GetAttributes(alias module_, string member, A) {
-    mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
+    mixin(importMember!module_(member));
     enum isAttribute(alias T) = is(TypeOf!T == A);
     alias GetAttributes = Filter!(isAttribute, __traits(getAttributes, mixin(member)));
 }

@@ -2,6 +2,7 @@ module unit_threaded.reflection;
 
 import unit_threaded.attrs;
 import unit_threaded.uda;
+import unit_threaded.meta;
 import std.traits;
 import std.typetuple;
 
@@ -143,11 +144,23 @@ unittest {
     static assert(!isStringUDA!5);
 }
 
+private template isPrivate(alias module_, string moduleMember) {
+    mixin(`import ` ~ fullyQualifiedName!module_ ~ `: ` ~ moduleMember ~ `;`);
+    static if(__traits(compiles, isSomeFunction!(mixin(moduleMember)))) {
+        enum isPrivate = false;
+    } else {
+        enum isPrivate = true;
+    }
+}
+
 
 // if this member is a test function or class, given the predicate
 private template PassesTestPred(alias module_, alias pred, string moduleMember) {
-    mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
+    //should be the line below instead but a compiler bug prevents it
+    //mixin(importMember!module_(moduleMember));
+    mixin("import " ~ fullyQualifiedName!module_ ~ ";");
     enum notPrivate = __traits(compiles, mixin(moduleMember)); //only way I know to check if private
+    //enum notPrivate = !isPrivate!(module_, moduleMember);
     static if(notPrivate)
         enum PassesTestPred = notPrivate && pred!(module_, moduleMember) &&
                               !HasAttribute!(module_, moduleMember, DontTest);
@@ -163,8 +176,10 @@ private template PassesTestPred(alias module_, alias pred, string moduleMember) 
 TestData[] moduleTestClasses(alias module_)() pure nothrow {
 
     template isTestClass(alias module_, string moduleMember) {
-        mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
-        static if(!__traits(compiles, isAggregateType!(mixin(moduleMember)))) {
+        mixin(importMember!module_(moduleMember));
+        static if(isPrivate!(module_, moduleMember)) {
+            enum isTestClass = false;
+        } else static if(!__traits(compiles, isAggregateType!(mixin(moduleMember)))) {
             enum isTestClass = false;
         } else static if(!isAggregateType!(mixin(moduleMember))) {
             enum isTestClass = false;
@@ -191,9 +206,11 @@ TestData[] moduleTestFunctions(alias module_)() pure {
     enum isTypesAttr(alias T) = is(T) && is(T:Types!U, U...);
 
     template isTestFunction(alias module_, string moduleMember) {
-        mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
+        mixin(importMember!module_(moduleMember));
 
-        static if(AliasSeq!(mixin(moduleMember)).length != 1) {
+        static if(isPrivate!(module_, moduleMember)) {
+            enum isTestFunction = false;
+        } else static if(AliasSeq!(mixin(moduleMember)).length != 1) {
             enum isTestFunction = false;
         } else static if(isSomeFunction!(mixin(moduleMember))) {
             enum isTestFunction = hasTestPrefix!(module_, moduleMember) ||
@@ -212,7 +229,7 @@ TestData[] moduleTestFunctions(alias module_)() pure {
 
     template hasTestPrefix(alias module_, string member) {
         import std.uni: isUpper;
-        mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
+        mixin(importMember!module_(member));
 
         enum prefix = "test";
         enum minSize = prefix.length + 1;
@@ -230,7 +247,7 @@ TestData[] moduleTestFunctions(alias module_)() pure {
 }
 
 private TestData[] createFuncTestData(alias module_, string moduleMember)() {
-    mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
+    mixin(importMember!module_(moduleMember));
     /*
       Get all the test functions for this module member. There might be more than one
       when using parametrized unit tests.
@@ -283,6 +300,8 @@ private TestData[] createFuncTestData(alias module_, string moduleMember)() {
                 }, type.stringof);
         }
         return testData;
+    } else {
+        return [];
     }
 }
 

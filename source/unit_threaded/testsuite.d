@@ -9,6 +9,7 @@ import unit_threaded.testcase;
 import unit_threaded.io;
 import unit_threaded.options;
 import unit_threaded.factory;
+import unit_threaded.reflection;
 import std.datetime;
 import std.parallelism : taskPool;
 import std.algorithm;
