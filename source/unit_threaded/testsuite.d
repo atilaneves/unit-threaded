@@ -159,7 +159,7 @@ private:
         if (!_failures.empty)
             utWriteln("");
         foreach (failure; _failures) {
-            utWrite("Test ", failure, " ");
+            utWrite("Test ", (failure.canFind(" ") ? `"` ~ failure ~ `"` : failure), " ");
             utWriteRed("failed");
             utWriteln(".");
         }
