@@ -150,10 +150,11 @@ class BuiltinTestCase: FunctionTestCase {
     }
 
     override void test() {
-        try {
+        try
             super.test();
-        } catch(Throwable t) {
+        catch(UnitTestException e)
+            throw e;
+        catch(Throwable t)
             utFail(t.msg, t.file, t.line);
-        }
     }
 }
