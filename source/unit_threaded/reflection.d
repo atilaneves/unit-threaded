@@ -117,16 +117,25 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
         enum isValues(alias T) = is(typeof(T)) && is(typeof(T):ValuesImpl!U, U);
         enum valuesUDAs = Filter!(isValues, __traits(getAttributes, test));
         static if(valuesUDAs.length == 0) {
-            testData ~= TestData(name, (){ test(); }, hidden, shouldFail, singleThreaded, builtin);
+            int i = 1;
+            import unit_threaded.io;
+            testData ~= TestData(name, (){ writelnUt("foo"); test(); }, hidden, shouldFail, singleThreaded, builtin);
         } else {
             static assert(valuesUDAs.length == 1, "Can only use @Values once");
-            foreach(value; valuesUDAs[0].values) {
+            foreach(i, value; aliasSeqOf!(valuesUDAs[0].values)) {
                 import std.conv;
                 // force single threaded so a composite test case is created
                 // we set a global static to the value the test expects then call the test function,
                 // which can retrieve the value with getValue!T
+                auto boo = () {
+                    ValueHolder!(typeof(value)).value = value;
+                    test();
+                };
                 testData ~= TestData(name ~ "." ~ value.to!string,
-                                     () { ValueHolder!(typeof(value)).value = value; test(); },
+                                     () {
+                                         ValueHolder!(typeof(value)).value = value;
+                                         test();
+                                     },
                                      hidden, shouldFail, true /*serial*/, builtin);
             }
         }
@@ -290,7 +299,8 @@ private TestData[] createFuncTestData(alias module_, string moduleMember)() {
                                "> must have value UDAs of the same type"));
 
             TestData[] testData;
-            foreach(v; values) testData ~= memberTestData!(module_, moduleMember)(() { func(v); }, v.to!string);
+            foreach(v; values)
+                testData ~= memberTestData!(module_, moduleMember)(() { func(v); }, v.to!string);
             return testData;
         }
     } else static if(HasTypes!(mixin(moduleMember))) { //template function with @Types
@@ -455,29 +465,10 @@ unittest {
     auto tests = composite.tests;
     assertEqual(tests.length, 4);
 
-    // these should be ok
     assertEqual(tests[1](), []);
-    assertEqual(tests[3](), []);
 
     //these should fail
     assertFail(tests[0]);
     assertFail(tests[2]);
-}
-
-@("Test that string value parametrized built-in unittest blocks work")
-unittest {
-    import unit_threaded.factory;
-    import unit_threaded.testcase;
-
-    const testData = allTestData!(unit_threaded.tests.parametrized).
-        filter!(a => a.name.canFind("builtinStringValues")).array;
-
-    // there should only be on test case which is a composite of the 4 values
-    auto composite = cast(CompositeTestCase)createTestCases(testData)[0];
-    assert(composite !is null, "Wrong dynamic type for TestCase");
-    auto tests = composite.tests;
-
-    assertEqual(tests.length, 2);
-    assertEqual(tests[1](), []);
-    assertFail(tests[0]);
+    assertFail(tests[3]);
 }

@@ -24,12 +24,5 @@ version(unittest) {
 unittest {
     import std.conv;
     immutable i = getValue!int;
-    assert(i % 2 != 0, i.to!string ~ " is not odd");
-}
-
-
-@("builtinStringValues")
-@Values("foo", "toto")
-unittest {
-    assert(getValue!string == "toto");
+    assert(i == 3);
 }
