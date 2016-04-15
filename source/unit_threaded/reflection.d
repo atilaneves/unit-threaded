@@ -121,10 +121,12 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
         } else {
             static assert(valuesUDAs.length == 1, "Can only use @Values once");
             foreach(value; valuesUDAs[0].values) {
+                import std.conv;
                 // force single threaded so a composite test case is created
                 // we set a global static to the value the test expects then call the test function,
                 // which can retrieve the value with getValue!T
-                testData ~= TestData(name, () { ValueHolder!(typeof(value)).value = value; test(); },
+                testData ~= TestData(name ~ "." ~ value.to!string,
+                                     () { ValueHolder!(typeof(value)).value = value; test(); },
                                      hidden, shouldFail, true /*serial*/, builtin);
             }
         }
@@ -445,7 +447,7 @@ unittest {
     import unit_threaded.testcase;
 
     const testData = allTestData!(unit_threaded.tests.parametrized).
-        filter!(a => a.name.endsWith("builtinIntValues")).array;
+        filter!(a => a.name.canFind("builtinIntValues")).array;
 
     // there should only be on test case which is a composite of the 4 values
     auto composite = cast(CompositeTestCase)createTestCases(testData)[0];
@@ -468,7 +470,7 @@ unittest {
     import unit_threaded.testcase;
 
     const testData = allTestData!(unit_threaded.tests.parametrized).
-        filter!(a => a.name.endsWith("builtinStringValues")).array;
+        filter!(a => a.name.canFind("builtinStringValues")).array;
 
     // there should only be on test case which is a composite of the 4 values
     auto composite = cast(CompositeTestCase)createTestCases(testData)[0];

@@ -93,3 +93,9 @@ void testIssue14(int i) {
 void testTemplate(T)() {
     T.init.shouldEqual(0);
 }
+
+@("Built-in with values")
+@Values("foo", "bar")
+unittest {
+    getValue!string.length.shouldEqual(3);
+}
