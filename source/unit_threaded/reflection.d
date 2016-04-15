@@ -349,27 +349,31 @@ version(unittest) {
     import std.array;
 
     //helper function for the unittest blocks below
-    private auto addModPrefix(string[] elements, string module_ = "unit_threaded.tests.module_with_tests") nothrow {
+    private auto addModPrefix(string[] elements,
+                              string module_ = "unit_threaded.tests.module_with_tests") nothrow {
         return elements.map!(a => module_ ~ "." ~ a).array;
     }
 }
 
 unittest {
     const expected = addModPrefix([ "FooTest", "BarTest", "Blergh"]);
-    const actual = moduleTestClasses!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
+    const actual = moduleTestClasses!(unit_threaded.tests.module_with_tests).
+        map!(a => a.name).array;
     assertEqual(actual, expected);
 }
 
 unittest {
     const expected = addModPrefix([ "testFoo", "testBar", "funcThatShouldShowUpCosOfAttr"]);
-    const actual = moduleTestFunctions!(unit_threaded.tests.module_with_tests).map!(a => a.getPath).array;
+    const actual = moduleTestFunctions!(unit_threaded.tests.module_with_tests).
+        map!(a => a.getPath).array;
     assertEqual(actual, expected);
 }
 
 
 unittest {
     const expected = addModPrefix(["unittest0", "unittest1", "myUnitTest"]);
-    const actual = moduleUnitTests!(unit_threaded.tests.module_with_tests).map!(a => a.name).array;
+    const actual = moduleUnitTests!(unit_threaded.tests.module_with_tests).
+        map!(a => a.name).array;
     assertEqual(actual, expected);
 }
 
@@ -381,7 +385,8 @@ version(unittest) {
 
         try {
             test.silence;
-            assert(test() != [], file ~ ":" ~ line.to!string ~ " Test was expected to fail but didn't");
+            assert(test() != [],
+                   file ~ ":" ~ line.to!string ~ " Test was expected to fail but didn't");
             assert(false, file ~ ":" ~ line.to!string ~ " Expected test case " ~ test.getPath ~
                    " to fail with AssertError but it didn't");
         } catch(AssertError) {}
@@ -393,7 +398,8 @@ unittest {
     import unit_threaded.factory;
     import unit_threaded.testcase;
 
-    const testData = allTestData!(unit_threaded.tests.parametrized).filter!(a => a.name.endsWith("testValues")).array;
+    const testData = allTestData!(unit_threaded.tests.parametrized).
+        filter!(a => a.name.endsWith("testValues")).array;
 
     // there should only be on test case which is a composite of the 3 values in testValues
     auto composite = cast(CompositeTestCase)createTestCases(testData)[0];
@@ -414,8 +420,10 @@ unittest {
     import unit_threaded.factory;
     import unit_threaded.testcase;
 
-    const testData = allTestData!(unit_threaded.tests.parametrized).filter!(a => a.name.endsWith("testTypes")).array;
-    const expected = addModPrefix(["testTypes.float", "testTypes.int"], "unit_threaded.tests.parametrized");
+    const testData = allTestData!(unit_threaded.tests.parametrized).
+        filter!(a => a.name.endsWith("testTypes")).array;
+    const expected = addModPrefix(["testTypes.float", "testTypes.int"],
+                                  "unit_threaded.tests.parametrized");
     const actual = testData.map!(a => a.getPath).array;
     assertEqual(actual, expected);
 
@@ -431,12 +439,13 @@ unittest {
     assertFail(tests[0]);
 }
 
-@("Test that value parametrized built-in unittest blocks work")
+@("Test that int value parametrized built-in unittest blocks work")
 unittest {
     import unit_threaded.factory;
     import unit_threaded.testcase;
 
-    const testData = allTestData!(unit_threaded.tests.parametrized).filter!(a => a.name.endsWith("builtinValues")).array;
+    const testData = allTestData!(unit_threaded.tests.parametrized).
+        filter!(a => a.name.endsWith("builtinIntValues")).array;
 
     // there should only be on test case which is a composite of the 4 values
     auto composite = cast(CompositeTestCase)createTestCases(testData)[0];
@@ -451,4 +460,22 @@ unittest {
     //these should fail
     assertFail(tests[0]);
     assertFail(tests[2]);
+}
+
+@("Test that string value parametrized built-in unittest blocks work")
+unittest {
+    import unit_threaded.factory;
+    import unit_threaded.testcase;
+
+    const testData = allTestData!(unit_threaded.tests.parametrized).
+        filter!(a => a.name.endsWith("builtinStringValues")).array;
+
+    // there should only be on test case which is a composite of the 4 values
+    auto composite = cast(CompositeTestCase)createTestCases(testData)[0];
+    assert(composite !is null, "Wrong dynamic type for TestCase");
+    auto tests = composite.tests;
+
+    assertEqual(tests.length, 2);
+    assertEqual(tests[1](), []);
+    assertFail(tests[0]);
 }

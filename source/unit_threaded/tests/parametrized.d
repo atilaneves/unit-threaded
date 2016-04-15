@@ -19,10 +19,17 @@ version(unittest) {
     }
 }
 
-@("builtinValues")
+@("builtinIntValues")
 @Values(2, 3, 4, 5)
 unittest {
     import std.conv;
     immutable i = getValue!int;
     assert(i % 2 != 0, i.to!string ~ " is not odd");
+}
+
+
+@("builtinStringValues")
+@Values("foo", "toto")
+unittest {
+    assert(getValue!string == "toto");
 }
