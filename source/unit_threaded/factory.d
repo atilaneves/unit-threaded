@@ -74,12 +74,22 @@ private TestCase createTestCase(in TestData testData) {
 
 private bool isWantedTest(in TestData testData, in string[] testsToRun) {
     if(!testsToRun.length) return !testData.hidden; //all tests except the hidden ones
-    bool matchesExactly(in string t) { return t == testData.name; }
+
+    bool matchesExactly(in string t) {
+        return t == testData.name;
+    }
+
     bool matchesPackage(in string t) { //runs all tests in package if it matches
         with(testData) return !hidden && name.length > t.length &&
                        name.startsWith(t) && name[t.length .. $].canFind(".");
     }
-    return testsToRun.any!(t => matchesExactly(t) || matchesPackage(t));
+
+    bool matchesTags(in string t) { //runs all tests with the specified tags
+        return t[0] == '@' && testData.tags.canFind(t[1..$]) ||
+            (!testData.hidden && t.startsWith("~@") && !testData.tags.canFind(t[2..$]));
+    }
+
+    return testsToRun.any!(t => matchesExactly(t) || matchesPackage(t) || matchesTags(t));
 }
 
 
@@ -99,4 +109,28 @@ unittest {
                          ["example.tests.pass.io.TestFoo"]));
     assert(isWantedTest(TestData("example.tests.pass.normal.unittest"), []));
     assert(!isWantedTest(TestData("tests.pass.attributes.testHidden", null, true /*hidden*/), ["tests.pass"]));
+    assert(!isWantedTest(TestData("", null, false /*hidden*/, false /*shouldFail*/, false /*singleThreaded*/,
+                                  false /*builtin*/, "" /*suffix*/),
+                         ["@foo"]));
+    assert(isWantedTest(TestData("", null, false /*hidden*/, false /*shouldFail*/, false /*singleThreaded*/,
+                                 false /*builtin*/, "" /*suffix*/, ["foo"]),
+                        ["@foo"]));
+    assert(!isWantedTest(TestData("", null, false /*hidden*/, false /*shouldFail*/, false /*singleThreaded*/,
+                                 false /*builtin*/, "" /*suffix*/, ["foo"]),
+                        ["~@foo"]));
+
+    assert(isWantedTest(TestData("", null, false /*hidden*/, false /*shouldFail*/, false /*singleThreaded*/,
+                                  false /*builtin*/, "" /*suffix*/),
+                         ["~@foo"]));
+
+    assert(isWantedTest(TestData("", null, false /*hidden*/, false /*shouldFail*/, false /*singleThreaded*/,
+                                 false /*builtin*/, "" /*suffix*/, ["bar"]),
+                         ["~@foo"]));
+
+    // if hidden, don't run by default
+    assert(!isWantedTest(TestData("", null, true /*hidden*/, false /*shouldFail*/, false /*singleThreaded*/,
+                                  false /*builtin*/, "" /*suffix*/, ["bar"]),
+                        ["~@foo"]));
+
+
 }

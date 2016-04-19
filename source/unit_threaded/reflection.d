@@ -18,6 +18,7 @@ struct TestData {
     bool singleThreaded;
     bool builtin;
     string suffix; // append to end of getPath
+    string[] tags;
 
     string getPath() const pure nothrow {
         string path = name.dup;
@@ -112,31 +113,29 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
         enum shouldFail = hasUDA!(test, ShouldFail);
         enum singleThreaded = hasUDA!(test, Serial);
         enum builtin = true;
+        enum suffix = "";
 
         // let's check for @Values UDAs, which are actually of type ValuesImpl
         enum isValues(alias T) = is(typeof(T)) && is(typeof(T):ValuesImpl!U, U);
         enum valuesUDAs = Filter!(isValues, __traits(getAttributes, test));
+
+        enum isTags(alias T) = is(typeof(T)) && is(typeof(T) == Tags);
+        enum tags = tagsFromAttrs!(Filter!(isTags, __traits(getAttributes, test)));
+
         static if(valuesUDAs.length == 0) {
-            int i = 1;
-            import unit_threaded.io;
-            testData ~= TestData(name, (){ writelnUt("foo"); test(); }, hidden, shouldFail, singleThreaded, builtin);
+            testData ~= TestData(name, (){ test(); }, hidden, shouldFail, singleThreaded, builtin, suffix, tags);
         } else {
             static assert(valuesUDAs.length == 1, "Can only use @Values once");
-            foreach(i, value; aliasSeqOf!(valuesUDAs[0].values)) {
-                import std.conv;
+            foreach(value; aliasSeqOf!(valuesUDAs[0].values)) {
                 // force single threaded so a composite test case is created
                 // we set a global static to the value the test expects then call the test function,
                 // which can retrieve the value with getValue!T
-                auto boo = () {
-                    ValueHolder!(typeof(value)).value = value;
-                    test();
-                };
-                testData ~= TestData(name ~ "." ~ value.to!string,
+                testData ~= TestData(name,
                                      () {
                                          ValueHolder!(typeof(value)).value = value;
                                          test();
                                      },
-                                     hidden, shouldFail, true /*serial*/, builtin);
+                                     hidden, shouldFail, true /*serial*/, builtin, suffix, tags);
             }
         }
     }
@@ -343,6 +342,7 @@ private TestData memberTestData(alias module_, string moduleMember)(TestFunction
     //a CompositeTestCase out of them
     immutable singleThreaded = HasAttribute!(module_, moduleMember, Serial) || suffix != "";
     enum builtin = false;
+    enum tags = tagsFromAttrs!(GetAttributes!(module_, moduleMember, Tags));
 
     return TestData(fullyQualifiedName!module_~ "." ~ moduleMember,
                     testFunction,
@@ -350,7 +350,16 @@ private TestData memberTestData(alias module_, string moduleMember)(TestFunction
                     HasAttribute!(module_, moduleMember, ShouldFail),
                     singleThreaded,
                     builtin,
-                    suffix);
+                    suffix,
+                    tags);
+}
+
+string[] tagsFromAttrs(T...)() {
+    static assert(T.length <= 1, "@Tags can only be applied once");
+    static if(T.length)
+        return T[0].values;
+    else
+        return [];
 }
 
 version(unittest) {
@@ -397,11 +406,14 @@ version(unittest) {
 
         try {
             test.silence;
-            assert(test() != [],
-                   file ~ ":" ~ line.to!string ~ " Test was expected to fail but didn't");
+            assert(test() != [], file ~ ":" ~ line.to!string ~ " Test was expected to fail but didn't");
             assert(false, file ~ ":" ~ line.to!string ~ " Expected test case " ~ test.getPath ~
                    " to fail with AssertError but it didn't");
         } catch(AssertError) {}
+    }
+
+    private void assertPass(TestCase test, string file = __FILE__, ulong line = __LINE__) {
+        assertEqual(test(), [], file, line);
     }
 }
 
@@ -420,8 +432,8 @@ unittest {
     assertEqual(tests.length, 3);
 
     // the first and third test should pass, the second should fail
-    assertEqual(tests[0](), []);
-    assertEqual(tests[2](), []);
+    assertPass(tests[0]);
+    assertPass(tests[2]);
 
     assertFail(tests[1]);
 }
@@ -445,13 +457,11 @@ unittest {
     auto tests = composite.tests;
     assertEqual(tests.map!(a => a.getPath).array, expected);
 
-    // the second should pass, the first should fail
-    assertEqual(tests[1](), []);
-
+    assertPass(tests[1]);
     assertFail(tests[0]);
 }
 
-@("Test that int value parametrized built-in unittest blocks work")
+@("Test that value parametrized built-in unittest blocks work")
 unittest {
     import unit_threaded.factory;
     import unit_threaded.testcase;
@@ -465,10 +475,41 @@ unittest {
     auto tests = composite.tests;
     assertEqual(tests.length, 4);
 
-    assertEqual(tests[1](), []);
+    // these should be ok
+    assertPass(tests[1]);
 
     //these should fail
     assertFail(tests[0]);
     assertFail(tests[2]);
     assertFail(tests[3]);
+}
+
+
+@("Tests can be selected by tags") unittest {
+    import unit_threaded.factory;
+    import unit_threaded.testcase;
+
+    const testData = allTestData!(unit_threaded.tests.tags).array;
+    auto testsNoTags = createTestCases(testData);
+    assertEqual(testsNoTags.length, 4);
+    assertPass(testsNoTags[0]);
+    assertFail(testsNoTags[1]);
+    assertFail(testsNoTags[2]);
+    assertFail(testsNoTags[3]);
+
+    auto testsNinja = createTestCases(testData, ["@ninja"]);
+    assertEqual(testsNinja.length, 1);
+    assertPass(testsNinja[0]);
+
+    auto testsMake = createTestCases(testData, ["@make"]);
+    assertEqual(testsMake.length, 3);
+    assertPass(testsMake.find!(a => a.getPath.canFind("testMake")).front);
+    assertPass(testsMake.find!(a => a.getPath.canFind("unittest0")).front);
+    assertFail(testsMake.find!(a => a.getPath.canFind("unittest2")).front);
+
+    auto testsNotNinja = createTestCases(testData, ["~@ninja"]);
+    assertEqual(testsNotNinja.length, 3);
+    assertPass(testsNotNinja.find!(a => a.getPath.canFind("testMake")).front);
+    assertFail(testsNotNinja.find!(a => a.getPath.canFind("unittest1")).front);
+    assertFail(testsNotNinja.find!(a => a.getPath.canFind("unittest2")).front);
 }

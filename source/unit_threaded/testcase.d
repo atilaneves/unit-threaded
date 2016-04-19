@@ -127,7 +127,7 @@ private:
 }
 
 class FunctionTestCase: TestCase {
-    this(immutable TestData data) pure nothrow {
+    this(in TestData data) pure nothrow {
         _name = data.getPath;
         _func = data.testFunction;
     }
@@ -145,7 +145,7 @@ class FunctionTestCase: TestCase {
 }
 
 class BuiltinTestCase: FunctionTestCase {
-    this(immutable TestData data) pure nothrow {
+    this(in TestData data) pure nothrow {
         super(data);
     }
 

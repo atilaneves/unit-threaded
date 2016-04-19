@@ -5,6 +5,7 @@ import unit_threaded;
 enum myEnumNum = "foo.bar"; //there was a bug that made this not compile
 enum myOtherEnumNum;
 
+@Tags("tagged")
 @UnitTest
 void funcAttributes() {
     //tests that using the @UnitTest UDA adds this function
@@ -49,6 +50,7 @@ void testShouldFailWithOtherException() {
     throw new Exception("This should not be seen");
 }
 
+@Tags("tagged")
 @Name("first_unit_test")
 unittest {
     writelnUt("First unit test block\n");
@@ -61,6 +63,7 @@ unittest {
     assert(true); //unit test block that always passes
 }
 
+@Tags(["untagged", "unhinged"])
 @("third_unit_test")
 unittest {
     3.shouldEqual(3);

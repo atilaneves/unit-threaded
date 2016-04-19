@@ -21,6 +21,13 @@ struct Name {
     string value;
 }
 
+/// Associates one or more tags with the test
+struct Tags {
+    this(string[] values) { this.values =  values; }
+    this(string value)    { this.values = [value]; }
+    string[] values;
+}
+
 /** Attachs these types to the a parametrized unit test.
     The attached template function will be instantiated with
     each type listed, e.g.
