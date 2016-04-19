@@ -72,7 +72,24 @@ private TestCase createTestCase(in TestData testData) {
 }
 
 
+
 private bool isWantedTest(in TestData testData, in string[] testsToRun) {
+    bool isTag(in string t) { return t.startsWith("@") || t.startsWith("~@"); }
+
+    auto normalToRun = testsToRun.filter!(a => !isTag(a)).array;
+    auto tagsToRun = testsToRun.filter!isTag;
+
+    bool matchesTags(in string tag) { //runs all tests with the specified tags
+        assert(isTag(tag));
+        return tag[0] == '@' && testData.tags.canFind(tag[1..$]) ||
+            (!testData.hidden && tag.startsWith("~@") && !testData.tags.canFind(tag[2..$]));
+    }
+
+    return isWantedNonTagTest(testData, normalToRun) &&
+        (tagsToRun.empty || tagsToRun.all!(t => matchesTags(t)));
+}
+
+private bool isWantedNonTagTest(in TestData testData, in string[] testsToRun) {
     if(!testsToRun.length) return !testData.hidden; //all tests except the hidden ones
 
     bool matchesExactly(in string t) {
@@ -81,15 +98,10 @@ private bool isWantedTest(in TestData testData, in string[] testsToRun) {
 
     bool matchesPackage(in string t) { //runs all tests in package if it matches
         with(testData) return !hidden && name.length > t.length &&
-                       name.startsWith(t) && name[t.length .. $].canFind(".");
+                           name.startsWith(t) && name[t.length .. $].canFind(".");
     }
 
-    bool matchesTags(in string t) { //runs all tests with the specified tags
-        return t[0] == '@' && testData.tags.canFind(t[1..$]) ||
-            (!testData.hidden && t.startsWith("~@") && !testData.tags.canFind(t[2..$]));
-    }
-
-    return testsToRun.any!(t => matchesExactly(t) || matchesPackage(t) || matchesTags(t));
+    return testsToRun.any!(a => matchesExactly(a) || matchesPackage(a));
 }
 
 
@@ -115,6 +127,7 @@ unittest {
     assert(isWantedTest(TestData("", null, false /*hidden*/, false /*shouldFail*/, false /*singleThreaded*/,
                                  false /*builtin*/, "" /*suffix*/, ["foo"]),
                         ["@foo"]));
+
     assert(!isWantedTest(TestData("", null, false /*hidden*/, false /*shouldFail*/, false /*singleThreaded*/,
                                  false /*builtin*/, "" /*suffix*/, ["foo"]),
                         ["~@foo"]));

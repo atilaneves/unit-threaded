@@ -126,12 +126,18 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
             testData ~= TestData(name, (){ test(); }, hidden, shouldFail, singleThreaded, builtin, suffix, tags);
         } else {
             static assert(valuesUDAs.length == 1, "Can only use @Values once");
+
             foreach(value; aliasSeqOf!(valuesUDAs[0].values)) {
                 // force single threaded so a composite test case is created
                 // we set a global static to the value the test expects then call the test function,
                 // which can retrieve the value with getValue!T
                 import std.conv;
-                testData ~= TestData(name ~ "." ~ value.to!string,
+                auto realName = name ~ ".";
+                try
+                    realName ~= value.to!string;
+                catch(Exception ex)
+                    assert(0, "Could not convert value to string");
+                testData ~= TestData(realName,
                                      () {
                                          ValueHolder!(typeof(value)).value = value;
                                          test();
@@ -513,4 +519,6 @@ unittest {
     assertPass(testsNotNinja.find!(a => a.getPath.canFind("testMake")).front);
     assertFail(testsNotNinja.find!(a => a.getPath.canFind("unittest1")).front);
     assertFail(testsNotNinja.find!(a => a.getPath.canFind("unittest2")).front);
+
+    assertEqual(createTestCases(testData, ["unit_threaded.tests.tags.testMake", "@ninja"]).length, 0);
 }
