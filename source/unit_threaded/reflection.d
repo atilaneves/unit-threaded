@@ -130,7 +130,8 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
                 // force single threaded so a composite test case is created
                 // we set a global static to the value the test expects then call the test function,
                 // which can retrieve the value with getValue!T
-                testData ~= TestData(name,
+                import std.conv;
+                testData ~= TestData(name ~ "." ~ value.to!string,
                                      () {
                                          ValueHolder!(typeof(value)).value = value;
                                          test();
