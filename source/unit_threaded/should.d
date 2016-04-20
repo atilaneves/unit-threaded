@@ -21,6 +21,12 @@ public import unit_threaded.attrs;
  */
 class UnitTestException : Exception
 {
+    this(in string msg, string file = __FILE__,
+         size_t line = __LINE__, Throwable next = null)
+    {
+        this([msg], file, line, next);
+    }
+
     this(in string[] msgLines, string file = __FILE__,
          size_t line = __LINE__, Throwable next = null)
     {
@@ -407,7 +413,7 @@ void shouldThrowWithMessage(T : Throwable = Exception, E)(lazy E expr,
     if (!threw)
         fail("Expression did not throw", file, line);
 
-    threw.throwable.msg.shouldEqual(msg);
+    threw.throwable.msg.shouldEqual(msg, file, line);
 }
 
 ///
