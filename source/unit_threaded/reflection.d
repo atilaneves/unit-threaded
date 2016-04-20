@@ -131,23 +131,34 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
                 // force single threaded so a composite test case is created
                 // we set a global static to the value the test expects then call the test function,
                 // which can retrieve the value with getValue!T
-                import std.conv;
-                auto realName = name ~ ".";
-                try
-                    realName ~= value.to!string;
-                catch(Exception ex)
-                    assert(0, "Could not convert value to string");
-                testData ~= TestData(realName,
+
+                enum valueAsString = getValueAsString(value);
+
+                static if(hasUDA!(test, AutoTags))
+                    enum realTags = tags ~ valueAsString;
+                else
+                    enum realTags = tags;
+
+                testData ~= TestData(name ~ "." ~ valueAsString,
                                      () {
                                          ValueHolder!(typeof(value)).value = value;
                                          test();
                                      },
-                                     hidden, shouldFail, true /*serial*/, builtin, suffix, tags);
+                                     hidden, shouldFail, true /*serial*/, builtin, suffix, realTags);
             }
         }
     }
     return testData;
 }
+
+private string getValueAsString(T)(T value) nothrow pure @safe {
+    import std.conv;
+    try
+        return value.to!string;
+    catch(Exception ex)
+        assert(0, "Could not convert value to string");
+}
+
 
 private template isStringUDA(alias T) {
     static if(__traits(compiles, isSomeString!(typeof(T))))
@@ -305,8 +316,17 @@ private TestData[] createFuncTestData(alias module_, string moduleMember)() {
                                "> must have value UDAs of the same type"));
 
             TestData[] testData;
-            foreach(v; values)
-                testData ~= memberTestData!(module_, moduleMember)(() { func(v); }, v.to!string);
+            foreach(v; values) {
+                static if(HasAttribute!(module_, moduleMember, AutoTags))
+                    enum extraTags = [getValueAsString(v)];
+                else
+                    enum string[] extraTags = [];
+                testData ~= memberTestData!(module_, moduleMember, extraTags)(
+                    () { func(v); },
+                    v.to!string
+                );
+            }
+
             return testData;
         }
     } else static if(HasTypes!(mixin(moduleMember))) { //template function with @Types
@@ -343,7 +363,8 @@ private TestData[] moduleTestData(alias module_, alias pred, alias createTestDat
 }
 
 // TestData for a member of a module (either a test function or test class)
-private TestData memberTestData(alias module_, string moduleMember)(TestFunction testFunction = null, string suffix = "") {
+private TestData memberTestData(alias module_, string moduleMember, string[] extraTags = [])
+    (TestFunction testFunction = null, string suffix = "") {
     //if there is a suffix, all tests sharing that suffix are single threaded with multiple values per "real" test
     //this is slightly hackish but works and actually makes sense - it causes unit_threaded.factory to make
     //a CompositeTestCase out of them
@@ -358,7 +379,7 @@ private TestData memberTestData(alias module_, string moduleMember)(TestFunction
                     singleThreaded,
                     builtin,
                     suffix,
-                    tags);
+                    tags ~ extraTags);
 }
 
 string[] tagsFromAttrs(T...)() {
@@ -521,4 +542,41 @@ unittest {
     assertFail(testsNotNinja.find!(a => a.getPath.canFind("unittest2")).front);
 
     assertEqual(createTestCases(testData, ["unit_threaded.tests.tags.testMake", "@ninja"]).length, 0);
+}
+
+@("Parametrized built-in tests with @AutoTags get tagged by value")
+unittest {
+    import unit_threaded.factory;
+    import unit_threaded.testcase;
+
+    const testData = allTestData!(unit_threaded.tests.parametrized).
+        filter!(a => a.name.canFind("builtinIntValues")).array;
+
+    auto compositeTwo = cast(CompositeTestCase)createTestCases(testData, ["@2"])[0];
+    assert(compositeTwo !is null, "Wrong dynamic type for TestCase");
+    auto two = compositeTwo.tests;
+
+    assertEqual(two.length, 1);
+    assertFail(two[0]);
+
+    auto compositeThree = cast(CompositeTestCase)createTestCases(testData, ["@3"])[0];
+    assert(compositeThree !is null, "Wrong dynamic type for TestCase");
+    auto three = compositeThree.tests;
+    assertEqual(three.length, 1);
+    assertPass(three[0]);
+}
+
+@("Parametrized functoin tests with @AutoTags get tagged by value")
+unittest {
+    import unit_threaded.factory;
+    import unit_threaded.testcase;
+
+    const testData = allTestData!(unit_threaded.tests.parametrized).
+        filter!(a => a.name.canFind("testValues")).array;
+
+    auto compositeTwo = cast(CompositeTestCase)createTestCases(testData, ["@2"])[0];
+    assert(compositeTwo !is null, "Wrong dynamic type for TestCase");
+    auto two = compositeTwo.tests;
+    assertEqual(two.length, 1);
+    assertFail(two[0]);
 }

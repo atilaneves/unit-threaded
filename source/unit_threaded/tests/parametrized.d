@@ -9,6 +9,7 @@ import unit_threaded.attrs;
 version(unittest) {
 
     @(1, 2, 3)
+    @AutoTags
     void testValues(int i) {
         assert(i % 2 != 0);
     }
@@ -20,6 +21,7 @@ version(unittest) {
 }
 
 @("builtinIntValues")
+@AutoTags
 @Values(2, 3, 4, 5)
 unittest {
     import std.conv;

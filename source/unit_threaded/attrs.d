@@ -28,6 +28,16 @@ struct Tags {
     string[] values;
 }
 
+/** Automatically assign @Tags for each parameterized test
+ e.g.
+---------------
+@Values("foo", "bar) @AutoTags unittest { ... }
+// there are now two unit tests, one for "foo" with tag "foo"
+// and one for "bar" with tag "bar"
+---------------
+ */
+enum AutoTags;
+
 /** Attachs these types to the a parametrized unit test.
     The attached template function will be instantiated with
     each type listed, e.g.
