@@ -15,6 +15,7 @@ version(unittest) {
     }
 
     @Types!(float, int)
+    @AutoTags
     void testTypes(T)() {
         assert(T.init == 0);
     }

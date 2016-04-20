@@ -333,9 +333,16 @@ private TestData[] createFuncTestData(alias module_, string moduleMember)() {
         alias types = GetTypes!(mixin(moduleMember));
         TestData[] testData;
         foreach(type; types) {
-            testData ~= memberTestData!(module_, moduleMember)(() {
+            static if(HasAttribute!(module_, moduleMember, AutoTags))
+                enum extraTags = [type.stringof];
+            else
+                enum string[] extraTags = [];
+
+            testData ~= memberTestData!(module_, moduleMember, extraTags)(
+                () {
                     mixin(moduleMember ~ `!(` ~ type.stringof ~ `)();`);
-                }, type.stringof);
+                },
+                type.stringof);
         }
         return testData;
     } else {
@@ -566,7 +573,7 @@ unittest {
     assertPass(three[0]);
 }
 
-@("Parametrized functoin tests with @AutoTags get tagged by value")
+@("Value parametrized function tests with @AutoTags get tagged by value")
 unittest {
     import unit_threaded.factory;
     import unit_threaded.testcase;
@@ -579,4 +586,19 @@ unittest {
     auto two = compositeTwo.tests;
     assertEqual(two.length, 1);
     assertFail(two[0]);
+}
+
+@("Type parameterized tests with @AutoTags get tagged by type")
+unittest {
+    import unit_threaded.factory;
+    import unit_threaded.testcase;
+
+    const testData = allTestData!(unit_threaded.tests.parametrized).
+        filter!(a => a.name.canFind("testTypes")).array;
+
+    auto composite = cast(CompositeTestCase)createTestCases(testData, ["@int"])[0];
+    assert(composite !is null, "Wrong dynamic type for TestCase");
+    auto tests = composite.tests;
+    assertEqual(tests.length, 1);
+    assertPass(tests[0]);
 }
