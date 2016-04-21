@@ -128,10 +128,6 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
             static assert(valuesUDAs.length == 1, "Can only use @Values once");
 
             foreach(value; aliasSeqOf!(valuesUDAs[0].values)) {
-                // force single threaded so a composite test case is created
-                // we set a global static to the value the test expects then call the test function,
-                // which can retrieve the value with getValue!T
-
                 enum valueAsString = getValueAsString(value);
 
                 static if(hasUDA!(test, AutoTags))
@@ -144,7 +140,7 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
                                          ValueHolder!(typeof(value)).value = value;
                                          test();
                                      },
-                                     hidden, shouldFail, true /*serial*/, builtin, suffix, realTags);
+                                     hidden, shouldFail, singleThreaded, builtin, suffix, realTags);
             }
         }
     }
@@ -372,10 +368,7 @@ private TestData[] moduleTestData(alias module_, alias pred, alias createTestDat
 // TestData for a member of a module (either a test function or test class)
 private TestData memberTestData(alias module_, string moduleMember, string[] extraTags = [])
     (TestFunction testFunction = null, string suffix = "") {
-    //if there is a suffix, all tests sharing that suffix are single threaded with multiple values per "real" test
-    //this is slightly hackish but works and actually makes sense - it causes unit_threaded.factory to make
-    //a CompositeTestCase out of them
-    immutable singleThreaded = HasAttribute!(module_, moduleMember, Serial) || suffix != "";
+    immutable singleThreaded = HasAttribute!(module_, moduleMember, Serial);
     enum builtin = false;
     enum tags = tagsFromAttrs!(GetAttributes!(module_, moduleMember, Tags));
 
@@ -460,10 +453,7 @@ unittest {
     const testData = allTestData!(unit_threaded.tests.parametrized).
         filter!(a => a.name.endsWith("testValues")).array;
 
-    // there should only be on test case which is a composite of the 3 values in testValues
-    auto composite = cast(CompositeTestCase)createTestCases(testData)[0];
-    assert(composite !is null, "Wrong dynamic type for TestCase");
-    auto tests = composite.tests;
+    auto tests = createTestCases(testData);
     assertEqual(tests.length, 3);
 
     // the first and third test should pass, the second should fail
@@ -486,10 +476,7 @@ unittest {
     const actual = testData.map!(a => a.getPath).array;
     assertEqual(actual, expected);
 
-    // there should only be on test case which is a composite of the 2 testTypes
-    auto composite = cast(CompositeTestCase)createTestCases(testData)[0];
-    assert(composite !is null, "Wrong dynamic type for TestCase");
-    auto tests = composite.tests;
+    auto tests = createTestCases(testData);
     assertEqual(tests.map!(a => a.getPath).array, expected);
 
     assertPass(tests[1]);
@@ -504,10 +491,7 @@ unittest {
     const testData = allTestData!(unit_threaded.tests.parametrized).
         filter!(a => a.name.canFind("builtinIntValues")).array;
 
-    // there should only be on test case which is a composite of the 4 values
-    auto composite = cast(CompositeTestCase)createTestCases(testData)[0];
-    assert(composite !is null, "Wrong dynamic type for TestCase");
-    auto tests = composite.tests;
+    auto tests = createTestCases(testData);
     assertEqual(tests.length, 4);
 
     // these should be ok
@@ -559,16 +543,12 @@ unittest {
     const testData = allTestData!(unit_threaded.tests.parametrized).
         filter!(a => a.name.canFind("builtinIntValues")).array;
 
-    auto compositeTwo = cast(CompositeTestCase)createTestCases(testData, ["@2"])[0];
-    assert(compositeTwo !is null, "Wrong dynamic type for TestCase");
-    auto two = compositeTwo.tests;
+    auto two = createTestCases(testData, ["@2"]);
 
     assertEqual(two.length, 1);
     assertFail(two[0]);
 
-    auto compositeThree = cast(CompositeTestCase)createTestCases(testData, ["@3"])[0];
-    assert(compositeThree !is null, "Wrong dynamic type for TestCase");
-    auto three = compositeThree.tests;
+    auto three = createTestCases(testData, ["@3"]);
     assertEqual(three.length, 1);
     assertPass(three[0]);
 }
@@ -581,9 +561,7 @@ unittest {
     const testData = allTestData!(unit_threaded.tests.parametrized).
         filter!(a => a.name.canFind("testValues")).array;
 
-    auto compositeTwo = cast(CompositeTestCase)createTestCases(testData, ["@2"])[0];
-    assert(compositeTwo !is null, "Wrong dynamic type for TestCase");
-    auto two = compositeTwo.tests;
+    auto two = createTestCases(testData, ["@2"]);
     assertEqual(two.length, 1);
     assertFail(two[0]);
 }
@@ -596,9 +574,7 @@ unittest {
     const testData = allTestData!(unit_threaded.tests.parametrized).
         filter!(a => a.name.canFind("testTypes")).array;
 
-    auto composite = cast(CompositeTestCase)createTestCases(testData, ["@int"])[0];
-    assert(composite !is null, "Wrong dynamic type for TestCase");
-    auto tests = composite.tests;
+    auto tests = createTestCases(testData, ["@int"]);
     assertEqual(tests.length, 1);
     assertPass(tests[0]);
 }
