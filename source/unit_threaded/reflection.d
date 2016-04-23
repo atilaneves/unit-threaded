@@ -117,7 +117,7 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
 
         // let's check for @Values UDAs, which are actually of type ValuesImpl
         enum isValues(alias T) = is(typeof(T)) && is(typeof(T):ValuesImpl!U, U);
-        enum valuesUDAs = Filter!(isValues, __traits(getAttributes, test));
+        alias valuesUDAs = Filter!(isValues, __traits(getAttributes, test));
 
         enum isTags(alias T) = is(typeof(T)) && is(typeof(T) == Tags);
         enum tags = tagsFromAttrs!(Filter!(isTags, __traits(getAttributes, test)));
@@ -125,26 +125,59 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
         static if(valuesUDAs.length == 0) {
             testData ~= TestData(name, (){ test(); }, hidden, shouldFail, singleThreaded, builtin, suffix, tags);
         } else {
-            static assert(valuesUDAs.length == 1, "Can only use @Values once");
 
-            foreach(value; aliasSeqOf!(valuesUDAs[0].values)) {
-                enum valueAsString = getValueAsString(value);
+            import std.range;
+
+            // cartesianProduct doesn't work with only one range, so in the usual case
+            // of only one @Values UDA, we bind to prod with a range of tuples, just
+            // as returned by cartesianProduct.
+
+            static if(valuesUDAs.length == 1) {
+                import std.typecons;
+                enum prod = valuesUDAs[0].values.map!(a => tuple(a));
+            } else {
+                mixin(`enum prod = cartesianProduct(` ~ valuesUDAs.length.iota.map!
+                      (a => `valuesUDAs[` ~ guaranteedToString(a) ~ `].values`).join(", ") ~ `);`);
+            }
+
+            foreach(comb; aliasSeqOf!prod) {
+                enum valuesName = valuesName(comb);
 
                 static if(hasUDA!(test, AutoTags))
-                    enum realTags = tags ~ valueAsString;
+                    enum realTags = tags ~ valuesName.split(".").array;
                 else
                     enum realTags = tags;
 
-                testData ~= TestData(name ~ "." ~ valueAsString,
+                testData ~= TestData(name ~ "." ~ valuesName,
                                      () {
-                                         ValueHolder!(typeof(value)).value = value;
+                                         foreach(i; aliasSeqOf!(comb.length.iota))
+                                             ValueHolder!(typeof(comb[i])).values[i] = comb[i];
                                          test();
                                      },
                                      hidden, shouldFail, singleThreaded, builtin, suffix, realTags);
+
             }
         }
     }
+
     return testData;
+}
+
+private string valuesName(T)(T tuple) {
+    import std.algorithm;
+    import std.range;
+    string[] parts;
+    foreach(a; aliasSeqOf!(tuple.length.iota))
+        parts ~= guaranteedToString(tuple[a]);
+    return parts.join(".");
+}
+
+private string guaranteedToString(T)(T value) nothrow pure @safe {
+    import std.conv;
+    try
+        return value.to!string;
+    catch(Exception ex)
+        assert(0, "Could not convert value to string");
 }
 
 private string getValueAsString(T)(T value) nothrow pure @safe {
@@ -292,35 +325,39 @@ private TestData[] createFuncTestData(alias module_, string moduleMember)() {
         enum func = &__traits(getMember, module_, moduleMember);
         enum arity = arity!func;
 
-        static assert(arity == 0 || arity == 1, "Test functions may take at most one parameter");
-
         static if(arity == 0)
             // the reason we're creating a lambda to call the function is that test functions
             // are ordinary functions, but we're storing delegates
             return [ memberTestData!(module_, moduleMember)(() { func(); }) ]; //simple case, just call the function
         else {
 
-            // the function takes a parameter, check if it has UDAs for value parameters to be passed to it
+            // the function has parameters, check if it has UDAs for value parameters to be passed to it
             alias params = Parameters!func;
-            static assert(params.length == 1, "Test functions may take at most one parameter");
 
-            alias values = GetAttributes!(module_, moduleMember, params[0]);
-
-            import std.conv;
-            static assert(values.length > 0,
-                          text("Test functions with a parameter of type <", params[0].stringof,
-                               "> must have value UDAs of the same type"));
+            static if(arity == 1) {
+                import std.typecons;
+                // bind a range of tuples to prod just as cartesianProduct returns
+                enum prod = [GetAttributes!(module_, moduleMember, params[0])].map!(a => tuple(a));
+            } else {
+                import std.range;
+                mixin(`enum prod = cartesianProduct(` ~ params.length.iota.map!
+                      (a => `[GetAttributes!(module_, moduleMember, params[` ~ guaranteedToString(a) ~ `])]`).join(", ") ~ `);`);
+            }
 
             TestData[] testData;
-            foreach(v; values) {
+            foreach(comb; aliasSeqOf!prod) {
+                enum valuesName = valuesName(comb);
+
                 static if(HasAttribute!(module_, moduleMember, AutoTags))
-                    enum extraTags = [getValueAsString(v)];
+                    enum extraTags = valuesName.split(".").array;
                 else
                     enum string[] extraTags = [];
+
+
                 testData ~= memberTestData!(module_, moduleMember, extraTags)(
-                    () { func(v); },
-                    v.to!string
-                );
+                    // func(value0, value1, ...)
+                    () { func(comb.expand); },
+                    valuesName);
             }
 
             return testData;
@@ -483,7 +520,7 @@ unittest {
     assertFail(tests[0]);
 }
 
-@("Test that value parametrized built-in unittest blocks work")
+@("Value parametrized built-in unittests")
 unittest {
     import unit_threaded.factory;
     import unit_threaded.testcase;
@@ -577,4 +614,62 @@ unittest {
     auto tests = createTestCases(testData, ["@int"]);
     assertEqual(tests.length, 1);
     assertPass(tests[0]);
+}
+
+@("Cartesian parameterized built-in values") unittest {
+    import unit_threaded.factory;
+    import unit_threaded.testcase;
+    import unit_threaded.should;
+
+    const testData = allTestData!(unit_threaded.tests.parametrized).
+        filter!(a => a.name.canFind("cartesianBuiltinNoAutoTags")).array;
+
+    auto tests = createTestCases(testData);
+    tests.map!(a => a.getPath).array.shouldBeSameSetAs(
+                addModPrefix(["foo.red", "foo.blue", "foo.green", "bar.red", "bar.blue", "bar.green"].
+                             map!(a => "cartesianBuiltinNoAutoTags." ~ a).array,
+                             "unit_threaded.tests.parametrized"));
+    assertEqual(tests.length, 6);
+
+    auto fooRed = tests.find!(a => a.getPath.canFind("foo.red")).front;
+    assertPass(fooRed);
+    assertEqual(getValue!(string, 0), "foo");
+    assertEqual(getValue!(string, 1), "red");
+    assertEqual(testData.find!(a => a.getPath.canFind("foo.red")).front.tags, []);
+
+    auto barGreen = tests.find!(a => a.getPath.canFind("bar.green")).front;
+    assertFail(barGreen);
+    assertEqual(getValue!(string, 0), "bar");
+    assertEqual(getValue!(string, 1), "green");
+
+    assertEqual(testData.find!(a => a.getPath.canFind("bar.green")).front.tags, []);
+    assertEqual(allTestData!(unit_threaded.tests.parametrized).
+                filter!(a => a.name.canFind("cartesianBuiltinAutoTags")).array.
+                find!(a => a.getPath.canFind("bar.green")).front.tags,
+                ["bar", "green"]);
+}
+
+@("Cartesian parameterized function values") unittest {
+    import unit_threaded.factory;
+    import unit_threaded.testcase;
+    import unit_threaded.should;
+
+    const testData = allTestData!(unit_threaded.tests.parametrized).
+        filter!(a => a.name.canFind("CartesianFunction")).array;
+
+    auto tests = createTestCases(testData);
+        tests.map!(a => a.getPath).array.shouldBeSameSetAs(
+            addModPrefix(["1.foo", "1.bar", "2.foo", "2.bar", "3.foo", "3.bar"].
+                             map!(a => "testCartesianFunction." ~ a).array,
+                             "unit_threaded.tests.parametrized"));
+
+    foreach(test; tests) {
+        test.getPath.canFind("2.bar")
+            ? assertPass(test)
+            : assertFail(test);
+    }
+
+    assertEqual(testData.find!(a => a.getPath.canFind("2.bar")).front.tags,
+                ["2", "bar"]);
+
 }

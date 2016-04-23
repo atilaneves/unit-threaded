@@ -86,9 +86,9 @@ struct ValuesImpl(T) {
  See `Values`.
  */
 T getValue(T, int index = 0)() {
-    return ValueHolder!T.value;
+    return ValueHolder!T.values[index];
 }
 
 package struct ValueHolder(T) {
-    static T value;
+    static T[10] values;
 }
