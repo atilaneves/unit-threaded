@@ -124,15 +124,21 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
 
         static if(valuesUDAs.length == 0) {
             testData ~= TestData(name, (){ test(); }, hidden, shouldFail, singleThreaded, builtin, suffix, tags);
-        } else static if(valuesUDAs.length > 1) {
+        } else {
 
             import std.range;
-            mixin(`enum prod = cartesianProduct(` ~ valuesUDAs.length.iota.map!
-                  (a => `valuesUDAs[` ~ guaranteedToString(a) ~ `].values`).join(", ") ~ `);`);
+
+            static if(valuesUDAs.length == 1) {
+                import std.typecons;
+                enum prod = valuesUDAs[0].values.map!(a => tuple(a));
+            } else {
+                mixin(`enum prod = cartesianProduct(` ~ valuesUDAs.length.iota.map!
+                      (a => `valuesUDAs[` ~ guaranteedToString(a) ~ `].values`).join(", ") ~ `);`);
+            }
 
             foreach(comb; aliasSeqOf!prod) {
                 enum valuesName = valuesName(comb);
-                enum realTags = tags;
+                enum realTags = tags ~ valuesName.split(".").array;
                 testData ~= TestData(name ~ "." ~ valuesName,
                                      () {
                                          foreach(i; aliasSeqOf!(comb.length.iota))
@@ -141,26 +147,6 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
                                      },
                                      hidden, shouldFail, singleThreaded, builtin, suffix, realTags);
 
-            }
-
-        } else {
-
-            foreach(i, _; valuesUDAs) {
-                foreach(value; aliasSeqOf!(valuesUDAs[i].values)) {
-                    enum valueAsString = getValueAsString(value);
-
-                    static if(hasUDA!(test, AutoTags))
-                        enum realTags = tags ~ valueAsString;
-                    else
-                        enum realTags = tags;
-
-                    testData ~= TestData(name ~ "." ~ valueAsString,
-                                         () {
-                                             ValueHolder!(typeof(value)).values[0] = value;
-                                             test();
-                                         },
-                                         hidden, shouldFail, singleThreaded, builtin, suffix, realTags);
-                }
             }
         }
     }
