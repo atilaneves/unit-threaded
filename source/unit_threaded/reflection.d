@@ -142,7 +142,12 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
 
             foreach(comb; aliasSeqOf!prod) {
                 enum valuesName = valuesName(comb);
-                enum realTags = tags ~ valuesName.split(".").array;
+
+                static if(hasUDA!(test, AutoTags))
+                    enum realTags = tags ~ valuesName.split(".").array;
+                else
+                    enum realTags = tags;
+
                 testData ~= TestData(name ~ "." ~ valuesName,
                                      () {
                                          foreach(i; aliasSeqOf!(comb.length.iota))
@@ -328,41 +333,31 @@ private TestData[] createFuncTestData(alias module_, string moduleMember)() {
 
             // the function has parameters, check if it has UDAs for value parameters to be passed to it
             alias params = Parameters!func;
-            alias values = GetAttributes!(module_, moduleMember, params[0]);
-
-            import std.conv;
-            static assert(values.length > 0,
-                          text("Test functions with a parameter of type <", params[0].stringof,
-                               "> must have value UDAs of the same type"));
 
             static if(arity == 1) {
-                TestData[] testData;
-                foreach(v; values) {
-                    static if(HasAttribute!(module_, moduleMember, AutoTags))
-                        enum extraTags = [getValueAsString(v)];
-                    else
-                        enum string[] extraTags = [];
-                    testData ~= memberTestData!(module_, moduleMember, extraTags)(
-                        () { func(v); },
-                        v.to!string
-                        );
-                }
-
+                import std.typecons;
+                // bind a range of tuples to prod just as cartesianProduct returns
+                enum prod = [GetAttributes!(module_, moduleMember, params[0])].map!(a => tuple(a));
             } else {
                 import std.range;
-                TestData[] testData;
                 mixin(`enum prod = cartesianProduct(` ~ params.length.iota.map!
                       (a => `[GetAttributes!(module_, moduleMember, params[` ~ guaranteedToString(a) ~ `])]`).join(", ") ~ `);`);
-                foreach(comb; aliasSeqOf!prod) {
+            }
+
+            TestData[] testData;
+            foreach(comb; aliasSeqOf!prod) {
+                enum valuesName = valuesName(comb);
+
+                static if(HasAttribute!(module_, moduleMember, AutoTags))
+                    enum extraTags = valuesName.split(".").array;
+                else
                     enum string[] extraTags = [];
-                    enum valuesName = valuesName(comb);
-                    import std.stdio;
 
-                    testData ~= memberTestData!(module_, moduleMember, extraTags)(
 
-                        () { func(comb.expand); },
-                        valuesName);
-                }
+                testData ~= memberTestData!(module_, moduleMember, extraTags)(
+                    // func(value0, value1, ...)
+                    () { func(comb.expand); },
+                    valuesName);
             }
 
             return testData;
@@ -627,12 +622,12 @@ unittest {
     import unit_threaded.should;
 
     const testData = allTestData!(unit_threaded.tests.parametrized).
-        filter!(a => a.name.canFind("cartesianBuiltin")).array;
+        filter!(a => a.name.canFind("cartesianBuiltinNoAutoTags")).array;
 
     auto tests = createTestCases(testData);
     tests.map!(a => a.getPath).array.shouldBeSameSetAs(
                 addModPrefix(["foo.red", "foo.blue", "foo.green", "bar.red", "bar.blue", "bar.green"].
-                             map!(a => "cartesianBuiltin." ~ a).array,
+                             map!(a => "cartesianBuiltinNoAutoTags." ~ a).array,
                              "unit_threaded.tests.parametrized"));
     assertEqual(tests.length, 6);
 
@@ -640,14 +635,17 @@ unittest {
     assertPass(fooRed);
     assertEqual(getValue!(string, 0), "foo");
     assertEqual(getValue!(string, 1), "red");
-    assertEqual(testData.find!(a => a.getPath.canFind("foo.red")).front.tags,
-                ["foo", "red"]);
+    assertEqual(testData.find!(a => a.getPath.canFind("foo.red")).front.tags, []);
 
     auto barGreen = tests.find!(a => a.getPath.canFind("bar.green")).front;
     assertFail(barGreen);
     assertEqual(getValue!(string, 0), "bar");
     assertEqual(getValue!(string, 1), "green");
-    assertEqual(testData.find!(a => a.getPath.canFind("bar.green")).front.tags,
+
+    assertEqual(testData.find!(a => a.getPath.canFind("bar.green")).front.tags, []);
+    assertEqual(allTestData!(unit_threaded.tests.parametrized).
+                filter!(a => a.name.canFind("cartesianBuiltinAutoTags")).array.
+                find!(a => a.getPath.canFind("bar.green")).front.tags,
                 ["bar", "green"]);
 }
 
@@ -670,4 +668,8 @@ unittest {
             ? assertPass(test)
             : assertFail(test);
     }
+
+    assertEqual(testData.find!(a => a.getPath.canFind("2.bar")).front.tags,
+                ["2", "bar"]);
+
 }
