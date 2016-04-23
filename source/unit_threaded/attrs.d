@@ -1,5 +1,7 @@
 module unit_threaded.attrs;
 
+import std.range;
+
 enum UnitTest; //opt-in to registration
 enum DontTest; //opt-out of registration
 enum Serial; //run tests in the module in one thread / serially
@@ -65,9 +67,15 @@ struct Types(T...) {}
 
  See `getValue`.
  */
-ValuesImpl!T Values(T)(T[] values...) {
+auto Values(T)(T[] values...) {
     return ValuesImpl!T(values.dup);
 }
+
+auto Values(R)(R values) if(isInputRange!R) {
+    import std.array;
+    return ValuesImpl!(ElementType!R)(values.array);
+}
+
 
 struct ValuesImpl(T) {
     T[] values;
@@ -77,7 +85,7 @@ struct ValuesImpl(T) {
  Retrieves the current test value of type T in a built-in unittest.
  See `Values`.
  */
-T getValue(T)() {
+T getValue(T, int index = 0)() {
     return ValueHolder!T.value;
 }
 
