@@ -160,9 +160,27 @@ unittest {
 }
 ```
 
-You can also declare a test function that takes exactly
-one parameter of the type of the value to pass to it and add UDAs with
-the values desired, e.g.
+This will run the test 3 times, and the reporting
+will consider it to be 3 separate tests.
+
+
+If more than one `@Values` UDA is used, then the test gets instantiated
+with the cartesian product of values, e.g.
+
+```d
+@Values(1, 2)
+@Values("foo", "bar")
+unittest {
+    getValue!(int, 0); // gets the integer value (1 or 2)
+    getValue!(string, 1); // gets the string value ("foo" or "bar")
+}
+```
+
+The test above is instantiated 4 times for each one of the possible
+combinations. This helps to reduce boilerplate and repeated tests.
+
+You can also declare a test function that takes parameters of the
+appropriate types and add UDAs with the values desired, e.g.
 
 ```d
 @(2, 4, 6)
@@ -171,8 +189,8 @@ void testEven(int i) {
 }
 ```
 
-In both cases the test code will be run 3 times, and the reporting
-will consider it to be 3 separate tests.
+For a cartesian product, simply declare more parameters and add
+UDAs as appropriate.
 
 For types, use the `@Types` UDA on a template function with exactly
 one compile-time parameter:
