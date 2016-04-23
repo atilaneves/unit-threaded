@@ -36,3 +36,11 @@ unittest {
 unittest {
     assert(getValue!(string, 0).length == getValue!(string, 1).length);
 }
+
+
+@(1, 2, 3)
+@("foo", "bar")
+@AutoTags
+testCartesianFunction(int i, string s) {
+    assert(i == 2 && s == "bar");
+}
