@@ -622,11 +622,13 @@ unittest {
     assertPass(fooRed);
     assertEqual(getValue!(string, 0), "foo");
     assertEqual(getValue!(string, 1), "red");
+    assertEqual(testData.find!(a => a.getPath.canFind("foo.red")).front.tags,
+                ["foo", "red"]);
 
     auto barGreen = tests.find!(a => a.getPath.canFind("bar.green")).front;
     assertFail(barGreen);
     assertEqual(getValue!(string, 0), "bar");
     assertEqual(getValue!(string, 1), "green");
-
-
+    assertEqual(testData.find!(a => a.getPath.canFind("bar.green")).front.tags,
+                ["bar", "green"]);
 }
