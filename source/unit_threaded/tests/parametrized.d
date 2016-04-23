@@ -29,3 +29,10 @@ unittest {
     immutable i = getValue!int;
     assert(i == 3);
 }
+
+@("cartesianBuiltin")
+@Values("foo", "bar")
+@Values("red", "blue", "green")
+unittest {
+    assert(getValue!(string, 0).length == getValue!(string, 1).length);
+}

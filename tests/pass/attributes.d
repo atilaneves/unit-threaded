@@ -98,7 +98,7 @@ void testTemplate(T)() {
 }
 
 @("Built-in with values")
-@Values("foo", "bar")
+@Values("red", "goo")
 unittest {
     getValue!string.length.shouldEqual(3);
 }

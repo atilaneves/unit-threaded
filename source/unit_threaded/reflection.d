@@ -117,34 +117,72 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
 
         // let's check for @Values UDAs, which are actually of type ValuesImpl
         enum isValues(alias T) = is(typeof(T)) && is(typeof(T):ValuesImpl!U, U);
-        enum valuesUDAs = Filter!(isValues, __traits(getAttributes, test));
+        alias valuesUDAs = Filter!(isValues, __traits(getAttributes, test));
 
         enum isTags(alias T) = is(typeof(T)) && is(typeof(T) == Tags);
         enum tags = tagsFromAttrs!(Filter!(isTags, __traits(getAttributes, test)));
 
         static if(valuesUDAs.length == 0) {
             testData ~= TestData(name, (){ test(); }, hidden, shouldFail, singleThreaded, builtin, suffix, tags);
-        } else {
-            static assert(valuesUDAs.length == 1, "Can only use @Values once");
+        } else static if(valuesUDAs.length > 1) {
 
-            foreach(value; aliasSeqOf!(valuesUDAs[0].values)) {
-                enum valueAsString = getValueAsString(value);
+            import std.range;
+            mixin(`enum prod = cartesianProduct(` ~ valuesUDAs.length.iota.map!
+                  (a => `valuesUDAs[` ~ guaranteedToString(a) ~ `].values`).join(", ") ~ `);`);
 
-                static if(hasUDA!(test, AutoTags))
-                    enum realTags = tags ~ valueAsString;
-                else
-                    enum realTags = tags;
-
-                testData ~= TestData(name ~ "." ~ valueAsString,
+            foreach(comb; aliasSeqOf!prod) {
+                enum valuesName = valuesName(comb);
+                enum realTags = tags;
+                testData ~= TestData(name ~ "." ~ valuesName,
                                      () {
-                                         ValueHolder!(typeof(value)).value = value;
+                                         foreach(i; aliasSeqOf!(comb.length.iota))
+                                             ValueHolder!(typeof(comb[i])).values[i] = comb[i];
                                          test();
                                      },
                                      hidden, shouldFail, singleThreaded, builtin, suffix, realTags);
+
+            }
+
+        } else {
+
+            foreach(i, _; valuesUDAs) {
+                foreach(value; aliasSeqOf!(valuesUDAs[i].values)) {
+                    enum valueAsString = getValueAsString(value);
+
+                    static if(hasUDA!(test, AutoTags))
+                        enum realTags = tags ~ valueAsString;
+                    else
+                        enum realTags = tags;
+
+                    testData ~= TestData(name ~ "." ~ valueAsString,
+                                         () {
+                                             ValueHolder!(typeof(value)).values[0] = value;
+                                             test();
+                                         },
+                                         hidden, shouldFail, singleThreaded, builtin, suffix, realTags);
+                }
             }
         }
     }
+
     return testData;
+}
+
+private string valuesName(T)(T tuple) {
+    import std.algorithm;
+    import std.range;
+    string[] parts;
+    foreach(a; aliasSeqOf!(tuple.length.iota))
+        parts ~= guaranteedToString(tuple[a]);
+    return parts.join(".");
+}
+
+private string guaranteedToString(T)(T value) nothrow pure @safe {
+    import std.conv;
+    try
+        return value.to!string;
+    catch(Exception ex)
+        assert(0, "Could not convert value to string");
 }
 
 private string getValueAsString(T)(T value) nothrow pure @safe {
@@ -483,7 +521,7 @@ unittest {
     assertFail(tests[0]);
 }
 
-@("Test that value parametrized built-in unittest blocks work")
+@("Value parametrized built-in unittests")
 unittest {
     import unit_threaded.factory;
     import unit_threaded.testcase;
@@ -577,4 +615,32 @@ unittest {
     auto tests = createTestCases(testData, ["@int"]);
     assertEqual(tests.length, 1);
     assertPass(tests[0]);
+}
+
+@("Cartesian parameterized built-in values") unittest {
+    import unit_threaded.factory;
+    import unit_threaded.testcase;
+    import unit_threaded.should;
+
+    const testData = allTestData!(unit_threaded.tests.parametrized).
+        filter!(a => a.name.canFind("cartesianBuiltin")).array;
+
+    auto tests = createTestCases(testData);
+    tests.map!(a => a.getPath).array.shouldBeSameSetAs(
+                addModPrefix(["foo.red", "foo.blue", "foo.green", "bar.red", "bar.blue", "bar.green"].
+                             map!(a => "cartesianBuiltin." ~ a).array,
+                             "unit_threaded.tests.parametrized"));
+    assertEqual(tests.length, 6);
+
+    auto fooRed = tests.find!(a => a.getPath.canFind("foo.red")).front;
+    assertPass(fooRed);
+    assertEqual(getValue!(string, 0), "foo");
+    assertEqual(getValue!(string, 1), "red");
+
+    auto barGreen = tests.find!(a => a.getPath.canFind("bar.green")).front;
+    assertFail(barGreen);
+    assertEqual(getValue!(string, 0), "bar");
+    assertEqual(getValue!(string, 1), "green");
+
+
 }
