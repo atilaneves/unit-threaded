@@ -205,6 +205,26 @@ void testInit(T)() {
 The `@Name` UDA can be used instead of a plain string in order to name
 a `unittest` block.
 
+unit-threaded uses D's package and module system to make it possible
+to select a subset of tests to run. Sometimes however, tests in
+different modules address cross-cutting concerns and it may be
+desirable to indicate this grouping in order to select only those
+tests. The `@Tags` UDA can be used to do that. Any number of tags
+can be applied to a test:
+
+```d
+@Tags("foo", "tagged")
+unittest { ... }
+```
+
+The strings a test is tagged with can be used by the test runner
+binary to constrain which tests to run either by selecting tests
+with or without tags:
+
+    ./ut @foo ~@bar
+
+That will run all tests that have the "foo" tag that also don't have
+the "bar" tag.
 
 Command-line Parameters
 -----------------------
