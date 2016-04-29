@@ -57,6 +57,7 @@ unittest {
     assert(true); //unit test block that always passes
 }
 
+
 @Name("second_unit_test")
 unittest {
     writelnUt("Second unit test block\n");
@@ -74,7 +75,7 @@ unittest {
     3.shouldEqual(5);
 }
 
-
+@Tags("other", "more")
 @(42, 2)
 void testValues(int i) {
     (i % 2 == 0).shouldBeTrue;

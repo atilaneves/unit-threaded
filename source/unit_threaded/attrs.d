@@ -25,6 +25,7 @@ struct Name {
 
 /// Associates one or more tags with the test
 struct Tags {
+    this(string[] values...) { this.values = values;}
     this(string[] values) { this.values =  values; }
     this(string value)    { this.values = [value]; }
     string[] values;
