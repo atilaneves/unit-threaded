@@ -74,6 +74,8 @@ const(TestData)[] allTestData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString, ty
 
 /**
  * Finds all built-in unittest blocks in the given module.
+ * Recurses into structs, classes, and unions of the module.
+ *
  * @return An array of TestData structs
  */
 TestData[] moduleUnitTests(alias module_)() pure nothrow {
@@ -89,7 +91,7 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
 
         enum strAttrs = Filter!(isStringUDA, __traits(getAttributes, test));
         enum hasName = nameAttrs.length || strAttrs.length == 1;
-        enum prefix = fullyQualifiedName!module_ ~ ".";
+        enum prefix = fullyQualifiedName!(__traits(parent, test)) ~ ".";
 
         static if(hasName) {
             static if(nameAttrs.length == 1)
@@ -106,60 +108,93 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
         }
     }
 
+
     TestData[] testData;
-    foreach(index, test; __traits(getUnitTests, module_)) {
-        enum name = unittestName!(test, index);
-        enum hidden = hasUDA!(test, HiddenTest);
-        enum shouldFail = hasUDA!(test, ShouldFail);
-        enum singleThreaded = hasUDA!(test, Serial);
-        enum builtin = true;
-        enum suffix = "";
 
-        // let's check for @Values UDAs, which are actually of type ValuesImpl
-        enum isValues(alias T) = is(typeof(T)) && is(typeof(T):ValuesImpl!U, U);
-        alias valuesUDAs = Filter!(isValues, __traits(getAttributes, test));
+    void addMemberUnittests(alias member)() pure nothrow{
+        foreach(index, test; __traits(getUnitTests, member)) {
+            enum name = unittestName!(test, index);
+            enum hidden = hasUDA!(test, HiddenTest);
+            enum shouldFail = hasUDA!(test, ShouldFail);
+            enum singleThreaded = hasUDA!(test, Serial);
+            enum builtin = true;
+            enum suffix = "";
 
-        enum isTags(alias T) = is(typeof(T)) && is(typeof(T) == Tags);
-        enum tags = tagsFromAttrs!(Filter!(isTags, __traits(getAttributes, test)));
+            // let's check for @Values UDAs, which are actually of type ValuesImpl
+            enum isValues(alias T) = is(typeof(T)) && is(typeof(T):ValuesImpl!U, U);
+            alias valuesUDAs = Filter!(isValues, __traits(getAttributes, test));
 
-        static if(valuesUDAs.length == 0) {
-            testData ~= TestData(name, (){ test(); }, hidden, shouldFail, singleThreaded, builtin, suffix, tags);
-        } else {
+            enum isTags(alias T) = is(typeof(T)) && is(typeof(T) == Tags);
+            enum tags = tagsFromAttrs!(Filter!(isTags, __traits(getAttributes, test)));
 
-            import std.range;
-
-            // cartesianProduct doesn't work with only one range, so in the usual case
-            // of only one @Values UDA, we bind to prod with a range of tuples, just
-            // as returned by cartesianProduct.
-
-            static if(valuesUDAs.length == 1) {
-                import std.typecons;
-                enum prod = valuesUDAs[0].values.map!(a => tuple(a));
+            static if(valuesUDAs.length == 0) {
+                testData ~= TestData(name, (){ test(); }, hidden, shouldFail, singleThreaded, builtin, suffix, tags);
             } else {
-                mixin(`enum prod = cartesianProduct(` ~ valuesUDAs.length.iota.map!
-                      (a => `valuesUDAs[` ~ guaranteedToString(a) ~ `].values`).join(", ") ~ `);`);
-            }
+                import std.range;
 
-            foreach(comb; aliasSeqOf!prod) {
-                enum valuesName = valuesName(comb);
+                // cartesianProduct doesn't work with only one range, so in the usual case
+                // of only one @Values UDA, we bind to prod with a range of tuples, just
+                // as returned by cartesianProduct.
 
-                static if(hasUDA!(test, AutoTags))
-                    enum realTags = tags ~ valuesName.split(".").array;
-                else
-                    enum realTags = tags;
+                static if(valuesUDAs.length == 1) {
+                    import std.typecons;
+                    enum prod = valuesUDAs[0].values.map!(a => tuple(a));
+                } else {
+                    mixin(`enum prod = cartesianProduct(` ~ valuesUDAs.length.iota.map!
+                          (a => `valuesUDAs[` ~ guaranteedToString(a) ~ `].values`).join(", ") ~ `);`);
+                }
 
-                testData ~= TestData(name ~ "." ~ valuesName,
-                                     () {
-                                         foreach(i; aliasSeqOf!(comb.length.iota))
-                                             ValueHolder!(typeof(comb[i])).values[i] = comb[i];
-                                         test();
-                                     },
-                                     hidden, shouldFail, singleThreaded, builtin, suffix, realTags);
+                foreach(comb; aliasSeqOf!prod) {
+                    enum valuesName = valuesName(comb);
 
+                    static if(hasUDA!(test, AutoTags))
+                        enum realTags = tags ~ valuesName.split(".").array;
+                    else
+                        enum realTags = tags;
+
+                    testData ~= TestData(name ~ "." ~ valuesName,
+                                         () {
+                                             foreach(i; aliasSeqOf!(comb.length.iota))
+                                                 ValueHolder!(typeof(comb[i])).values[i] = comb[i];
+                                             test();
+                                         },
+                                         hidden, shouldFail, singleThreaded, builtin, suffix, realTags);
+
+                }
             }
         }
     }
 
+
+    // Keeps track of mangled names of everything visited.
+    bool[string] visitedMembers;
+
+    void addUnitTestsRecursively(alias composite)() pure nothrow{
+        if (composite.mangleof in visitedMembers)
+            return;
+        visitedMembers[composite.mangleof] = true;
+        addMemberUnittests!composite();
+        foreach(member; __traits(allMembers, composite)){
+            static if (
+                // If visibility of the member is deprecated, the next line still returns true
+                // and yet spills deprecation warning. If deprecation is turned into error, 
+                // all works as intended.
+                __traits(compiles, __traits(getMember, composite, member)) &&
+                __traits(compiles, __traits(allMembers, __traits(getMember, composite, member))) &&
+                __traits(compiles, recurse!(__traits(getMember, composite, member)))
+            ) {
+                recurse!(__traits(getMember, composite, member));
+            }
+        }
+    }
+
+    void recurse(child)() pure nothrow{
+        static if ((is(child == class) || is(child == struct) || is(child == union))){
+            addUnitTestsRecursively!child;
+        }
+    }
+
+    addUnitTestsRecursively!module_();
     return testData;
 }
 
@@ -457,7 +492,8 @@ unittest {
 
 
 unittest {
-    const expected = addModPrefix(["unittest0", "unittest1", "myUnitTest"]);
+    const expected = addModPrefix(["unittest0", "unittest1", "myUnitTest",
+                                   "StructWithUnitTests.InStruct", "StructWithUnitTests.unittest1"]);
     const actual = moduleUnitTests!(unit_threaded.tests.module_with_tests).
         map!(a => a.name).array;
     assertEqual(actual, expected);
