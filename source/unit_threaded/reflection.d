@@ -175,9 +175,11 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
         visitedMembers[composite.mangleof] = true;
         addMemberUnittests!composite();
         foreach(member; __traits(allMembers, composite)){
+            enum notPrivate = __traits(compiles, mixin(member)); //only way I know to check if private
             static if (
+                notPrivate &&
                 // If visibility of the member is deprecated, the next line still returns true
-                // and yet spills deprecation warning. If deprecation is turned into error, 
+                // and yet spills deprecation warning. If deprecation is turned into error,
                 // all works as intended.
                 __traits(compiles, __traits(getMember, composite, member)) &&
                 __traits(compiles, __traits(allMembers, __traits(getMember, composite, member))) &&
@@ -188,8 +190,9 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
         }
     }
 
-    void recurse(child)() pure nothrow{
-        static if ((is(child == class) || is(child == struct) || is(child == union))){
+    void recurse(child)() pure nothrow {
+        enum notPrivate = __traits(compiles, child.init); //only way I know to check if private
+        static if (is(child == class) || is(child == struct) || is(child == union)) {
             addUnitTestsRecursively!child;
         }
     }
