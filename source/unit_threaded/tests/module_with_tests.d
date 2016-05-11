@@ -55,3 +55,16 @@ unittest {
 unittest {
     assert(true);
 }
+
+struct StructWithUnitTests{
+    alias StructWithUnitTests SelfSoDontRecurseForever; 
+
+    @Name("InStruct")
+    unittest{
+        assert(true);
+    }
+    unittest{
+        // 2nd inner block.
+        assert(true);
+    }
+}
