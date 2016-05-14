@@ -517,7 +517,7 @@ package void utFail(in string output, in string file, in size_t line)
     fail(output, file, line);
 }
 
-private void fail(in string output, in string file, in size_t line)
+void fail(in string output, in string file, in size_t line)
 {
     throw new UnitTestException([output], file, line);
 }
