@@ -150,11 +150,11 @@ class BuiltinTestCase: FunctionTestCase {
     }
 
     override void test() {
+        import core.exception: AssertError;
+
         try
             super.test();
-        catch(UnitTestException e)
-            throw e;
-        catch(Throwable t)
-            utFail(t.msg, t.file, t.line);
+        catch(AssertError e)
+            unit_threaded.should.fail(e.msg, e.file, e.line);
     }
 }

@@ -512,10 +512,6 @@ unittest
     throwRangeError.shouldThrow!RangeError;
 }
 
-package void utFail(in string output, in string file, in size_t line)
-{
-    fail(output, file, line);
-}
 
 void fail(in string output, in string file, in size_t line)
 {

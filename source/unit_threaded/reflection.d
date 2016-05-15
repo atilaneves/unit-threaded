@@ -504,7 +504,7 @@ unittest {
 
 version(unittest) {
     import unit_threaded.testcase: TestCase;
-    private void assertFail(TestCase test, string file = __FILE__, ulong line = __LINE__) {
+    private void assertFail(TestCase test, string file = __FILE__, size_t line = __LINE__) {
         import core.exception;
         import std.conv;
 
@@ -516,7 +516,7 @@ version(unittest) {
         } catch(AssertError) {}
     }
 
-    private void assertPass(TestCase test, string file = __FILE__, ulong line = __LINE__) {
+    private void assertPass(TestCase test, string file = __FILE__, size_t line = __LINE__) {
         assertEqual(test(), [], file, line);
     }
 }
