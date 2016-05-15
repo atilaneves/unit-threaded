@@ -34,7 +34,7 @@ when running in multiple threads).
 under which tested code output is turned back on, as well as special
 writelnUt debug messages.
 7. Ability to temporarily hide tests from being run by default whilst
-stil being able to run them
+still being able to run them
 
 Quick start with dub
 ----------------------
