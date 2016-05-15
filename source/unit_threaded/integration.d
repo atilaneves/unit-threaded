@@ -50,7 +50,12 @@ struct Sandbox {
     void writeFile(in string fileName, in string output = "") const {
         import std.stdio;
         import std.path;
-        File(buildPath(testPath, fileName), "w").writeln;
+        File(buildPath(testPath, fileName), "w").writeln(output);
+    }
+
+    void writeFile(in string fileName, in string[] lines) const {
+        import std.array;
+        writeFile(fileName, lines.join("\n"));
     }
 
     unittest {
@@ -70,6 +75,14 @@ struct Sandbox {
         fileName = buildPath(testPath, fileName);
         if(!fileName.exists)
             fail("Expected " ~ fileName ~ " to exist but it didn't", file, line);
+    }
+
+    unittest {
+        with(immutable Sandbox()) {
+            shouldExist("bar.txt").shouldThrow;
+            writeFile("bar.txt");
+            shouldExist("bar.txt");
+        }
     }
 
 
