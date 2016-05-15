@@ -12,6 +12,17 @@ import unit_threaded.should;
 
 extern(C) char* mkdtemp(char*);
 
+shared static this() {
+    import std.file;
+    if(!Sandbox.sandboxPath.exists) return;
+
+    foreach(entry; dirEntries(Sandbox.sandboxPath, SpanMode.shallow)) {
+        if(isDir(entry.name)) {
+            rmdirRecurse(entry);
+        }
+    }
+}
+
 
 @safe:
 
