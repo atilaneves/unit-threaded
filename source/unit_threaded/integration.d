@@ -36,6 +36,7 @@ struct Sandbox {
     static string sandboxPath = buildPath("tmp", "unit-threaded");
     string testPath;
 
+    /// Instantiate a Sandbox object
     static Sandbox opCall() {
         Sandbox ret;
         ret.testPath = newTestDir;
@@ -47,12 +48,14 @@ struct Sandbox {
         assert(sb.testPath != "");
     }
 
+    /// Write a file to the sandbox
     void writeFile(in string fileName, in string output = "") const {
         import std.stdio;
         import std.path;
         File(buildPath(testPath, fileName), "w").writeln(output);
     }
 
+    /// Write a file to the sanbox
     void writeFile(in string fileName, in string[] lines) const {
         import std.array;
         writeFile(fileName, lines.join("\n"));
@@ -69,6 +72,7 @@ struct Sandbox {
         }
     }
 
+    /// Assert that a file exists in the sandbox
     void shouldExist(string fileName, in string file = __FILE__, in size_t line = __LINE__) const {
         import std.file;
         import std.path;
@@ -85,6 +89,7 @@ struct Sandbox {
         }
     }
 
+    /// Assert that a file does not exist in the sandbox
     void shouldNotExist(string fileName, in string file = __FILE__, in size_t line = __LINE__) const {
         import std.file;
         import std.path;
@@ -98,6 +103,24 @@ struct Sandbox {
             shouldNotExist("baz.txt");
             writeFile("baz.txt");
             shouldNotExist("baz.txt").shouldThrow;
+        }
+    }
+
+    /// read a file in the test sandbox and verify its contents
+    void shouldEqualLines(in string fileName, in string[] lines,
+                          string file = __FILE__, size_t line = __LINE__) {
+        import std.file;
+        import std.string;
+
+        readText(buildPath(testPath, fileName)).chomp.split("\n")
+            .shouldEqual(lines, file, line);
+    }
+
+    unittest {
+        with(immutable Sandbox()) {
+            writeFile("lines.txt", ["foo", "toto"]);
+            shouldEqualLines("lines.txt", ["foo", "bar"]).shouldThrow;
+            shouldEqualLines("lines.txt", ["foo", "toto"]);
         }
     }
 
