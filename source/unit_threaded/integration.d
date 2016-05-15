@@ -85,6 +85,21 @@ struct Sandbox {
         }
     }
 
+    void shouldNotExist(string fileName, in string file = __FILE__, in size_t line = __LINE__) const {
+        import std.file;
+        import std.path;
+        fileName = buildPath(testPath, fileName);
+        if(fileName.exists)
+            fail("Expected " ~ fileName ~ " to not exist but it did", file, line);
+    }
+
+    unittest {
+        with(immutable Sandbox()) {
+            shouldNotExist("baz.txt");
+            writeFile("baz.txt");
+            shouldNotExist("baz.txt").shouldThrow;
+        }
+    }
 
 private:
 
