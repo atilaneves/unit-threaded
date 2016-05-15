@@ -33,7 +33,8 @@ shared static this() {
 struct Sandbox {
     import std.path;
 
-    static string sandboxPath = buildPath("tmp", "unit-threaded");
+    enum defaultSandboxPath = buildPath("tmp", "unit-threaded");
+    static string sandboxPath = defaultSandboxPath;
     string testPath;
 
     /// Instantiate a Sandbox object
@@ -43,9 +44,43 @@ struct Sandbox {
         return ret;
     }
 
+    ///
     unittest {
         auto sb = Sandbox();
         assert(sb.testPath != "");
+    }
+
+    static void setPath(string path) {
+        import std.file;
+        sandboxPath = path;
+        if(!sandboxPath.exists) () @trusted { mkdirRecurse(sandboxPath); }();
+    }
+
+    static void resetPath() {
+        sandboxPath = defaultSandboxPath;
+    }
+
+    ///
+    unittest {
+        import std.file;
+        import std.path;
+
+        Sandbox.sandboxPath.shouldEqual(defaultSandboxPath);
+
+        immutable newPath = buildPath("foo", "bar", "baz");
+        assert(!newPath.exists);
+        Sandbox.setPath(newPath);
+        assert(newPath.exists);
+        scope(exit) () @trusted { rmdirRecurse("foo"); }();
+        Sandbox.sandboxPath.shouldEqual(newPath);
+
+        with(immutable Sandbox()) {
+            writeFile("newPath.txt");
+            assert(buildPath(newPath, testPath, "newPath.txt").exists);
+        }
+
+        Sandbox.resetPath;
+        Sandbox.sandboxPath.shouldEqual(defaultSandboxPath);
     }
 
     /// Write a file to the sandbox
@@ -61,6 +96,7 @@ struct Sandbox {
         writeFile(fileName, lines.join("\n"));
     }
 
+    ///
     unittest {
         import std.file;
         import std.path;
@@ -81,6 +117,7 @@ struct Sandbox {
             fail("Expected " ~ fileName ~ " to exist but it didn't", file, line);
     }
 
+    ///
     unittest {
         with(immutable Sandbox()) {
             shouldExist("bar.txt").shouldThrow;
@@ -98,6 +135,7 @@ struct Sandbox {
             fail("Expected " ~ fileName ~ " to not exist but it did", file, line);
     }
 
+    ///
     unittest {
         with(immutable Sandbox()) {
             shouldNotExist("baz.txt");
@@ -116,6 +154,7 @@ struct Sandbox {
             .shouldEqual(lines, file, line);
     }
 
+    ///
     unittest {
         with(immutable Sandbox()) {
             writeFile("lines.txt", ["foo", "toto"]);
