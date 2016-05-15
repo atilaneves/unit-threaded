@@ -226,6 +226,18 @@ with or without tags:
 That will run all tests that have the "foo" tag that also don't have
 the "bar" tag.
 
+If using value or type parameterized tests, the `@AutoTags` UDA will
+give each sub-test a tag corresponding to their parameter:
+
+```d
+@Values("foo", "bar")
+@AutoTags // equivalent to writing @Tags("foo", "bar")
+@("autotag_test")
+unittest {
+   // ...
+}
+```
+
 Command-line Parameters
 -----------------------
 
