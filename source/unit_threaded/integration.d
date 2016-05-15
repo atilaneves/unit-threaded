@@ -56,10 +56,6 @@ struct Sandbox {
         if(!sandboxPath.exists) () @trusted { mkdirRecurse(sandboxPath); }();
     }
 
-    static void resetPath() {
-        sandboxPath = defaultSandboxPath;
-    }
-
     ///
     unittest {
         import std.file;
@@ -81,6 +77,10 @@ struct Sandbox {
 
         Sandbox.resetPath;
         Sandbox.sandboxPath.shouldEqual(defaultSandboxPath);
+    }
+
+    static void resetPath() {
+        sandboxPath = defaultSandboxPath;
     }
 
     /// Write a file to the sandbox
