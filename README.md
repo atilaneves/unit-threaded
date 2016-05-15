@@ -241,6 +241,26 @@ repeated by using the `--seed` option. This implies running in a
 single thread.
 
 
+Integration tests and a sandbox environment
+------------------------------------------
+
+If you want to write tests that read from and write to the file system,
+you can use the `Sandbox` struct from
+[`unit_threaded.integration`](source/unit_threaded/integration) like so:
+
+```d
+with(immutable Sandbox()) {
+    writeFile("foo.txt", "foobarbaz\ntoto"); // can also pass string[] for lines
+    shouldExist("foo.txt");
+    shouldNotExist("bar.txt");
+    shouldEqualLines("foo.txt", ["foobarbaz", "toto"]);
+}
+```
+
+By default the sandbox main path is `tmp/unit-threaded` but you can change
+that by calling `Sandbox.setPath`
+
+
 Test Registration and Test Runner
 ---------------------------------
 
