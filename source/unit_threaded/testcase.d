@@ -9,12 +9,6 @@ import std.string;
 import std.conv;
 import std.algorithm;
 
-
-struct TestResult {
-    int failures;
-    string output;
-}
-
 /**
  * Class from which other test cases derive
  */
