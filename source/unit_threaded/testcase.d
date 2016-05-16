@@ -19,6 +19,10 @@ struct TestResult {
  * Class from which other test cases derive
  */
 class TestCase {
+
+    /**
+     * Returns: the name of the test
+     */
     string getPath() const pure nothrow {
         return this.classinfo.name;
     }
