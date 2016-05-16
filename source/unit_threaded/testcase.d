@@ -33,6 +33,25 @@ class TestCase {
         return _failed ? [getPath()] : [];
     }
 
+    /**
+     Certain child classes override this
+     */
+    ulong numTestsRun() const { return 1; }
+
+    package void silence() @safe pure nothrow { _silent = true; }
+
+protected:
+
+    abstract void test();
+    void setup() { } ///override to run before test()
+    void shutdown() { } ///override to run after test()
+
+private:
+
+    bool _failed;
+    string _output;
+    bool _silent;
+
     final auto collectOutput() {
         print(getPath() ~ ":\n");
         check(setup());
@@ -41,23 +60,7 @@ class TestCase {
         if(_failed) print("\n\n");
     }
 
-    void printToScreen() const {
-        if(!_silent) utWrite(_output);
-    }
-
-    void setup() { } ///override to run before test()
-    void shutdown() { } ///override to run after test()
-    abstract void test();
-    ulong numTestsRun() const { return 1; }
-
-    package void silence() @safe pure nothrow { _silent = true; }
-
-private:
-    bool _failed;
-    string _output;
-    bool _silent;
-
-    bool check(E)(lazy E expression) {
+    final bool check(E)(lazy E expression) {
         try {
             expression();
         } catch(UnitTestException ex) {
@@ -69,13 +72,17 @@ private:
         return !_failed;
     }
 
-    void fail(in string msg) {
+    final void fail(in string msg) {
         _failed = true;
         print(msg);
     }
 
-    void print(in string msg) {
+    final void print(in string msg) {
         addToOutput(_output, msg);
+    }
+
+    final void printToScreen() const {
+        if(!_silent) utWrite(_output);
     }
 }
 
