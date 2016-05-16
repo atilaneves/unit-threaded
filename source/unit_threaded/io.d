@@ -42,20 +42,6 @@ package void forceEscCodes() nothrow {
     }
 }
 
-/**
- * Adds to the test cases output so far or immediately prints
- * Params:
- *  output = The output to add to.
- *  msg = The string to add.
- */
-package void addToOutput(ref string output, in string msg) @safe {
-    if (_debugOutput) {
-        import std.stdio;
-        writeln(msg);
-    } else {
-        output ~= msg;
-    }
-}
 
 package void utWrite(T...)(T args) {
     WriterThread.get().write(args);

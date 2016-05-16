@@ -76,7 +76,7 @@ private:
     }
 
     final void print(in string msg) {
-        addToOutput(_output, msg);
+        _output ~= msg;
     }
 
     final void printOutput() const {
