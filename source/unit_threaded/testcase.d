@@ -36,7 +36,10 @@ class TestCase {
      */
     ulong numTestsRun() const { return 1; }
 
-    package void silence() @safe pure nothrow { _silent = true; }
+package:
+
+    void silence() @safe pure nothrow { _silent = true; }
+    string output() @safe const pure nothrow { return _output; }
 
 protected:
 
