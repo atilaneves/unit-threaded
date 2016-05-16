@@ -25,11 +25,11 @@ class TestCase {
 
     /**
      * Executes the test.
-     * Returns: array of failures
+     * Returns: array of failures (child classes may have more than 1)
      */
     string[] opCall() {
-        collectOutput();
-        printToScreen();
+        doTest();
+        printOutput();
         return _failed ? [getPath()] : [];
     }
 
@@ -52,7 +52,7 @@ private:
     string _output;
     bool _silent;
 
-    final auto collectOutput() {
+    final auto doTest() {
         print(getPath() ~ ":\n");
         check(setup());
         check(test());
@@ -81,7 +81,7 @@ private:
         addToOutput(_output, msg);
     }
 
-    final void printToScreen() const {
+    final void printOutput() const {
         if(!_silent) utWrite(_output);
     }
 }
