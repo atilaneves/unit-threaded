@@ -55,7 +55,7 @@ DubInfo getDubInfo(string jsonString) @trusted {
 
 private string[] jsonValueToFiles(JSONValue files) @trusted {
     return files.array.
-        filter!(a => a.byKey("type").str == "source").
+        filter!(a => "type" in a || a.byKey("type").str == "source").
         map!(a => a.byKey("path").str).
         array;
 }
