@@ -310,16 +310,20 @@ TestData[] moduleTestFunctions(alias module_)() pure {
         } else static if(isSomeFunction!(mixin(moduleMember))) {
             enum isTestFunction = hasTestPrefix!(module_, moduleMember) ||
                                   HasAttribute!(module_, moduleMember, UnitTest);
-        } else {
+        } else static if(__traits(compiles, __traits(getAttributes, mixin(moduleMember)))) {
             // in this case we handle the possibility of a template function with
             // the @Types UDA attached to it
             alias types = GetTypes!(mixin(moduleMember));
+
             enum isTestFunction = hasTestPrefix!(module_, moduleMember) &&
                                   types.length > 0 &&
                                   is(typeof(() {
                                       mixin(moduleMember ~ `!` ~ types[0].stringof ~ `;`);
                                   }));
+        } else {
+            enum isTestFunction = false;
         }
+
     }
 
     template hasTestPrefix(alias module_, string member) {

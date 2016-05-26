@@ -57,7 +57,7 @@ unittest {
 }
 
 struct StructWithUnitTests{
-    alias StructWithUnitTests SelfSoDontRecurseForever; 
+    alias StructWithUnitTests SelfSoDontRecurseForever;
 
     @Name("InStruct")
     unittest{
@@ -68,3 +68,6 @@ struct StructWithUnitTests{
         assert(true);
     }
 }
+
+// github issue #26 - template instance GetTypes!uint does not match template declaration
+alias RGB = uint;
