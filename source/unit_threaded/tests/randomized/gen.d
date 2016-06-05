@@ -3,6 +3,8 @@ module unit_threaded.tests.randomized.gen;
 import std.traits : isSomeString, isNumeric, isFloatingPoint;
 import std.random : uniform, Random;
 
+import unit_threaded;
+
 /* Return $(D true) if the passed $(D T) is a $(D Gen) struct.
 
 A $(D Gen!T) is something that implicitly converts to $(D T), has a method
@@ -22,6 +24,7 @@ template isGen(T)
 }
 
 ///
+@UnitTest
 unittest
 {
     static assert(!isGen!int);
@@ -232,8 +235,10 @@ struct GenASCIIString(size_t low, size_t high)
     alias opCall this;
 }
 
+@UnitTest
 unittest
 {
+	import std.stdio : writeln;
     import std.utf : validate;
     import std.array : empty;
     import std.exception : assertNotThrown;
@@ -243,6 +248,7 @@ unittest
     GenASCIIString!(5, 5) gen;
     gen.gen(rnd);
     auto str = gen();
+	writeln(str);
 
     assert(!str.empty);
     assertNotThrown(validate(str));

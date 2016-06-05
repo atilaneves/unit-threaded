@@ -2,14 +2,11 @@ module unit_threaded.tests.randomized.benchmark;
 
 import core.time : MonoTimeImpl, Duration, ClockType, dur, seconds;
 import std.array : appender, array;
-import std.datetime : StopWatch, DateTime, Clock;
-import std.meta : staticMap;
-import std.conv : to;
-import std.random : Random, uniform;
-import std.traits : fullyQualifiedName, isFloatingPoint, isIntegral, isNumeric,
-    isSomeString, Parameters, ParameterIdentifierTuple;
-import std.typetuple : TypeTuple;
-import std.utf : byDchar, count;
+import std.datetime : Clock;
+import std.traits : fullyQualifiedName, Parameters, ParameterIdentifierTuple;
+
+import unit_threaded;
+import unit_threaded.tests.randomized.gen;
 
 /* This function used $(D MonoTimeImpl!(ClockType.precise).currTime) to time
 how long $(D MonoTimeImpl!(ClockType.precise).currTime) takes to return
@@ -52,6 +49,7 @@ private Duration getQuantilTick(double q)(Duration[] ticks) pure @safe
     }
 }
 
+@Name("Quantil calculations")
 unittest
 {
     static import std.conv;
@@ -76,6 +74,23 @@ unittest
 
     q75 = getQuantilTick!0.75(ticks[0 .. 4]);
     assert(q75 == dur!"seconds"(3) + dur!"msecs"(500), q25.toString());
+}
+
+/** The options  controlling the behaviour of benchmark. */
+struct BenchmarkOptions
+{
+    string funcname; // the name of the function to benchmark
+    string filename; // the name of the file the results will be appended to
+    Duration duration = 1.seconds; // the time after which the function to
+                                   // benchmark is not executed anymore
+    size_t maxRounds = 10000; // the maximum number of times the function
+                              // to benchmark is called
+    int seed = 1337; // the seed to the random number generator
+
+    this(string funcname)
+    {
+        this.funcname = funcname;
+    }
 }
 
 /** This $(D struct) takes care of the time taking and outputting of the
@@ -175,4 +190,130 @@ struct Benchmark
                 q100 > this.medianStopWatch ? q100 - this.medianStopWatch : 0);
         }
     }
+}
+
+void doNotOptimizeAway(T...)(ref T t)
+{
+    foreach (ref it; t)
+    {
+        doNotOptimizeAwayImpl(&it);
+    }
+}
+
+private void doNotOptimizeAwayImpl(void* p) {
+	import core.thread : getpid;
+	import std.stdio : writeln;
+	if(getpid() == 1) {
+		writeln(*cast(char*)p);
+	}
+}
+
+unittest
+{
+    static void funToBenchmark(int a, float b, Gen!(int, -5, 5) c, string d,
+        GenASCIIString!(1, 10) e)
+    {
+        import core.thread;
+
+        Thread.sleep(1.seconds / 100000);
+        doNotOptimizeAway(a, b, c, d, e);
+    }
+
+    benchmark!funToBenchmark();
+    benchmark!funToBenchmark("Another Name");
+    benchmark!funToBenchmark("Another Name", 2.seconds);
+    benchmark!funToBenchmark(2.seconds);
+}
+
+/** This function runs the passed callable $(D T) for the duration of
+$(D maxRuntime). It will count how often $(D T) is run in the duration and
+how long each run took to complete.
+
+Unless compiled in release mode, statistics will be printed to $(D stderr).
+If compiled in release mode the statistics are appended to a file called
+$(D name).
+
+Params:
+    opts = A $(D BenchmarkOptions) instance that encompasses all possible
+        parameters of benchmark.
+    name = The name of the benchmark. The name is also used as filename to
+        save the benchmark results.
+    maxRuntime = The maximum time the benchmark is executed. The last run will
+        not be interrupted.
+    rndSeed = The seed to the random number generator used to populate the
+        parameter passed to the function to benchmark.
+    rounds = The maximum number of times the callable $(D T) is called.
+*/
+void benchmark(alias T)(const ref BenchmarkOptions opts)
+{
+	import std.random : Random;
+	import unit_threaded.tests.randomized.random;
+
+    auto bench = Benchmark(opts.funcname, opts.maxRounds, opts.filename);
+    auto rnd = Random(opts.seed);
+    enum string[] parameterNames = [ParameterIdentifierTuple!T];
+    auto valueGenerator = RndValueGen!(parameterNames, Parameters!T)(&rnd);
+
+    while (bench.timeSpend <= opts.duration && bench.curRound < opts.maxRounds)
+    {
+        valueGenerator.genValues();
+
+        bench.start();
+        try
+        {
+            T(valueGenerator.values);
+        }
+        catch (Throwable t)
+        {
+            import std.experimental.logger : logf;
+
+            logf("unittest with name %s failed when parameter %s where passed",
+                opts.funcname, valueGenerator);
+            break;
+        }
+        finally
+        {
+            bench.stop();
+            ++bench.curRound;
+        }
+    }
+}
+
+/// Ditto
+void benchmark(alias T)(string funcname = "", string filename = __FILE__)
+{
+    import std.string : empty;
+
+    auto opt = BenchmarkOptions(
+        funcname.empty ? fullyQualifiedName!T : funcname
+    );
+    opt.filename = filename;
+    benchmark!(T)(opt);
+}
+
+/// Ditto
+void benchmark(alias T)(Duration maxRuntime, string filename = __FILE__)
+{
+    auto opt = BenchmarkOptions(fullyQualifiedName!T);
+    opt.filename = filename;
+    opt.duration = maxRuntime;
+    benchmark!(T)(opt);
+}
+
+/// Ditto
+/*void benchmark(alias T)(string name, string filename = __FILE__)
+{
+    auto opt = BenchmarkOptions(name);
+    opt.filename = filename;
+    benchmark!(T)(opt);
+}*/
+
+/// Ditto
+void benchmark(alias T)(string name, Duration maxRuntime,
+    string filename = __FILE__)
+{
+    auto opt = BenchmarkOptions(name);
+    opt.filename = filename;
+    opt.duration = maxRuntime;
+    benchmark!(T)(opt);
 }

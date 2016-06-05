@@ -716,3 +716,16 @@ unittest {
                 ["2", "bar"]);
 
 }
+
+unittest {
+    import unit_threaded.testcase;
+    import unit_threaded.factory;
+
+	import unit_threaded.tests.randomized.gen;
+
+	auto testData = allTestData!(unit_threaded.tests.randomized.gen).array;
+    auto tests = createTestCases(testData);
+	foreach(test; tests) {
+
+	}
+}
