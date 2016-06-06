@@ -6,3 +6,4 @@ dtest
 __test__library__
 unit-threaded
 dub.selections.json
+*.csv

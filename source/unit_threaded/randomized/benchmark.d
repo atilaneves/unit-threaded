@@ -1,4 +1,4 @@
-module unit_threaded.tests.randomized.benchmark;
+module unit_threaded.randomized.benchmark;
 
 import core.time : MonoTimeImpl, Duration, ClockType, dur, seconds;
 import std.array : appender, array;
@@ -6,7 +6,7 @@ import std.datetime : Clock;
 import std.traits : fullyQualifiedName, Parameters, ParameterIdentifierTuple;
 
 import unit_threaded;
-import unit_threaded.tests.randomized.gen;
+import unit_threaded.randomized.gen;
 
 /* This function used $(D MonoTimeImpl!(ClockType.precise).currTime) to time
 how long $(D MonoTimeImpl!(ClockType.precise).currTime) takes to return
@@ -247,7 +247,7 @@ Params:
 void benchmark(alias T)(const ref BenchmarkOptions opts)
 {
 	import std.random : Random;
-	import unit_threaded.tests.randomized.random;
+	import unit_threaded.randomized.random;
 
     auto bench = Benchmark(opts.funcname, opts.maxRounds, opts.filename);
     auto rnd = Random(opts.seed);

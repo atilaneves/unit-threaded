@@ -1,8 +1,8 @@
-module unit_threaded.tests.randomized.random;
+module unit_threaded.randomized.random;
 
 import std.random : Random;
 
-import unit_threaded.tests.randomized.gen;
+import unit_threaded.randomized.gen;
 
 /** This type will generate a $(D Gen!T) for all passed $(D T...).
 Every call to $(D genValues) will call $(D gen) of all $(D Gen) structs

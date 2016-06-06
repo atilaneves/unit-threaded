@@ -721,9 +721,9 @@ unittest {
     import unit_threaded.testcase;
     import unit_threaded.factory;
 
-	import unit_threaded.tests.randomized.gen;
+	import unit_threaded.randomized.gen;
 
-	auto testData = allTestData!(unit_threaded.tests.randomized.gen).array;
+	auto testData = allTestData!(unit_threaded.randomized.gen).array;
     auto tests = createTestCases(testData);
 	foreach(test; tests) {
 

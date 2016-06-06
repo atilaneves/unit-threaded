@@ -1,8 +1,8 @@
-module unit_threaded.tests.randomized;
+module unit_threaded.randomized;
 
-public import unit_threaded.tests.randomized.gen;
-public import unit_threaded.tests.randomized.random;
-public import unit_threaded.tests.randomized.benchmark;
+public import unit_threaded.randomized.gen;
+public import unit_threaded.randomized.random;
+public import unit_threaded.randomized.benchmark;
 
 unittest
 {
