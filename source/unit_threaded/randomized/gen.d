@@ -1,4 +1,4 @@
-module unit_threaded.tests.randomized.gen;
+module unit_threaded.randomized.gen;
 
 import std.traits : isSomeString, isNumeric, isFloatingPoint;
 import std.random : uniform, Random;
