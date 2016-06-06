@@ -14,7 +14,6 @@ import std.range;
 
 public import unit_threaded.attrs;
 
-@safe:
 
 /**
  * An exception to signal that a test case has failed.
@@ -22,28 +21,28 @@ public import unit_threaded.attrs;
 class UnitTestException : Exception
 {
     this(in string msg, string file = __FILE__,
-         size_t line = __LINE__, Throwable next = null)
+         size_t line = __LINE__, Throwable next = null) @safe pure nothrow
     {
         this([msg], file, line, next);
     }
 
     this(in string[] msgLines, string file = __FILE__,
-         size_t line = __LINE__, Throwable next = null)
+         size_t line = __LINE__, Throwable next = null) @safe pure nothrow
     {
         super(msgLines.join("\n"), next, file, line);
         this.msgLines = msgLines;
     }
 
-    override string toString() const pure
+    override string toString() @safe const pure
     {
-        return msgLines.map!(a => getOutputPrefix(file, line) ~ a).join("\n");
+        return () @trusted { return msgLines.map!(a => getOutputPrefix(file, line) ~ a).join("\n"); }();
     }
 
 private:
 
     const string[] msgLines;
 
-    string getOutputPrefix(in string file, in size_t line) const pure
+    string getOutputPrefix(in string file, in size_t line) @safe const pure
     {
         return "    " ~ file ~ ":" ~ line.to!string ~ " - ";
     }
@@ -513,25 +512,25 @@ unittest
 }
 
 
-void fail(in string output, in string file, in size_t line)
+void fail(in string output, in string file, in size_t line) @safe pure
 {
     throw new UnitTestException([output], file, line);
 }
 
 
-private string[] formatValue(T)(in string prefix, T value) {
+private string[] formatValue(T)(in string prefix, T value) @safe {
     static if(isSomeString!T) {
         return [ prefix ~ `"` ~ value ~ `"`];
     } else static if(isInputRange!T) {
         return formatRange(prefix, value);
     } else {
-        return [() @trusted{ return prefix ~ value.to!string; }()];
+        return [() @trusted { return prefix ~ value.to!string; }()];
     }
 }
 
-private string[] formatRange(T)(in string prefix, T value) @trusted {
+private string[] formatRange(T)(in string prefix, T value) @safe {
     //some versions of `to` are @system
-    auto defaultLines = () @trusted{ return [prefix ~ value.to!string]; }();
+    auto defaultLines = () @trusted { return [prefix ~ value.to!string]; }();
 
     static if (!isInputRange!(ElementType!T))
         return defaultLines;
