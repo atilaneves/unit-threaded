@@ -52,10 +52,13 @@ DubInfo getDubInfo(string jsonString) @trusted {
                    array);
 }
 
-
 private string[] jsonValueToFiles(JSONValue files) @trusted {
+    import std.array;
+
     return files.array.
-        filter!(a => "type" !in a || a.byKey("type").str == "source").
+        filter!(a => ("type" in a && a.byKey("type").str == "source") ||
+                     ("role" in a && a.byKey("role").str == "source") ||
+                     ("type" !in a && "role" !in a)).
         map!(a => a.byKey("path").str).
         array;
 }
@@ -95,13 +98,19 @@ private string[] getOptionalList(JSONValue json, in string key) @trusted {
 
 
 DubInfo getDubInfo(in bool verbose) {
+    import core.exception;
+
     if(verbose)
         writeln("Running dub describe");
 
     immutable args = ["dub", "describe", "-c", "unittest"];
     immutable res = execute(args);
     enforce(res.status == 0, text("Could not execute ", args.join(" "), ":\n", res.output));
-    return getDubInfo(res.output.find("{"));
+    try {
+        return getDubInfo(res.output.find("{"));
+    } catch(RangeError e) {
+        throw new Exception(text("Could not parse the output of dub describe:\n", res.output, "\n", e.toString));
+    }
 }
 
 bool isDubProject() {
@@ -113,6 +122,7 @@ bool isDubProject() {
 // set import paths from dub information
 void dubify(ref Options options) {
     if(!isDubProject) return;
+
     auto dubInfo = getDubInfo(options.verbose);
     options.includes = dubInfo.packages.
         map!(a => a.importPaths.map!(b => buildPath(a.path, b)).array).
