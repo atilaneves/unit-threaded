@@ -255,9 +255,9 @@ struct Gen(T, size_t high = 1024, size_t low = 1) if(is(T: int[])) {
     import std.range: ElementType;
     alias E = ElementType!T;
 
-    const(E)[] gen(ref Random rnd) @safe pure {
-        return _index < _frontLoaded.length
-            ? _frontLoaded[_index++]
+    T gen(ref Random rnd) @safe pure {
+        return _index < frontLoaded.length
+            ? frontLoaded[_index++]
             : genArray(rnd);
     }
 
@@ -265,7 +265,9 @@ private:
 
     size_t _index;
      //these values are always generated
-    static immutable T[] _frontLoaded = [[], [0], [1]];
+    T[] frontLoaded() @safe pure nothrow {
+        return [[], [0], [1]];
+    }
 
     T genArray(ref Random rnd) @safe pure {
         import std.array: appender;

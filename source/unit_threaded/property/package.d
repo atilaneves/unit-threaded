@@ -1,0 +1,63 @@
+module unit_threaded.property;
+
+public import unit_threaded.should;
+
+import unit_threaded.randomized.gen;
+import std.random: Random, unpredictableSeed;
+
+Random gRandom;
+
+
+static this() {
+    gRandom = Random(unpredictableSeed);
+}
+
+void verifyProperty(alias F)(int numFuncCalls = 100) {
+    import std.traits;
+    import std.conv;
+
+    static assert(Parameters!F.length == 1,
+                  text(__FUNCTION__, " only accepts functions with one parameter"));
+    alias T = Parameters!F[0];
+
+    auto gen = Gen!T();
+    foreach(i; 0 .. numFuncCalls) {
+        F(gen.gen(gRandom));
+    }
+}
+
+@("Verify identity property for int[] succeeds")
+@safe unittest {
+    int numCalls;
+    void identity(int[] a) pure {
+        ++numCalls;
+        a.shouldEqual(a);
+    }
+
+    verifyProperty!identity;
+    numCalls.shouldEqual(100);
+
+    numCalls = 0;
+    verifyProperty!identity(10);
+    numCalls.shouldEqual(10);
+
+}
+
+@("Verify anti-identity property for int[] fails")
+@safe unittest {
+    int numCalls;
+    void antiIdentity(int[] a) {
+        ++numCalls;
+        a.shouldNotEqual(a);
+    }
+
+    verifyProperty!antiIdentity.shouldThrow!UnitTestException;
+    numCalls.shouldEqual(1); // always fails so only gets called once
+}
+
+@("Verify property that sometimes succeeds")
+@safe unittest {
+    // 2^100 is ~1.26E30, so the chances that no even length array is generated
+    // is small enough to disconsider
+    verifyProperty!((int[] a) => (a.length % 2).shouldEqual(0)).shouldThrow!UnitTestException;
+}
