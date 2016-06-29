@@ -250,7 +250,7 @@ unittest
     assertNotThrown(validate(str));
 }
 
-struct Gen(T, size_t high = 1024, size_t low = 1) if(is(T: int[])) {
+struct Gen(T, size_t low = 1, size_t high = 1024) if(is(T: int[])) {
 
     import std.range: ElementType;
     alias E = ElementType!T;
@@ -290,7 +290,7 @@ static assert(isGen!(Gen!(int[])));
     import unit_threaded.asserts: assertEqual;
 
     auto rnd = Random(1337);
-    auto gen = Gen!(int[], 10)();
+    auto gen = Gen!(int[], 1, 10)();
 
     // first the front-loaded values
     assertEqual(gen.gen(rnd), []);
