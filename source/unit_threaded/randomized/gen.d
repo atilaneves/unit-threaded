@@ -235,10 +235,8 @@ struct GenASCIIString(size_t low, size_t high)
     alias opCall this;
 }
 
-@UnitTest
 unittest
 {
-	import std.stdio : writeln;
     import std.utf : validate;
     import std.array : empty;
     import std.exception : assertNotThrown;
@@ -248,8 +246,56 @@ unittest
     GenASCIIString!(5, 5) gen;
     gen.gen(rnd);
     auto str = gen();
-	writeln(str);
-
     assert(!str.empty);
     assertNotThrown(validate(str));
+}
+
+struct Gen(T, size_t high = 1024, size_t low = 1) if(is(T: int[])) {
+
+    import std.range: ElementType;
+    alias E = ElementType!T;
+
+    const(E)[] gen(ref Random rnd) @safe pure {
+        return _index < _frontLoaded.length
+            ? _frontLoaded[_index++]
+            : genArray(rnd);
+    }
+
+private:
+
+    size_t _index;
+     //these values are always generated
+    static immutable T[] _frontLoaded = [[], [0], [1]];
+
+    T genArray(ref Random rnd) @safe pure {
+        import std.array: appender;
+        immutable length = uniform(low, high, rnd);
+        auto app = appender!T;
+        app.reserve(length);
+        foreach(i; 0 .. length) {
+            app.put(uniform(E.min, E.max, rnd));
+        }
+
+        return app.data;
+    }
+}
+
+static assert(isGen!(Gen!(int[])));
+
+
+@("Gen!int[] generates random arrays of int")
+@safe pure unittest {
+    import unit_threaded.asserts: assertEqual;
+
+    auto rnd = Random(1337);
+    auto gen = Gen!(int[], 10)();
+
+    // first the front-loaded values
+    assertEqual(gen.gen(rnd), []);
+    assertEqual(gen.gen(rnd), [0]);
+    assertEqual(gen.gen(rnd), [1]);
+    // then the first pseudo-random one
+    assertEqual(gen.gen(rnd),
+                [-1465941156, -1234426648, -952939353, 185030105,
+                 -174732633, -2001577638, -768796814, -1136496558, 78996564]);
 }
