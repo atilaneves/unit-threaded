@@ -22,5 +22,6 @@ int main(string[] args) {
         tests.pass.register,
         tests.pass.io,
         tests.pass.fixtures,
+        tests.pass.property,
         );
 }

@@ -7,3 +7,4 @@ public import unit_threaded.should;
 public import unit_threaded.reflection;
 public import unit_threaded.runner;
 public import unit_threaded.integration;
+public import unit_threaded.property;
