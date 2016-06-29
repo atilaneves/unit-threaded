@@ -58,7 +58,7 @@ void shouldBeTrue(E)(lazy E condition, in string file = __FILE__, in size_t line
 }
 
 ///
-unittest
+@safe pure unittest
 {
     shouldBeTrue(true);
 }
@@ -73,7 +73,7 @@ void shouldBeFalse(E)(lazy E condition, in string file = __FILE__, in size_t lin
 }
 
 ///
-unittest
+@safe pure unittest
 {
     shouldBeFalse(false);
 }
@@ -94,12 +94,11 @@ void shouldEqual(V, E)(V value, E expected, in string file = __FILE__, in size_t
 }
 
 ///
-unittest {
+@safe pure unittest {
     shouldEqual(true, true);
     shouldEqual(false, false);
     shouldEqual(1, 1) ;
     shouldEqual("foo", "foo") ;
-    shouldEqual(1.0, 1.0) ;
     shouldEqual([2, 3], [2, 3]) ;
 
     shouldEqual(iota(3), [0, 1, 2]);
@@ -107,6 +106,12 @@ unittest {
     shouldEqual([[0, 1], [0, 1, 2]], [iota(2), iota(3)]);
     shouldEqual([iota(2), iota(3)], [[0, 1], [0, 1, 2]]);
 
+}
+
+///
+@safe unittest {
+    //impure comparisons
+    shouldEqual(1.0, 1.0) ;
     shouldEqual(3.0, 3.00001); //approximately equal
 }
 
@@ -128,17 +133,21 @@ void shouldNotEqual(V, E)(V value, E expected, in string file = __FILE__, in siz
 }
 
 ///
-unittest
+@safe pure unittest
 {
     shouldNotEqual(true, false);
     shouldNotEqual(1, 2);
     shouldNotEqual("f", "b");
-    shouldNotEqual(1.0, 2.0);
     shouldNotEqual([2, 3], [2, 3, 4]);
 }
 
+///
+@safe unittest {
+    shouldNotEqual(1.0, 2.0);
+}
 
-unittest {
+
+@safe pure unittest {
     string getExceptionMsg(E)(lazy E expr) {
         try
         {
@@ -207,14 +216,14 @@ unittest {
                        "    source/unit_threaded/should.d:123 - 1");
 }
 
-unittest
+@safe pure unittest
 {
     ubyte[] arr;
     arr.shouldEqual([]);
 }
 
 
-unittest
+@safe pure unittest
 {
     int[] ints = [1, 2, 3];
     byte[] bytes = [1, 2, 3];
@@ -223,12 +232,15 @@ unittest
     shouldEqual(bytes, ints) ;
     shouldNotEqual(ints, bytes2) ;
 
-    shouldEqual([1 : 2.0, 2 : 4.0], [1 : 2.0, 2 : 4.0]) ;
-    shouldNotEqual([1 : 2.0, 2 : 4.0], [1 : 2.2, 2 : 4.0]) ;
     const constIntToInts = [1 : 2, 3 : 7, 9 : 345];
     auto intToInts = [1 : 2, 3 : 7, 9 : 345];
     shouldEqual(intToInts, constIntToInts) ;
     shouldEqual(constIntToInts, intToInts) ;
+}
+
+@safe unittest {
+    shouldEqual([1 : 2.0, 2 : 4.0], [1 : 2.0, 2 : 4.0]) ;
+    shouldNotEqual([1 : 2.0, 2 : 4.0], [1 : 2.2, 2 : 4.0]) ;
 }
 
 /**
@@ -242,7 +254,7 @@ void shouldBeNull(T)(in T value, in string file = __FILE__, in size_t line = __L
 }
 
 ///
-unittest
+@safe pure unittest
 {
     shouldBeNull(null) ;
 }
@@ -259,7 +271,7 @@ void shouldNotBeNull(T)(in T value, in string file = __FILE__, in size_t line = 
 }
 
 ///
-unittest
+@safe pure unittest
 {
     class Foo
     {
@@ -309,7 +321,7 @@ if (!isAssociativeArray!U && isInputRange!U)
 }
 
 ///
-unittest
+@safe pure unittest
 {
     shouldBeIn(4, [1, 2, 4]);
     shouldBeIn("foo", ["foo" : 1]);
@@ -348,7 +360,7 @@ if (!isAssociativeArray!U && isInputRange!U)
 }
 
 ///
-unittest
+@safe unittest
 {
     shouldNotBeIn(3.5, [1.1, 2.2, 4.4]);
     shouldNotBeIn(1.0, [2.0 : 1, 3.0 : 2]);
@@ -383,8 +395,8 @@ void shouldThrowExactly(T : Throwable = Exception, E)(lazy E expr,
     if (!threw)
         fail("Expression did not throw", file, line);
 
-    //Object.opEquals is @system
-    immutable sameType = () @trusted{ return threw.typeInfo == typeid(T); }();
+    //Object.opEquals is @system and impure
+    immutable sameType = () @trusted { return threw.typeInfo == typeid(T); }();
     if (!sameType)
         fail(text("Expression threw wrong type ", threw.typeInfo,
             "instead of expected type ", typeid(T)), file, line);
@@ -416,7 +428,7 @@ void shouldThrowWithMessage(T : Throwable = Exception, E)(lazy E expr,
 }
 
 ///
-unittest {
+@safe pure unittest {
     void funcThrows(string msg) { throw new Exception(msg); }
     funcThrows("foo bar").shouldThrowWithMessage!Exception("foo bar");
     funcThrows("foo bar").shouldThrowWithMessage("foo bar");
@@ -453,7 +465,9 @@ private auto threw(T : Throwable, E)(lazy E expr) @trusted
     return ThrowResult(false);
 }
 
-unittest
+// can't be made pure because of throwExactly, which in turn
+// can't be pure because of Object.opEquals
+@safe unittest
 {
     class CustomException : Exception
     {
@@ -498,7 +512,7 @@ unittest
     }
 }
 
-unittest
+@safe pure unittest
 {
     void throwRangeError()
     {
@@ -598,7 +612,7 @@ if (isObject!V && isObject!E)
 }
 
 
-unittest {
+@safe pure unittest {
     assert(isEqual(2, 2));
     assert(!isEqual(2, 3));
 
@@ -670,7 +684,7 @@ if (isAssociativeArray!T)
 }
 
 ///
-unittest
+@safe pure unittest
 {
     int[] ints;
     string[] strings;
@@ -714,7 +728,7 @@ if (isAssociativeArray!T)
 }
 
 ///
-unittest
+@safe pure unittest
 {
     int[] ints;
     string[] strings;
@@ -745,7 +759,7 @@ void shouldBeGreaterThan(T, U)(in T t, in U u,
 }
 
 ///
-unittest
+@safe pure unittest
 {
     shouldBeGreaterThan(7, 5);
     assertFail(shouldBeGreaterThan(5, 7));
@@ -765,7 +779,7 @@ void shouldBeSmallerThan(T, U)(in T t, in U u,
 }
 
 ///
-unittest
+@safe pure unittest
 {
     shouldBeSmallerThan(5, 7);
     assertFail(shouldBeSmallerThan(7, 5));
@@ -790,7 +804,7 @@ if (isInputRange!V && isInputRange!E && is(typeof(value.front != expected.front)
 }
 
 ///
-unittest
+@safe pure unittest
 {
     auto inOrder = iota(4);
     auto noOrder = [2, 3, 0, 1];
@@ -841,7 +855,7 @@ if (isInputRange!V && isInputRange!E && is(typeof(value.front != expected.front)
 
 
 ///
-unittest
+@safe pure unittest
 {
     auto inOrder = iota(4);
     auto noOrder = [2, 3, 0, 1];
