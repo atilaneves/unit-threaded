@@ -148,33 +148,7 @@ void shouldNotEqual(V, E)(V value, E expected, in string file = __FILE__, in siz
 
 
 @safe pure unittest {
-    string getExceptionMsg(E)(lazy E expr) {
-        try
-        {
-            expr();
-        }
-        catch(UnitTestException ex)
-        {
-            return ex.toString;
-        }
-        assert(0, "Expression did not throw UnitTestException");
-    }
-
-    void assertExceptionMsg(E)(lazy E expr, string expected,
-                               in size_t line = __LINE__)
-    {
-        import std.string: stripLeft;
-        import std.path: dirSeparator;
-
-        //updating the tests below as line numbers change is tedious.
-        //instead, replace the number there with the actual line number
-        expected = expected.replace(":123", ":" ~ line.to!string).replace("/", dirSeparator);
-        auto msg = getExceptionMsg(expr);
-        auto expLines = expected.split("\n").map!stripLeft;
-        auto msgLines = msg.split("\n").map!stripLeft;
-        assert(zip(msgLines, expLines).all!(a => a[0].endsWith(a[1])),
-               text("\nExpected Exception:\n", expected, "\nGot Exception:\n", msg));
-    }
+    import unit_threaded.asserts;
 
     assertExceptionMsg(3.shouldEqual(5),
                        "    source/unit_threaded/should.d:123 - Expected: 5\n"

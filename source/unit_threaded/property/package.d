@@ -12,17 +12,31 @@ static this() {
     gRandom = Random(unpredictableSeed);
 }
 
-void verifyProperty(alias F)(int numFuncCalls = 100) {
+void verifyProperty(alias F)(int numFuncCalls = 100,
+                             in string file = __FILE__, in size_t line = __LINE__) {
     import std.traits;
     import std.conv;
+    import core.exception;
 
     static assert(Parameters!F.length == 1,
                   text(__FUNCTION__, " only accepts functions with one parameter"));
     alias T = Parameters!F[0];
 
+    void error(T)(T input) {
+        throw new UnitTestException(["Property failed with input:", input.to!string], file, line);
+    }
+
     auto gen = Gen!T();
     foreach(i; 0 .. numFuncCalls) {
-        F(gen.gen(gRandom));
+        auto input = gen.gen(gRandom);
+        () @trusted { // @trusted because of AssertError
+            try
+                F(input);
+            catch(UnitTestException)
+                error(input);
+            catch(AssertError)
+                error(input);
+        }();
     }
 }
 
@@ -57,7 +71,12 @@ void verifyProperty(alias F)(int numFuncCalls = 100) {
 
 @("Verify property that sometimes succeeds")
 @safe unittest {
+    import unit_threaded.asserts;
+
     // 2^100 is ~1.26E30, so the chances that no even length array is generated
-    // is small enough to disconsider
-    verifyProperty!((int[] a) => (a.length % 2).shouldEqual(0)).shouldThrow!UnitTestException;
+    // is small enough to disconsider even if it were truly random
+    // since Gen!int[] is front-loaded, it'll fail on the second attempt
+    assertExceptionMsg(verifyProperty!((int[] a) => (a.length % 2).shouldEqual(0)),
+                       "    source/unit_threaded/property/package.d:123 - Property failed with input:\n"
+                       "    source/unit_threaded/property/package.d:123 - [0]");
 }
