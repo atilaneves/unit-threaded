@@ -2,6 +2,7 @@ module unit_threaded.randomized.gen;
 
 import std.traits : isSomeString, isNumeric, isFloatingPoint;
 import std.random : uniform, Random;
+import std.range: isInputRange, ElementType;
 
 import unit_threaded;
 
@@ -250,12 +251,12 @@ unittest
     assertNotThrown(validate(str));
 }
 
-struct Gen(T, size_t low = 1, size_t high = 1024) if(is(T: int[])) {
+struct Gen(T, size_t low = 1, size_t high = 1024) if(isInputRange!T && isNumeric!(ElementType!T)) {
 
-    import std.range: ElementType;
-    alias E = ElementType!T;
+    import std.traits: Unqual, isIntegral, isFloatingPoint;
+    alias E = Unqual!(ElementType!T);
 
-    T gen(ref Random rnd) @safe pure {
+    T gen(ref Random rnd) {
         return _index < frontLoaded.length
             ? frontLoaded[_index++]
             : genArray(rnd);
@@ -269,13 +270,18 @@ private:
         return [[], [0], [1]];
     }
 
-    T genArray(ref Random rnd) @safe pure {
+    T genArray(ref Random rnd) {
         import std.array: appender;
         immutable length = uniform(low, high, rnd);
         auto app = appender!T;
         app.reserve(length);
         foreach(i; 0 .. length) {
-            app.put(uniform(E.min, E.max, rnd));
+            static if(isIntegral!E)
+                app.put(uniform(E.min, E.max, rnd));
+            else static if(isFloatingPoint!E)
+                app.put(uniform(-1e12, 1e12, rnd));
+            else
+                static assert("Cannot generage elements of type ", E.stringof);
         }
 
         return app.data;
@@ -300,4 +306,18 @@ static assert(isGen!(Gen!(int[])));
     assertEqual(gen.gen(rnd),
                 [-1465941156, -1234426648, -952939353, 185030105,
                  -174732633, -2001577638, -768796814, -1136496558, 78996564]);
+}
+
+@("Gen!double[] generates random arrays of double")
+@safe unittest {
+    import unit_threaded.asserts: assertEqual;
+
+    auto rnd = Random(1337);
+    auto gen = Gen!(double[], 1, 10)();
+
+    // first the front-loaded values
+    assertEqual(gen.gen(rnd), []);
+    assertEqual(gen.gen(rnd), [0]);
+    assertEqual(gen.gen(rnd), [1]);
+    assertEqual(gen.gen(rnd).length, 9);
 }
