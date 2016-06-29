@@ -104,7 +104,7 @@ struct TestSuite
         utWriteln(".\n");
 
         if (_failures.length) {
-            utWritelnRed("Unit tests failed!\n");
+            utWritelnRed("Tests failed!\n");
             return false; //oops
         }
 
