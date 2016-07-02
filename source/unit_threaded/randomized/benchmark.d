@@ -201,11 +201,11 @@ void doNotOptimizeAway(T...)(ref T t)
 }
 
 private void doNotOptimizeAwayImpl(void* p) {
-	import core.thread : getpid;
-	import std.stdio : writeln;
-	if(getpid() == 1) {
-		writeln(*cast(char*)p);
-	}
+        import core.thread : getpid;
+        import std.stdio : writeln;
+        if(getpid() == 1) {
+                writeln(*cast(char*)p);
+        }
 }
 
 unittest
@@ -246,8 +246,8 @@ Params:
 */
 void benchmark(alias T)(const ref BenchmarkOptions opts)
 {
-	import std.random : Random;
-	import unit_threaded.randomized.random;
+        import std.random : Random;
+        import unit_threaded.randomized.random;
 
     auto bench = Benchmark(opts.funcname, opts.maxRounds, opts.filename);
     auto rnd = Random(opts.seed);

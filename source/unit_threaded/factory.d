@@ -7,7 +7,6 @@ import unit_threaded.should;
 
 import std.stdio;
 import std.traits;
-import std.typetuple;
 import std.algorithm;
 import std.array;
 import std.string;

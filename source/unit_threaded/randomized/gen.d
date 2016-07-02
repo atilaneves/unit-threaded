@@ -1,7 +1,10 @@
 module unit_threaded.randomized.gen;
 
-import std.traits : isSomeString, isNumeric, isFloatingPoint;
+import std.traits : isSomeString, isNumeric, isFloatingPoint, isIntegral, isSomeChar;
 import std.random : uniform, Random;
+import std.range: isInputRange, ElementType;
+import std.algorithm: filter;
+import std.array: array;
 
 import unit_threaded;
 
@@ -31,19 +34,45 @@ unittest
     static assert(isGen!(Gen!(int, 0, 10)));
 }
 
+private template minimum(T) {
+    import std.traits: isIntegral, isFloatingPoint;
+    static if(isIntegral!T)
+        enum minimum = T.min;
+    else static if (isFloatingPoint!T)
+        enum mininum = T.min_normal;
+    else
+        enum minimum = T.init;
+}
+
+private template maximum(T) {
+    static if(isNumeric!T)
+        enum maximum = T.max;
+    else
+        enum maximum = T.init;
+}
+
 /** A $(D Gen) type that generates numeric values between the values of the
 template parameter $(D low) and $(D high).
 */
-struct Gen(T, T low, T high) if (isNumeric!T)
-{
+mixin template GenNumeric(T, T low, T high) {
+
+    static assert(is(typeof(() {
+        T[] res = frontLoaded();
+    })), "GenNumeric needs a function frontLoaded returning " ~ T.stringof ~ "[]");
+
     alias Value = T;
 
     T value;
 
-    void gen(ref Random gen)
+    T gen(ref Random gen)
     {
         static assert(low <= high);
-        this.value = uniform!("[]")(low, high, gen);
+
+        this.value = _index < frontLoaded.length
+            ? frontLoaded[_index++]
+            : uniform!("[]")(low, high, gen);
+
+        return this.value;
     }
 
     ref T opCall()
@@ -74,12 +103,80 @@ struct Gen(T, T low, T high) if (isNumeric!T)
     }
 
     alias opCall this;
+
+
+    private int _index;
+}
+
+/** A $(D Gen) type that generates numeric values between the values of the
+template parameter $(D low) and $(D high).
+*/
+struct Gen(T, T low = minimum!T, T high = maximum!T) if (isIntegral!T)
+{
+    private T[] frontLoaded() @safe pure nothrow const {
+        T[] values = [0, 1, T.min, T.max];
+        return values.filter!(a => a >= low && a <= high).array;
+    }
+
+    mixin GenNumeric!(T, low, high);
+}
+
+struct Gen(T, T low = 0, T high = 6.022E23) if(isFloatingPoint!T) {
+     T[] frontLoaded() @safe pure nothrow const {
+         T[] values = [0, T.epsilon, T.min_normal, high];
+         return values.filter!(a => a >= low && a <= high).array;
+    }
+
+    mixin GenNumeric!(T, low, high);
+}
+
+@safe pure unittest {
+    import unit_threaded.asserts: assertEqual;
+
+    auto rnd = Random(1337);
+    Gen!int gen;
+    assertEqual(gen.gen(rnd), 0);
+    assertEqual(gen.gen(rnd), 1);
+    assertEqual(gen.gen(rnd), int.min);
+    assertEqual(gen.gen(rnd), int.max);
+    assertEqual(gen.gen(rnd), 1125387415); //1st non front-loaded value
+}
+
+@safe unittest {
+    // not pure because of floating point flags
+    import unit_threaded.asserts: assertEqual;
+    import std.math: approxEqual;
+    import std.conv: to;
+
+    auto rnd = Random(1337);
+    Gen!float gen;
+    assertEqual(gen.gen(rnd), 0);
+    assertEqual(gen.gen(rnd), float.epsilon);
+    assertEqual(gen.gen(rnd), float.min_normal);
+    assert(approxEqual(gen.gen(rnd), 6.022E23), gen.value.to!string);
+    assert(approxEqual(gen.gen(rnd), 1.57791E23), gen.value.to!string);
+}
+
+
+@safe unittest {
+    // not pure because of floating point flags
+    import unit_threaded.asserts: assertEqual;
+    import std.math: approxEqual;
+    import std.conv: to;
+
+    auto rnd = Random(1337);
+    Gen!(float, 0, 5) gen;
+    assertEqual(gen.gen(rnd), 0);
+    assertEqual(gen.gen(rnd), float.epsilon);
+    assertEqual(gen.gen(rnd), float.min_normal);
+    assertEqual(gen.gen(rnd), 5);
+    assert(approxEqual(gen.gen(rnd), 1.31012), gen.value.to!string);
 }
 
 /** A $(D Gen) type that generates unicode strings with a number of
 charatacters that is between template parameter $(D low) and $(D high).
 */
-struct Gen(T, size_t low, size_t high) if (isSomeString!T)
+struct Gen(T, size_t low = 0, size_t high = 32) if (isSomeString!T)
 {
     static T charSet;
     static immutable size_t numCharsInCharSet;
@@ -93,8 +190,8 @@ struct Gen(T, size_t low, size_t high) if (isSomeString!T)
         import std.format : format;
         import std.range : chain, iota;
         import std.algorithm : map, joiner;
-		import std.conv : to;
-		import std.utf : count;
+                import std.conv : to;
+                import std.utf : count;
 
         Gen!(T, low, high).charSet = to!T(chain(iota(0x21,
             0x7E).map!(a => to!T(cast(dchar) a)), iota(0xA1,
@@ -103,12 +200,17 @@ struct Gen(T, size_t low, size_t high) if (isSomeString!T)
         Gen!(T, low, high).numCharsInCharSet = count(charSet);
     }
 
-    void gen(ref Random gen)
+    T gen(ref Random gen)
     {
         static assert(low <= high);
         import std.range : drop;
         import std.array : appender, front;
         import std.utf : byDchar;
+
+        if(_index < frontLoaded.length) {
+            value = frontLoaded[_index++];
+            return value;
+        }
 
         auto app = appender!T();
         app.reserve(high);
@@ -121,6 +223,7 @@ struct Gen(T, size_t low, size_t high) if (isSomeString!T)
         }
 
         this.value = app.data;
+        return this.value;
     }
 
     ref T opCall()
@@ -144,36 +247,42 @@ struct Gen(T, size_t low, size_t high) if (isSomeString!T)
     }
 
     alias opCall this;
+
+private:
+
+    int _index;
+
+    T[] frontLoaded() @safe pure nothrow const {
+        import std.algorithm: filter;
+        import std.array: array;
+        T[] values = ["", "a", "é"];
+        return values.filter!(a => a.length >= low && a.length <= high).array;
+    }
 }
 
 unittest
 {
-    import std.typetuple : TypeTuple;
-
-    import std.meta : aliasSeqOf; //TODO uncomment with next release
+    import std.meta : AliasSeq, aliasSeqOf;
     import std.range : iota;
     import std.array : empty;
+    import unit_threaded.asserts;
 
-    auto r = Random(1337);
-    foreach (T; TypeTuple!(string, wstring, dstring))
-    {
-        foreach (L; aliasSeqOf!(iota(0, 2)))
-        {
-            foreach (H; aliasSeqOf!(iota(L, 2)))
-            {
-                Gen!(T, L, H) a;
-                a.gen(r);
-                if (L)
-                {
-                    assert(!a.value.empty);
-                }
-            }
-        }
+    foreach (index, T; AliasSeq!(string, wstring, dstring)) {
+        auto r = Random(1337);
+        Gen!T a;
+        T expected = "";
+        assertEqual(a.gen(r), expected);
+        expected = "a";
+        assertEqual(a.gen(r), expected);
+        expected = "é";
+        assertEqual(a.gen(r), expected);
+        expected = "¥ǫƔSūOēǇĂ¹ũ/ŇQĚćzĬůƫË­ÔRĎƕƙĹÒ";
+        assertEqual(a.gen(r), expected);
     }
 }
 
 /// DITTO This random $(D string)s only consisting of ASCII character
-struct GenASCIIString(size_t low, size_t high)
+struct GenASCIIString(size_t low = 1, size_t high = 32)
 {
     static string charSet;
     static immutable size_t numCharsInCharSet;
@@ -187,8 +296,8 @@ struct GenASCIIString(size_t low, size_t high)
         import std.format : format;
         import std.range : chain, iota;
         import std.algorithm : map, joiner;
-		import std.conv : to;
-		import std.utf : byDchar, count;
+                import std.conv : to;
+                import std.utf : byDchar, count;
 
         GenASCIIString!(low, high).charSet = to!string(chain(iota(0x21,
             0x7E).map!(a => to!char(cast(dchar) a)).array));
@@ -196,9 +305,15 @@ struct GenASCIIString(size_t low, size_t high)
         GenASCIIString!(low, high).numCharsInCharSet = count(charSet);
     }
 
-    void gen(ref Random gen)
+    string gen(ref Random gen)
     {
-		import std.array : appender;
+        import std.array : appender;
+
+        if(_index < frontLoaded.length) {
+            value = frontLoaded[_index++];
+            return value;
+        }
+
         auto app = appender!string();
         app.reserve(high);
         size_t numElems = uniform!("[]")(low, high, gen);
@@ -210,6 +325,7 @@ struct GenASCIIString(size_t low, size_t high)
         }
 
         this.value = app.data;
+        return this.value;
     }
 
     ref string opCall()
@@ -233,23 +349,163 @@ struct GenASCIIString(size_t low, size_t high)
     }
 
     alias opCall this;
+
+private:
+
+    int _index;
+
+    string[] frontLoaded() @safe pure nothrow const {
+        return ["", "a"];
+    }
 }
 
-@UnitTest
-unittest
-{
-	import std.stdio : writeln;
-    import std.utf : validate;
-    import std.array : empty;
-    import std.exception : assertNotThrown;
+
+@safe unittest {
+    import unit_threaded.asserts;
+    auto rnd = Random(1337);
+    GenASCIIString!() gen;
+    assertEqual(gen.gen(rnd), "");
+    assertEqual(gen.gen(rnd), "a");
+    assertEqual(gen.gen(rnd), "i<pDqp7-LV;W`d)w/}VXi}TR=8CO|m");
+}
+
+struct Gen(T, size_t low = 1, size_t high = 1024) if(isInputRange!T && isNumeric!(ElementType!T)) {
+
+    import std.traits: Unqual, isIntegral, isFloatingPoint;
+    alias E = Unqual!(ElementType!T);
+
+    T value;
+
+    T gen(ref Random rnd) {
+        value = _index < frontLoaded.length
+            ? frontLoaded[_index++]
+            : genArray(rnd);
+        return value;
+    }
+
+    alias value this;
+
+private:
+
+    size_t _index;
+     //these values are always generated
+    T[] frontLoaded() @safe pure nothrow {
+        T[] ret = [[], [ElementType!T(0)], [ElementType!T(1)]];
+        return ret;
+    }
+
+    T genArray(ref Random rnd) {
+        import std.array: appender;
+        immutable length = uniform(low, high, rnd);
+        auto app = appender!T;
+        app.reserve(length);
+        foreach(i; 0 .. length) {
+            static if(isIntegral!E)
+                app.put(uniform(E.min, E.max, rnd));
+            else static if(isFloatingPoint!E)
+                app.put(uniform(-1e12, 1e12, rnd));
+            else
+                static assert("Cannot generage elements of type ", E.stringof);
+        }
+
+        return app.data;
+    }
+}
+
+static assert(isGen!(Gen!(int[])));
+
+
+@("Gen!int[] generates random arrays of int")
+@safe pure unittest {
+    import unit_threaded.asserts: assertEqual;
 
     auto rnd = Random(1337);
+    auto gen = Gen!(int[], 1, 10)();
 
-    GenASCIIString!(5, 5) gen;
-    gen.gen(rnd);
-    auto str = gen();
-	writeln(str);
+    // first the front-loaded values
+    assertEqual(gen.gen(rnd), []);
+    assertEqual(gen.gen(rnd), [0]);
+    assertEqual(gen.gen(rnd), [1]);
+    // then the first pseudo-random one
+    assertEqual(gen.gen(rnd),
+                [-1465941156, -1234426648, -952939353, 185030105,
+                 -174732633, -2001577638, -768796814, -1136496558, 78996564]);
+}
 
-    assert(!str.empty);
-    assertNotThrown(validate(str));
+@("Gen!ubyte[] generates random arrays of ubyte")
+@safe pure unittest {
+    import unit_threaded.asserts: assertEqual;
+    auto rnd = Random(1337);
+    auto gen = Gen!(ubyte[], 1, 10)();
+    assertEqual(gen.gen(rnd), []);
+}
+
+
+@("Gen!double[] generates random arrays of double")
+@safe unittest {
+    import unit_threaded.asserts: assertEqual;
+
+    auto rnd = Random(1337);
+    auto gen = Gen!(double[], 1, 10)();
+
+    // first the front-loaded values
+    assertEqual(gen.gen(rnd), []);
+    assertEqual(gen.gen(rnd), [0]);
+    assertEqual(gen.gen(rnd), [1]);
+    assertEqual(gen.gen(rnd).length, 9);
+}
+
+struct Gen(T) if(is(T == bool)) {
+    bool value;
+    alias value this;
+    bool gen(ref Random rnd) @safe {
+        value = [false, true][uniform(0, 2, rnd)];
+        return value;
+    }
+}
+
+@("Gen!bool generates random booleans")
+@safe unittest {
+    import unit_threaded.asserts: assertEqual;
+
+    auto rnd = Random(1337);
+    auto gen = Gen!bool();
+
+    assertEqual(gen.gen(rnd), true);
+    assertEqual(gen.gen(rnd), true);
+    assertEqual(gen.gen(rnd), false);
+    assertEqual(gen.gen(rnd), false);
+}
+
+struct Gen(T) if(isSomeChar!T) {
+    alias String = immutable(T)[];
+    private Gen!(String, 1, 1) _gen;
+    T value;
+    alias value this;
+    T gen(ref Random rnd) {
+        auto res = _gen.gen(rnd);
+        if(!res.length) {
+            return gen(rnd);
+        }
+        value = res[0];
+        return value;
+    }
+}
+
+@("Gen char, wchar, dchar")
+@safe unittest {
+    import unit_threaded.asserts: assertEqual;
+    auto rnd = Random(1337);
+    {
+        auto gen = Gen!char();
+        assertEqual(gen.gen(rnd), 'a');
+    }
+    {
+        auto gen = Gen!wchar();
+        assertEqual(gen.gen(rnd), 'a');
+    }
+    {
+        auto gen = Gen!dchar();
+        assertEqual(gen.gen(rnd), 'a');
+    }
 }

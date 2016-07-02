@@ -7,15 +7,15 @@ public import unit_threaded.randomized.benchmark;
 unittest
 {
     import core.thread : Thread;
-	import core.time : seconds;
+    import core.time : seconds;
 
     struct Foo
     {
         void superSlowMethod(int a, Gen!(int, -10, 10) b)
-        {
-            Thread.sleep(1.seconds / 250000);
-            doNotOptimizeAway(a);
-        }
+            {
+                Thread.sleep(1.seconds / 250000);
+                doNotOptimizeAway(a);
+            }
     }
 
     Foo a;
@@ -35,14 +35,14 @@ unittest // test that the function parameter names are correct
     class SingleLineLogger : Logger
     {
         this()
-        {
-            super(LogLevel.info);
-        }
+            {
+                super(LogLevel.info);
+            }
 
         override void writeLogMsg(ref LogEntry payload) @safe
-        {
-            this.line = payload.msg;
-        }
+            {
+                this.line = payload.msg;
+            }
 
         string line;
     }

@@ -4,7 +4,7 @@ import unit_threaded.attrs;
 import unit_threaded.uda;
 import unit_threaded.meta;
 import std.traits;
-import std.typetuple;
+import std.meta;
 
 /**
  * Common data for test functions and test classes
@@ -60,7 +60,7 @@ const(TestData)[] allTestData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString, ty
     auto allTestsWithFunc(string expr, MOD_SYMBOLS...)() pure {
         //tests is whatever type expr returns
         ReturnType!(mixin(expr ~ q{!(MOD_SYMBOLS[0])})) tests;
-        foreach(module_; TypeTuple!MOD_SYMBOLS) {
+        foreach(module_; AliasSeq!MOD_SYMBOLS) {
             tests ~= mixin(expr ~ q{!module_()}); //e.g. tests ~= moduleTestClasses!module_
         }
         return tests;
@@ -314,12 +314,8 @@ TestData[] moduleTestFunctions(alias module_)() pure {
             // in this case we handle the possibility of a template function with
             // the @Types UDA attached to it
             alias types = GetTypes!(mixin(moduleMember));
-
             enum isTestFunction = hasTestPrefix!(module_, moduleMember) &&
-                                  types.length > 0 &&
-                                  is(typeof(() {
-                                      mixin(moduleMember ~ `!` ~ types[0].stringof ~ `;`);
-                                  }));
+                                  types.length > 0;
         } else {
             enum isTestFunction = false;
         }
@@ -408,10 +404,19 @@ private TestData[] createFuncTestData(alias module_, string moduleMember)() {
         alias types = GetTypes!(mixin(moduleMember));
         TestData[] testData;
         foreach(type; types) {
+
             static if(HasAttribute!(module_, moduleMember, AutoTags))
                 enum extraTags = [type.stringof];
             else
                 enum string[] extraTags = [];
+
+            static if(!__traits(compiles, mixin(moduleMember ~ `!(` ~ type.stringof ~ `)()`))) {
+                pragma(msg, "Could not compile Type-parameterized test for T = ", type);
+                void _failFunc() {
+                    mixin(moduleMember ~ `!(` ~ type.stringof ~ `)();`);
+                }
+                static assert(false);
+            }
 
             testData ~= memberTestData!(module_, moduleMember, extraTags)(
                 () {
