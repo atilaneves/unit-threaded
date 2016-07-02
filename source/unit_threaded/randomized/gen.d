@@ -270,7 +270,7 @@ unittest
     foreach (index, T; AliasSeq!(string, wstring, dstring)) {
         auto r = Random(1337);
         Gen!T a;
-        T expected;
+        T expected = "";
         assertEqual(a.gen(r), expected);
         expected = "a";
         assertEqual(a.gen(r), expected);
@@ -282,7 +282,7 @@ unittest
 }
 
 /// DITTO This random $(D string)s only consisting of ASCII character
-struct GenASCIIString(size_t low, size_t high)
+struct GenASCIIString(size_t low = 1, size_t high = 32)
 {
     static string charSet;
     static immutable size_t numCharsInCharSet;
@@ -307,7 +307,13 @@ struct GenASCIIString(size_t low, size_t high)
 
     string gen(ref Random gen)
     {
-                import std.array : appender;
+        import std.array : appender;
+
+        if(_index < frontLoaded.length) {
+            value = frontLoaded[_index++];
+            return value;
+        }
+
         auto app = appender!string();
         app.reserve(high);
         size_t numElems = uniform!("[]")(low, high, gen);
@@ -343,21 +349,24 @@ struct GenASCIIString(size_t low, size_t high)
     }
 
     alias opCall this;
+
+private:
+
+    int _index;
+
+    string[] frontLoaded() @safe pure nothrow const {
+        return ["", "a"];
+    }
 }
 
-unittest
-{
-    import std.utf : validate;
-    import std.array : empty;
-    import std.exception : assertNotThrown;
 
+@safe unittest {
+    import unit_threaded.asserts;
     auto rnd = Random(1337);
-
-    GenASCIIString!(5, 5) gen;
-    gen.gen(rnd);
-    auto str = gen();
-    assert(!str.empty);
-    assertNotThrown(validate(str));
+    GenASCIIString!() gen;
+    assertEqual(gen.gen(rnd), "");
+    assertEqual(gen.gen(rnd), "a");
+    assertEqual(gen.gen(rnd), "i<pDqp7-LV;W`d)w/}VXi}TR=8CO|m");
 }
 
 struct Gen(T, size_t low = 1, size_t high = 1024) if(isInputRange!T && isNumeric!(ElementType!T)) {
