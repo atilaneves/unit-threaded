@@ -41,10 +41,11 @@ struct Gen(T, T low, T high) if (isNumeric!T)
 
     T value;
 
-    void gen(ref Random gen)
+    T gen(ref Random gen)
     {
         static assert(low <= high);
         this.value = uniform!("[]")(low, high, gen);
+        return this.value;
     }
 
     ref T opCall()
@@ -104,7 +105,7 @@ struct Gen(T, size_t low, size_t high) if (isSomeString!T)
         Gen!(T, low, high).numCharsInCharSet = count(charSet);
     }
 
-    void gen(ref Random gen)
+    T gen(ref Random gen)
     {
         static assert(low <= high);
         import std.range : drop;
@@ -122,6 +123,7 @@ struct Gen(T, size_t low, size_t high) if (isSomeString!T)
         }
 
         this.value = app.data;
+        return this.value;
     }
 
     ref T opCall()
@@ -197,7 +199,7 @@ struct GenASCIIString(size_t low, size_t high)
         GenASCIIString!(low, high).numCharsInCharSet = count(charSet);
     }
 
-    void gen(ref Random gen)
+    string gen(ref Random gen)
     {
 		import std.array : appender;
         auto app = appender!string();
@@ -211,6 +213,7 @@ struct GenASCIIString(size_t low, size_t high)
         }
 
         this.value = app.data;
+        return this.value;
     }
 
     ref string opCall()
