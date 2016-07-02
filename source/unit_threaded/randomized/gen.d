@@ -3,7 +3,7 @@ module unit_threaded.randomized.gen;
 import std.traits : isSomeString, isNumeric, isFloatingPoint, isIntegral, isSomeChar;
 import std.random : uniform, Random;
 import std.range: isInputRange, ElementType;
-import std.algorithm: filter;
+import std.algorithm: filter, map;
 import std.array: array;
 
 import unit_threaded;
@@ -36,7 +36,7 @@ unittest
 
 private template minimum(T) {
     import std.traits: isIntegral, isFloatingPoint;
-    static if(isIntegral!T)
+    static if(isIntegral!T || isSomeChar!T)
         enum minimum = T.min;
     else static if (isFloatingPoint!T)
         enum mininum = T.min_normal;
@@ -113,7 +113,7 @@ template parameter $(D low) and $(D high).
 */
 struct Gen(T, T low = minimum!T, T high = maximum!T) if (isIntegral!T)
 {
-    private T[] frontLoaded() @safe pure nothrow const {
+    private static T[] frontLoaded() @safe pure nothrow {
         T[] values = [0, 1, T.min, T.max];
         return values.filter!(a => a >= low && a <= high).array;
     }
@@ -122,7 +122,7 @@ struct Gen(T, T low = minimum!T, T high = maximum!T) if (isIntegral!T)
 }
 
 struct Gen(T, T low = 0, T high = 6.022E23) if(isFloatingPoint!T) {
-     T[] frontLoaded() @safe pure nothrow const {
+     private static T[] frontLoaded() @safe pure nothrow {
          T[] values = [0, T.epsilon, T.min_normal, high];
          return values.filter!(a => a >= low && a <= high).array;
     }
@@ -182,7 +182,6 @@ struct Gen(T, size_t low = 0, size_t high = 32) if (isSomeString!T)
     static immutable size_t numCharsInCharSet;
 
     T value;
-
     static this()
     {
         import std.array : array;
@@ -190,8 +189,8 @@ struct Gen(T, size_t low = 0, size_t high = 32) if (isSomeString!T)
         import std.format : format;
         import std.range : chain, iota;
         import std.algorithm : map, joiner;
-                import std.conv : to;
-                import std.utf : count;
+        import std.conv : to;
+        import std.utf : count;
 
         Gen!(T, low, high).charSet = to!T(chain(iota(0x21,
             0x7E).map!(a => to!T(cast(dchar) a)), iota(0xA1,
@@ -218,6 +217,7 @@ struct Gen(T, size_t low = 0, size_t high = 32) if (isSomeString!T)
 
         for (size_t i = 0; i < numElems; ++i)
         {
+            import std.conv;
             size_t toSelect = uniform!("[)")(0, numCharsInCharSet, gen);
             app.put(charSet.byDchar().drop(toSelect).front);
         }
@@ -477,35 +477,30 @@ struct Gen(T) if(is(T == bool)) {
     assertEqual(gen.gen(rnd), false);
 }
 
-struct Gen(T) if(isSomeChar!T) {
-    alias String = immutable(T)[];
-    private Gen!(String, 1, 1) _gen;
-    T value;
-    alias value this;
-    T gen(ref Random rnd) {
-        auto res = _gen.gen(rnd);
-        if(!res.length) {
-            return gen(rnd);
-        }
-        value = res[0];
-        return value;
-    }
+
+struct Gen(T, T low = minimum!T, T high = maximum!T) if (isSomeChar!T)
+{
+    private static T[] frontLoaded() @safe pure nothrow { return []; }
+    mixin GenNumeric!(T, low, high);
 }
+
 
 @("Gen char, wchar, dchar")
 @safe unittest {
     import unit_threaded.asserts: assertEqual;
-    auto rnd = Random(1337);
     {
-        auto gen = Gen!char();
-        assertEqual(gen.gen(rnd), 'a');
+        auto rnd = Random(1337);
+        Gen!char gen;
+        assertEqual(cast(int)gen.gen(rnd), 151);
     }
     {
-        auto gen = Gen!wchar();
-        assertEqual(gen.gen(rnd), 'a');
+        auto rnd = Random(1337);
+        Gen!wchar gen;
+        assertEqual(cast(int)gen.gen(rnd), 3223);
     }
     {
-        auto gen = Gen!dchar();
-        assertEqual(gen.gen(rnd), 'a');
+        auto rnd = Random(1337);
+        Gen!dchar gen;
+        assertEqual(cast(int)gen.gen(rnd), 3223);
     }
 }
