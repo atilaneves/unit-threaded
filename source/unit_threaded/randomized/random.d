@@ -16,19 +16,30 @@ struct RndValueGen(T...)
     /* $(D Values) is a collection of $(D Gen) types created through
        $(D ParameterToGen) of passed $(T ...).
     */
-    alias Values = staticMap!(ParameterToGen, T[1 .. $]);
+    static if(is(typeof(T[0]) == string[])) {
+        alias generators = T[1 .. $];
+        string[] parameterNames = T[0];
+    } else {
+        alias generators = T;
+        string[T.length] parameterNames;
+    }
+
+    alias Values = staticMap!(ParameterToGen, generators);
+
     /// Ditto
     Values values;
-
-    string[] parameterNames = T[0];
 
     /* The constructor accepting the required random number generator.
        Params:
        rnd = The required random number generator.
     */
-    this(Random* rnd)
+    this(Random* rnd) @safe
     {
         this.rnd = rnd;
+    }
+
+    this(ref Random rnd) {
+        this.rnd = &rnd;
     }
 
     /* The random number generator used to generate new value for all
@@ -76,6 +87,25 @@ unittest
 
     fun(generator.values);
 }
+
+@("RndValueGen can be used without parameter names")
+unittest
+{
+    auto rnd = Random(1337);
+    auto generator = rnd.RndValueGen!(Gen!(int, 0, 10),
+                                      Gen!(float, 0.0, 10.0));
+    generator.genValues();
+
+    static fun(int i, float f)
+    {
+        import std.conv: to;
+        assert(i >= 0 && i <= 10, i.to!string);
+        assert(f >= 0.0 && f <= 10.0, f.to!string);
+    }
+
+    fun(generator.values);
+}
+
 
 unittest
 {
