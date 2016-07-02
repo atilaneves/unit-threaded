@@ -157,6 +157,10 @@ template ParameterToGen(T)
         alias ParameterToGen = T;
     else static if(is(T: E[], E))
         alias ParameterToGen = Gen!T;
+    else static if(is(T == bool))
+        alias ParameterToGen = Gen!T;
+    else static if(isSomeChar!T)
+        alias ParameterToGen = Gen!T;
     else
         static assert(false, "ParameterToGen does not handle " ~ T.stringof);
 }

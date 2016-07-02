@@ -1,6 +1,6 @@
 module unit_threaded.randomized.gen;
 
-import std.traits : isSomeString, isNumeric, isFloatingPoint, isIntegral;
+import std.traits : isSomeString, isNumeric, isFloatingPoint, isIntegral, isSomeChar;
 import std.random : uniform, Random;
 import std.range: isInputRange, ElementType;
 import std.algorithm: filter;
@@ -113,7 +113,7 @@ template parameter $(D low) and $(D high).
 */
 struct Gen(T, T low = minimum!T, T high = maximum!T) if (isIntegral!T)
 {
-    private T[] frontLoaded() @safe pure nothrow {
+    private T[] frontLoaded() @safe pure nothrow const {
         T[] values = [0, 1, T.min, T.max];
         return values.filter!(a => a >= low && a <= high).array;
     }
@@ -122,7 +122,7 @@ struct Gen(T, T low = minimum!T, T high = maximum!T) if (isIntegral!T)
 }
 
 struct Gen(T, T low = 0, T high = 6.022E23) if(isFloatingPoint!T) {
-     T[] frontLoaded() @safe pure nothrow {
+     T[] frontLoaded() @safe pure nothrow const {
          T[] values = [0, T.epsilon, T.min_normal, high];
          return values.filter!(a => a >= low && a <= high).array;
     }
@@ -368,7 +368,8 @@ private:
     size_t _index;
      //these values are always generated
     T[] frontLoaded() @safe pure nothrow {
-        return [[], [0], [1]];
+        T[] ret = [[], [ElementType!T(0)], [ElementType!T(1)]];
+        return ret;
     }
 
     T genArray(ref Random rnd) {
@@ -409,6 +410,15 @@ static assert(isGen!(Gen!(int[])));
                  -174732633, -2001577638, -768796814, -1136496558, 78996564]);
 }
 
+@("Gen!ubyte[] generates random arrays of ubyte")
+@safe pure unittest {
+    import unit_threaded.asserts: assertEqual;
+    auto rnd = Random(1337);
+    auto gen = Gen!(ubyte[], 1, 10)();
+    assertEqual(gen.gen(rnd), []);
+}
+
+
 @("Gen!double[] generates random arrays of double")
 @safe unittest {
     import unit_threaded.asserts: assertEqual;
@@ -421,4 +431,56 @@ static assert(isGen!(Gen!(int[])));
     assertEqual(gen.gen(rnd), [0]);
     assertEqual(gen.gen(rnd), [1]);
     assertEqual(gen.gen(rnd).length, 9);
+}
+
+struct Gen(T) if(is(T == bool)) {
+    bool value;
+    alias value this;
+    bool gen(ref Random rnd) @safe {
+        value = [false, true][uniform(0, 2, rnd)];
+        return value;
+    }
+}
+
+@("Gen!bool generates random booleans")
+@safe unittest {
+    import unit_threaded.asserts: assertEqual;
+
+    auto rnd = Random(1337);
+    auto gen = Gen!bool();
+
+    assertEqual(gen.gen(rnd), true);
+    assertEqual(gen.gen(rnd), true);
+    assertEqual(gen.gen(rnd), false);
+    assertEqual(gen.gen(rnd), false);
+}
+
+struct Gen(T) if(isSomeChar!T) {
+    alias String = immutable(T)[];
+    private Gen!(String, 1, 1) _gen;
+    T value;
+    alias value this;
+    T gen(ref Random rnd) {
+        value = _gen.gen(rnd)[0];
+        return value;
+    }
+}
+
+@("Gen char, wchar, dchar")
+@safe unittest {
+    import unit_threaded.asserts: assertEqual;
+    auto rnd = Random(1337);
+    {
+        auto gen = Gen!char();
+        assertEqual(gen.gen(rnd), 194);
+    }
+    {
+        auto gen = Gen!wchar();
+        assertEqual(cast(int)gen.gen(rnd), 404);
+    }
+    {
+        auto gen = Gen!dchar();
+        assertEqual(cast(int)gen.gen(rnd), 363);
+    }
+
 }
