@@ -147,22 +147,13 @@ template ParameterToGen(T)
     import std.traits : isIntegral, isFloatingPoint, isSomeString;
     static if (isGen!T)
         alias ParameterToGen = T;
-    else static if (isIntegral!T)
-        alias ParameterToGen = Gen!(T, T.min, T.max);
-    else static if (isFloatingPoint!T)
-        alias ParameterToGen = Gen!(T, T.min_normal, T.max);
-    else static if (isSomeString!T)
-        alias ParameterToGen = Gen!(T, 0, 32);
     else static if (is(T : GenASCIIString!(S), S...))
         alias ParameterToGen = T;
-    else static if(is(T: E[], E))
+    else {
+        static assert(__traits(compiles, Gen!T),
+                      "ParameterToGen does not handle " ~ T.stringof);
         alias ParameterToGen = Gen!T;
-    else static if(is(T == bool))
-        alias ParameterToGen = Gen!T;
-    else static if(isSomeChar!T)
-        alias ParameterToGen = Gen!T;
-    else
-        static assert(false, "ParameterToGen does not handle " ~ T.stringof);
+    }
 }
 
 ///

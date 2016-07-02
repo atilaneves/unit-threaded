@@ -176,7 +176,7 @@ struct Gen(T, T low = 0, T high = 6.022E23) if(isFloatingPoint!T) {
 /** A $(D Gen) type that generates unicode strings with a number of
 charatacters that is between template parameter $(D low) and $(D high).
 */
-struct Gen(T, size_t low, size_t high) if (isSomeString!T)
+struct Gen(T, size_t low = 0, size_t high = 32) if (isSomeString!T)
 {
     static T charSet;
     static immutable size_t numCharsInCharSet;
