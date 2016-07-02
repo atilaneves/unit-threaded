@@ -11,7 +11,7 @@ function accepting $(D T...).
 */
 struct RndValueGen(T...)
 {
-	import std.meta : staticMap;
+        import std.meta : staticMap;
 
     /* $(D Values) is a collection of $(D Gen) types created through
     $(D ParameterToGen) of passed $(T ...).
@@ -102,7 +102,7 @@ already a $(D Gen) or no $(D Gen) for given $(D T) is available.
 */
 template ParameterToGen(T)
 {
-	import std.traits : isIntegral, isFloatingPoint, isSomeString;
+        import std.traits : isIntegral, isFloatingPoint, isSomeString;
     static if (isGen!T)
         alias ParameterToGen = T;
     else static if (isIntegral!T)
@@ -134,7 +134,7 @@ unittest
 
 unittest
 {
-	import std.meta : AliasSeq, staticMap;
+        import std.meta : AliasSeq, staticMap;
 
     foreach (T; AliasSeq!(byte, ubyte, ushort, short, uint, int, ulong, long,
             float, double, real, string, wstring,

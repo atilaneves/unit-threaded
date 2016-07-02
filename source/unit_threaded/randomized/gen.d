@@ -190,8 +190,8 @@ struct Gen(T, size_t low, size_t high) if (isSomeString!T)
         import std.format : format;
         import std.range : chain, iota;
         import std.algorithm : map, joiner;
-		import std.conv : to;
-		import std.utf : count;
+                import std.conv : to;
+                import std.utf : count;
 
         Gen!(T, low, high).charSet = to!T(chain(iota(0x21,
             0x7E).map!(a => to!T(cast(dchar) a)), iota(0xA1,
@@ -283,8 +283,8 @@ struct GenASCIIString(size_t low, size_t high)
         import std.format : format;
         import std.range : chain, iota;
         import std.algorithm : map, joiner;
-		import std.conv : to;
-		import std.utf : byDchar, count;
+                import std.conv : to;
+                import std.utf : byDchar, count;
 
         GenASCIIString!(low, high).charSet = to!string(chain(iota(0x21,
             0x7E).map!(a => to!char(cast(dchar) a)).array));
@@ -294,7 +294,7 @@ struct GenASCIIString(size_t low, size_t high)
 
     string gen(ref Random gen)
     {
-		import std.array : appender;
+                import std.array : appender;
         auto app = appender!string();
         app.reserve(high);
         size_t numElems = uniform!("[]")(low, high, gen);
