@@ -131,10 +131,9 @@ unittest
 
 unittest
 {
-	import std.typetuple : TypeTuple;
-	import std.meta : staticMap;
+	import std.meta : AliasSeq, staticMap;
 
-    foreach (T; TypeTuple!(byte, ubyte, ushort, short, uint, int, ulong, long,
+    foreach (T; AliasSeq!(byte, ubyte, ushort, short, uint, int, ulong, long,
             float, double, real, string, wstring,
             dstring))
     {

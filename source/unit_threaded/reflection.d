@@ -4,7 +4,7 @@ import unit_threaded.attrs;
 import unit_threaded.uda;
 import unit_threaded.meta;
 import std.traits;
-import std.typetuple;
+import std.meta;
 
 /**
  * Common data for test functions and test classes
@@ -60,7 +60,7 @@ const(TestData)[] allTestData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString, ty
     auto allTestsWithFunc(string expr, MOD_SYMBOLS...)() pure {
         //tests is whatever type expr returns
         ReturnType!(mixin(expr ~ q{!(MOD_SYMBOLS[0])})) tests;
-        foreach(module_; TypeTuple!MOD_SYMBOLS) {
+        foreach(module_; AliasSeq!MOD_SYMBOLS) {
             tests ~= mixin(expr ~ q{!module_()}); //e.g. tests ~= moduleTestClasses!module_
         }
         return tests;

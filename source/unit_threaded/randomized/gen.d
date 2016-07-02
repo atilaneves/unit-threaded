@@ -151,14 +151,12 @@ struct Gen(T, size_t low, size_t high) if (isSomeString!T)
 
 unittest
 {
-    import std.typetuple : TypeTuple;
-
-    import std.meta : aliasSeqOf; //TODO uncomment with next release
+    import std.meta : AliasSeq, aliasSeqOf; //TODO uncomment with next release
     import std.range : iota;
     import std.array : empty;
 
     auto r = Random(1337);
-    foreach (T; TypeTuple!(string, wstring, dstring))
+    foreach (T; AliasSeq!(string, wstring, dstring))
     {
         foreach (L; aliasSeqOf!(iota(0, 2)))
         {
