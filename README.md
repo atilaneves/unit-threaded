@@ -2,8 +2,7 @@ unit-threaded
 =============
 [![Build Status](https://travis-ci.org/atilaneves/unit-threaded.png?branch=master)](https://travis-ci.org/atilaneves/unit-threaded)
 
-Multi-threaded unit test framework for D. Based on similar work for
-[C++11](https://bitbucket.org/atilaneves/unit-thread).
+Multi-threaded unit test framework for D
 
 Reasoning
 ---------
@@ -237,6 +236,30 @@ unittest {
    // ...
 }
 ```
+
+Property-based testing
+----------------------
+
+There is preliminary and experimental support for property-based testing.
+The current types supported are all primitive types, all 3 string types,
+and arrays of these types. To check a property use the `check` function
+from `unit_threaded.property` with a function returning `bool`:
+
+```d
+check!((int a) => a % 2 == 0);
+```
+
+The above example will obviously fail. By default `check` runs the property
+function with 100 random values, pass it a different runtime parameter
+to change that:
+
+```d
+check!((int a) => a % 2 == 0)(10_000); // will still fail
+```
+
+If using compile-time delegates as above, the types of the input parameters
+must be explicitly stated. Multiple parameters can be used as long as
+each one is of one of the currently supported types.
 
 Command-line Parameters
 -----------------------
