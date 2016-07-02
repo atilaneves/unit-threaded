@@ -12,15 +12,15 @@ static this() {
     gRandom = Random(unpredictableSeed);
 }
 
-void verifyProperty(alias F)(int numFuncCalls = 100,
-                             in string file = __FILE__, in size_t line = __LINE__) {
+void check(alias F)(int numFuncCalls = 100,
+                    in string file = __FILE__, in size_t line = __LINE__) {
     import std.traits;
     import std.conv;
 
     static assert(Parameters!F.length == 1,
-                  text("verifyProperty only accepts functions with one parameter"));
+                  text("check only accepts functions with one parameter"));
     static assert(is(ReturnType!F == bool),
-                  text("verifyProperty only accepts functions that return bool, not ", ReturnType!F.stringof));
+                  text("check only accepts functions that return bool, not ", ReturnType!F.stringof));
     alias T = Parameters!F[0];
 
     void error(T)(T input) {
@@ -43,11 +43,11 @@ void verifyProperty(alias F)(int numFuncCalls = 100,
         return a == a;
     }
 
-    verifyProperty!identity;
+    check!identity;
     numCalls.shouldEqual(100);
 
     numCalls = 0;
-    verifyProperty!identity(10);
+    check!identity(10);
     numCalls.shouldEqual(10);
 
 }
@@ -60,7 +60,7 @@ void verifyProperty(alias F)(int numFuncCalls = 100,
         return a != a;
     }
 
-    verifyProperty!antiIdentity.shouldThrow!UnitTestException;
+    check!antiIdentity.shouldThrow!UnitTestException;
     numCalls.shouldEqual(1); // always fails so only gets called once
 }
 
@@ -71,7 +71,7 @@ void verifyProperty(alias F)(int numFuncCalls = 100,
     // 2^100 is ~1.26E30, so the chances that no even length array is generated
     // is small enough to disconsider even if it were truly random
     // since Gen!int[] is front-loaded, it'll fail on the second attempt
-    assertExceptionMsg(verifyProperty!((int[] a) => a.length % 2 == 0),
+    assertExceptionMsg(check!((int[] a) => a.length % 2 == 0),
                        "    source/unit_threaded/property/package.d:123 - Property failed with input:\n"
                        "    source/unit_threaded/property/package.d:123 - [0]");
 }

@@ -5,12 +5,12 @@ import unit_threaded;
 @("int[] property")
 unittest {
     // probably as unlikely to happen as quantum tunneling to the moon
-    verifyProperty!((int[] a) => a != [0, 1, 2, 3, 4]);
+    check!((int[] a) => a != [0, 1, 2, 3, 4]);
 }
 
 @("int[] sorting twice yields the same result") unittest {
     import std.algorithm: sort;
-    verifyProperty!((int[] a) {
+    check!((int[] a) {
         sort(a);
         auto b = a.dup;
         sort(b);
