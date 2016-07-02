@@ -207,6 +207,11 @@ struct Gen(T, size_t low = 0, size_t high = 32) if (isSomeString!T)
         import std.array : appender, front;
         import std.utf : byDchar;
 
+        if(_index < frontLoaded.length) {
+            value = frontLoaded[_index++];
+            return value;
+        }
+
         auto app = appender!T();
         app.reserve(high);
         size_t numElems = uniform!("[]")(low, high, gen);
@@ -242,29 +247,37 @@ struct Gen(T, size_t low = 0, size_t high = 32) if (isSomeString!T)
     }
 
     alias opCall this;
+
+private:
+
+    int _index;
+
+    T[] frontLoaded() @safe pure nothrow const {
+        import std.algorithm: filter;
+        import std.array: array;
+        T[] values = ["", "a", "é"];
+        return values.filter!(a => a.length >= low && a.length <= high).array;
+    }
 }
 
 unittest
 {
-    import std.meta : AliasSeq, aliasSeqOf; //TODO uncomment with next release
+    import std.meta : AliasSeq, aliasSeqOf;
     import std.range : iota;
     import std.array : empty;
+    import unit_threaded.asserts;
 
-    auto r = Random(1337);
-    foreach (T; AliasSeq!(string, wstring, dstring))
-    {
-        foreach (L; aliasSeqOf!(iota(0, 2)))
-        {
-            foreach (H; aliasSeqOf!(iota(L, 2)))
-            {
-                Gen!(T, L, H) a;
-                a.gen(r);
-                if (L)
-                {
-                    assert(!a.value.empty);
-                }
-            }
-        }
+    foreach (index, T; AliasSeq!(string, wstring, dstring)) {
+        auto r = Random(1337);
+        Gen!T a;
+        T expected;
+        assertEqual(a.gen(r), expected);
+        expected = "a";
+        assertEqual(a.gen(r), expected);
+        expected = "é";
+        assertEqual(a.gen(r), expected);
+        expected = "¥ǫƔSūOēǇĂ¹ũ/ŇQĚćzĬůƫË­ÔRĎƕƙĹÒ";
+        assertEqual(a.gen(r), expected);
     }
 }
 
@@ -461,7 +474,11 @@ struct Gen(T) if(isSomeChar!T) {
     T value;
     alias value this;
     T gen(ref Random rnd) {
-        value = _gen.gen(rnd)[0];
+        auto res = _gen.gen(rnd);
+        if(!res.length) {
+            return gen(rnd);
+        }
+        value = res[0];
         return value;
     }
 }
@@ -472,15 +489,14 @@ struct Gen(T) if(isSomeChar!T) {
     auto rnd = Random(1337);
     {
         auto gen = Gen!char();
-        assertEqual(gen.gen(rnd), 194);
+        assertEqual(gen.gen(rnd), 'a');
     }
     {
         auto gen = Gen!wchar();
-        assertEqual(cast(int)gen.gen(rnd), 404);
+        assertEqual(gen.gen(rnd), 'a');
     }
     {
         auto gen = Gen!dchar();
-        assertEqual(cast(int)gen.gen(rnd), 363);
+        assertEqual(gen.gen(rnd), 'a');
     }
-
 }
