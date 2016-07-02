@@ -3,6 +3,7 @@ module unit_threaded.property;
 public import unit_threaded.should;
 
 import unit_threaded.randomized.gen;
+import unit_threaded.randomized.random;
 import std.random: Random, unpredictableSeed;
 
 Random gRandom;
@@ -17,21 +18,19 @@ void check(alias F)(int numFuncCalls = 100,
     import std.traits;
     import std.conv;
 
-    static assert(Parameters!F.length == 1,
-                  text("check only accepts functions with one parameter"));
     static assert(is(ReturnType!F == bool),
                   text("check only accepts functions that return bool, not ", ReturnType!F.stringof));
-    alias T = Parameters!F[0];
 
-    void error(T)(T input) {
+    void error(T...)(T input) {
         throw new UnitTestException(["Property failed with input:", input.to!string], file, line);
     }
 
-    auto gen = Gen!T();
+    auto gen = RndValueGen!(Parameters!F)(&gRandom);
+    import unit_threaded.io;
     foreach(i; 0 .. numFuncCalls) {
-        auto input = gen.gen(gRandom);
-        if(!F(input))
-            error(input);
+        gen.genValues;
+        if(!F(gen.values))
+            error(gen.values);
     }
 }
 
@@ -49,7 +48,6 @@ void check(alias F)(int numFuncCalls = 100,
     numCalls = 0;
     check!identity(10);
     numCalls.shouldEqual(10);
-
 }
 
 @("Verify anti-identity property for int[] fails")

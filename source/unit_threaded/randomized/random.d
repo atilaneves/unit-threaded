@@ -1,8 +1,8 @@
 module unit_threaded.randomized.random;
 
+import unit_threaded.randomized.gen;
 import std.random : Random;
 
-import unit_threaded.randomized.gen;
 
 /** This type will generate a $(D Gen!T) for all passed $(D T...).
     Every call to $(D genValues) will call $(D gen) of all $(D Gen) structs
@@ -52,6 +52,7 @@ struct RndValueGen(T...)
     */
     void genValues()
     {
+        assert(rnd !is null);
         foreach (ref it; this.values)
         {
             it.gen(*this.rnd);
@@ -127,6 +128,17 @@ unittest
     }
 }
 
+@("RndValueGen with int[]")
+unittest {
+    void fun(int[] i) {
+
+    }
+    auto rnd = Random(1337);
+    auto gen = rnd.RndValueGen!(Gen!(int[]));
+    gen.genValues;
+    fun(gen.values);
+}
+
 /** A template that turns a $(D T) into a $(D Gen!T) unless $(D T) is
     already a $(D Gen) or no $(D Gen) for given $(D T) is available.
 */
@@ -143,8 +155,10 @@ template ParameterToGen(T)
         alias ParameterToGen = Gen!(T, 0, 32);
     else static if (is(T : GenASCIIString!(S), S...))
         alias ParameterToGen = T;
+    else static if(is(T: E[], E))
+        alias ParameterToGen = Gen!T;
     else
-        static assert(false);
+        static assert(false, "ParameterToGen does not handle " ~ T.stringof);
 }
 
 ///

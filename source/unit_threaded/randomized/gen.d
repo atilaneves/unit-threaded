@@ -352,11 +352,16 @@ struct Gen(T, size_t low = 1, size_t high = 1024) if(isInputRange!T && isNumeric
     import std.traits: Unqual, isIntegral, isFloatingPoint;
     alias E = Unqual!(ElementType!T);
 
+    T value;
+
     T gen(ref Random rnd) {
-        return _index < frontLoaded.length
+        value = _index < frontLoaded.length
             ? frontLoaded[_index++]
             : genArray(rnd);
+        return value;
     }
+
+    alias value this;
 
 private:
 
