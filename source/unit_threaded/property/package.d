@@ -30,10 +30,8 @@ void verifyProperty(alias F)(int numFuncCalls = 100,
     auto gen = Gen!T();
     foreach(i; 0 .. numFuncCalls) {
         auto input = gen.gen(gRandom);
-        () @trusted { // @trusted because of AssertError
-            if(!F(input))
-                error(input);
-        }();
+        if(!F(input))
+            error(input);
     }
 }
 
