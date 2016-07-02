@@ -62,14 +62,16 @@ struct RndValueGen(T...)
 unittest
 {
     auto rnd = Random(1337);
-    auto generator = RndValueGen!(["i", "f"], Gen!(int, 0, 10), Gen!(float,
-        0.0, 10.0))(&rnd);
+    auto generator = (&rnd).RndValueGen!(["i", "f"],
+                                         Gen!(int, 0, 10),
+                                         Gen!(float, 0.0, 10.0));
     generator.genValues();
 
     static fun(int i, float f)
     {
-        assert(i >= 0 && i <= 10);
-        assert(f >= 0.0 && i <= 10.0);
+        import std.conv: to;
+        assert(i >= 0 && i <= 10, i.to!string);
+        assert(f >= 0.0 && f <= 10.0, f.to!string);
     }
 
     fun(generator.values);
@@ -84,8 +86,9 @@ unittest
     }
 
     auto rnd = Random(1337);
-    auto generator = RndValueGen!(["i", "f"], Gen!(int, 0, 10), Gen!(float,
-        0.0, 10.0))(&rnd);
+    auto generator = (&rnd).RndValueGen!(["i", "f"],
+                                         Gen!(int, 0, 10),
+                                         Gen!(float, 0.0, 10.0));
 
     generator.genValues();
     foreach (i; 0 .. 1000)

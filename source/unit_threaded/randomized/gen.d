@@ -1,8 +1,10 @@
 module unit_threaded.randomized.gen;
 
-import std.traits : isSomeString, isNumeric, isFloatingPoint;
+import std.traits : isSomeString, isNumeric, isFloatingPoint, isIntegral;
 import std.random : uniform, Random;
 import std.range: isInputRange, ElementType;
+import std.algorithm: filter;
+import std.array: array;
 
 import unit_threaded;
 
@@ -32,11 +34,32 @@ unittest
     static assert(isGen!(Gen!(int, 0, 10)));
 }
 
+private template minimum(T) {
+    import std.traits: isIntegral, isFloatingPoint;
+    static if(isIntegral!T)
+        enum minimum = T.min;
+    else static if (isFloatingPoint!T)
+        enum mininum = T.min_normal;
+    else
+        enum minimum = T.init;
+}
+
+private template maximum(T) {
+    static if(isNumeric!T)
+        enum maximum = T.max;
+    else
+        enum maximum = T.init;
+}
+
 /** A $(D Gen) type that generates numeric values between the values of the
 template parameter $(D low) and $(D high).
 */
-struct Gen(T, T low, T high) if (isNumeric!T)
-{
+mixin template GenNumeric(T, T low, T high) {
+
+    static assert(is(typeof(() {
+        T[] res = frontLoaded();
+    })), "GenNumeric needs a function frontLoaded returning " ~ T.stringof ~ "[]");
+
     alias Value = T;
 
     T value;
@@ -44,7 +67,11 @@ struct Gen(T, T low, T high) if (isNumeric!T)
     T gen(ref Random gen)
     {
         static assert(low <= high);
-        this.value = uniform!("[]")(low, high, gen);
+
+        this.value = _index < frontLoaded.length
+            ? frontLoaded[_index++]
+            : uniform!("[]")(low, high, gen);
+
         return this.value;
     }
 
@@ -76,6 +103,74 @@ struct Gen(T, T low, T high) if (isNumeric!T)
     }
 
     alias opCall this;
+
+
+    private int _index;
+}
+
+/** A $(D Gen) type that generates numeric values between the values of the
+template parameter $(D low) and $(D high).
+*/
+struct Gen(T, T low = minimum!T, T high = maximum!T) if (isIntegral!T)
+{
+    private T[] frontLoaded() @safe pure nothrow {
+        T[] values = [0, 1, T.min, T.max];
+        return values.filter!(a => a >= low && a <= high).array;
+    }
+
+    mixin GenNumeric!(T, low, high);
+}
+
+struct Gen(T, T low = 0, T high = 6.022E23) if(isFloatingPoint!T) {
+     T[] frontLoaded() @safe pure nothrow {
+         T[] values = [0, T.epsilon, T.min_normal, high];
+         return values.filter!(a => a >= low && a <= high).array;
+    }
+
+    mixin GenNumeric!(T, low, high);
+}
+
+@safe pure unittest {
+    import unit_threaded.asserts: assertEqual;
+
+    auto rnd = Random(1337);
+    Gen!int gen;
+    assertEqual(gen.gen(rnd), 0);
+    assertEqual(gen.gen(rnd), 1);
+    assertEqual(gen.gen(rnd), int.min);
+    assertEqual(gen.gen(rnd), int.max);
+    assertEqual(gen.gen(rnd), 1125387415); //1st non front-loaded value
+}
+
+@safe unittest {
+    // not pure because of floating point flags
+    import unit_threaded.asserts: assertEqual;
+    import std.math: approxEqual;
+    import std.conv: to;
+
+    auto rnd = Random(1337);
+    Gen!float gen;
+    assertEqual(gen.gen(rnd), 0);
+    assertEqual(gen.gen(rnd), float.epsilon);
+    assertEqual(gen.gen(rnd), float.min_normal);
+    assert(approxEqual(gen.gen(rnd), 6.022E23), gen.value.to!string);
+    assert(approxEqual(gen.gen(rnd), 1.57791E23), gen.value.to!string);
+}
+
+
+@safe unittest {
+    // not pure because of floating point flags
+    import unit_threaded.asserts: assertEqual;
+    import std.math: approxEqual;
+    import std.conv: to;
+
+    auto rnd = Random(1337);
+    Gen!(float, 0, 5) gen;
+    assertEqual(gen.gen(rnd), 0);
+    assertEqual(gen.gen(rnd), float.epsilon);
+    assertEqual(gen.gen(rnd), float.min_normal);
+    assertEqual(gen.gen(rnd), 5);
+    assert(approxEqual(gen.gen(rnd), 1.31012), gen.value.to!string);
 }
 
 /** A $(D Gen) type that generates unicode strings with a number of
