@@ -504,3 +504,24 @@ struct Gen(T, T low = minimum!T, T high = maximum!T) if (isSomeChar!T)
         assertEqual(cast(int)gen.gen(rnd), 3223);
     }
 }
+
+
+struct Gen(T) if(is(T == struct)) {
+    T gen(ref Random rnd) @safe pure nothrow {
+        return T.init;
+    }
+}
+
+@("struct")
+@safe pure unittest {
+    import unit_threaded.asserts: assertEqual;
+
+    struct Foo {
+        int i;
+        string s;
+    }
+
+    auto rnd = Random(1337);
+    Gen!Foo gen;
+    assertEqual(gen.gen(rnd), Foo(0, ""));
+}
