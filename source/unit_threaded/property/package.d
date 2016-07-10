@@ -73,3 +73,10 @@ void check(alias F)(int numFuncCalls = 100,
                        "    source/unit_threaded/property/package.d:123 - Property failed with input:\n"
                        "    source/unit_threaded/property/package.d:123 - [0]");
 }
+
+
+@("Explicit Gen")
+@system unittest {
+    check!((Gen!(int, 1, 1) a) => a == 1);
+    check!((Gen!(int, 1, 1) a) => a == 2).shouldThrow!UnitTestException;
+}
