@@ -505,15 +505,31 @@ struct Gen(T, T low = minimum!T, T high = maximum!T) if (isSomeChar!T)
     }
 }
 
+private template AggregateTuple(T...) {
+    import unit_threaded.randomized.random: ParameterToGen;
+    import std.meta: staticMap;
+    alias TypeOf(alias U) = typeof(U);
+    alias AggregateTuple = staticMap!(ParameterToGen, staticMap!(TypeOf, T));
+}
 
 struct Gen(T) if(is(T == struct)) {
-    T gen(ref Random rnd) @safe pure nothrow {
-        return T.init;
+
+    AggregateTuple!(T.init.tupleof) generators;
+
+
+    T gen(ref Random rnd) @safe {
+        T ret;
+
+        foreach(i, ref g; generators) {
+            ret.tupleof[i] = g.gen(rnd);
+        }
+
+        return ret;
     }
 }
 
 @("struct")
-@safe pure unittest {
+@safe unittest {
     import unit_threaded.asserts: assertEqual;
 
     struct Foo {
@@ -524,4 +540,6 @@ struct Gen(T) if(is(T == struct)) {
     auto rnd = Random(1337);
     Gen!Foo gen;
     assertEqual(gen.gen(rnd), Foo(0, ""));
+    assertEqual(gen.gen(rnd), Foo(1, "a"));
+    assertEqual(gen.gen(rnd), Foo(int.min, "é"));
 }

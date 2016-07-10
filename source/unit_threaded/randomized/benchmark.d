@@ -49,32 +49,32 @@ private Duration getQuantilTick(double q)(Duration[] ticks) pure @safe
     }
 }
 
-@Name("Quantil calculations")
-unittest
-{
-    static import std.conv;
-    import std.algorithm.iteration : map;
+// @Name("Quantil calculations")
+// unittest
+// {
+//     static import std.conv;
+//     import std.algorithm.iteration : map;
 
-    auto ticks = [1, 2, 3, 4, 5].map!(a => dur!"seconds"(a)).array;
+//     auto ticks = [1, 2, 3, 4, 5].map!(a => dur!"seconds"(a)).array;
 
-    Duration q25 = getQuantilTick!0.25(ticks);
-    assert(q25 == dur!"seconds"(2), q25.toString());
+//     Duration q25 = getQuantilTick!0.25(ticks);
+//     assert(q25 == dur!"seconds"(2), q25.toString());
 
-    Duration q50 = getQuantilTick!0.50(ticks);
-    assert(q50 == dur!"seconds"(3), q25.toString());
+//     Duration q50 = getQuantilTick!0.50(ticks);
+//     assert(q50 == dur!"seconds"(3), q25.toString());
 
-    Duration q75 = getQuantilTick!0.75(ticks);
-    assert(q75 == dur!"seconds"(4), q25.toString());
+//     Duration q75 = getQuantilTick!0.75(ticks);
+//     assert(q75 == dur!"seconds"(4), q25.toString());
 
-    q25 = getQuantilTick!0.25(ticks[0 .. 4]);
-    assert(q25 == dur!"seconds"(1) + dur!"msecs"(500), q25.toString());
+//     q25 = getQuantilTick!0.25(ticks[0 .. 4]);
+//     assert(q25 == dur!"seconds"(1) + dur!"msecs"(500), q25.toString());
 
-    q50 = getQuantilTick!0.50(ticks[0 .. 4]);
-    assert(q50 == dur!"seconds"(2) + dur!"msecs"(500), q25.toString());
+//     q50 = getQuantilTick!0.50(ticks[0 .. 4]);
+//     assert(q50 == dur!"seconds"(2) + dur!"msecs"(500), q25.toString());
 
-    q75 = getQuantilTick!0.75(ticks[0 .. 4]);
-    assert(q75 == dur!"seconds"(3) + dur!"msecs"(500), q25.toString());
-}
+//     q75 = getQuantilTick!0.75(ticks[0 .. 4]);
+//     assert(q75 == dur!"seconds"(3) + dur!"msecs"(500), q25.toString());
+// }
 
 /** The options  controlling the behaviour of benchmark. */
 struct BenchmarkOptions
@@ -208,22 +208,22 @@ private void doNotOptimizeAwayImpl(void* p) {
         }
 }
 
-unittest
-{
-    static void funToBenchmark(int a, float b, Gen!(int, -5, 5) c, string d,
-        GenASCIIString!(1, 10) e)
-    {
-        import core.thread;
+// unittest
+// {
+//     static void funToBenchmark(int a, float b, Gen!(int, -5, 5) c, string d,
+//         GenASCIIString!(1, 10) e)
+//     {
+//         import core.thread;
 
-        Thread.sleep(1.seconds / 100000);
-        doNotOptimizeAway(a, b, c, d, e);
-    }
+//         Thread.sleep(1.seconds / 100000);
+//         doNotOptimizeAway(a, b, c, d, e);
+//     }
 
-    benchmark!funToBenchmark();
-    benchmark!funToBenchmark("Another Name");
-    benchmark!funToBenchmark("Another Name", 2.seconds);
-    benchmark!funToBenchmark(2.seconds);
-}
+//     benchmark!funToBenchmark();
+//     benchmark!funToBenchmark("Another Name");
+//     benchmark!funToBenchmark("Another Name", 2.seconds);
+//     benchmark!funToBenchmark(2.seconds);
+// }
 
 /** This function runs the passed callable $(D T) for the duration of
 $(D maxRuntime). It will count how often $(D T) is run in the duration and
