@@ -176,8 +176,8 @@ unittest
     import std.meta : AliasSeq, staticMap;
 
     foreach (T; AliasSeq!(byte, ubyte, ushort, short, uint, int, ulong, long,
-                          float, double, real, string, wstring,
-                          dstring))
+                          float, double, real,
+                          string, wstring, dstring))
     {
         alias TP = staticMap!(ParameterToGen, T);
         static assert(isGen!TP);

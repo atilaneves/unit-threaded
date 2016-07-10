@@ -1,6 +1,6 @@
 module unit_threaded.randomized.gen;
 
-import std.traits : isSomeString, isNumeric, isFloatingPoint, isIntegral, isSomeChar;
+import std.traits : isSomeString, isNumeric, isFloatingPoint, isIntegral, isSomeChar, isAggregateType;
 import std.random : uniform, Random;
 import std.range: isInputRange, ElementType;
 import std.algorithm: filter, map;
@@ -503,4 +503,72 @@ struct Gen(T, T low = minimum!T, T high = maximum!T) if (isSomeChar!T)
         Gen!dchar gen;
         assertEqual(cast(int)gen.gen(rnd), 3223);
     }
+}
+
+private template AggregateTuple(T...) {
+    import unit_threaded.randomized.random: ParameterToGen;
+    import std.meta: staticMap;
+    alias AggregateTuple = staticMap!(ParameterToGen, T);
+}
+
+struct Gen(T) if(isAggregateType!T) {
+
+    import std.traits: Fields;
+    AggregateTuple!(Fields!T) generators;
+
+
+    T gen(ref Random rnd) @safe {
+        static if(is(T == class))
+            auto ret = new T;
+        else
+            T ret;
+
+        foreach(i, ref g; generators) {
+            ret.tupleof[i] = g.gen(rnd);
+        }
+
+        return ret;
+    }
+}
+
+@("struct")
+@safe unittest {
+    import unit_threaded.asserts: assertEqual;
+
+    struct Foo {
+        int i;
+        string s;
+    }
+
+    auto rnd = Random(1337);
+    Gen!Foo gen;
+    assertEqual(gen.gen(rnd), Foo(0, ""));
+    assertEqual(gen.gen(rnd), Foo(1, "a"));
+    assertEqual(gen.gen(rnd), Foo(int.min, "é"));
+}
+
+@("class")
+@safe unittest {
+    import unit_threaded.asserts: assertEqual;
+
+    static class Foo {
+        this() {}
+        this(int i, string s) { this.i = i; this.s = s; }
+        override string toString() @safe const pure nothrow {
+            import std.conv;
+            return text(`Foo(`, i, `, "`, s, `")`);
+        }
+        override bool opEquals(Object _rhs) @safe const pure nothrow {
+            auto rhs = cast(Foo)_rhs;
+            return i == rhs.i && s == rhs.s;
+        }
+        int i;
+        string s;
+    }
+
+    auto rnd = Random(1337);
+    Gen!Foo gen;
+    assertEqual(gen.gen(rnd), new Foo(0, ""));
+    assertEqual(gen.gen(rnd), new Foo(1, "a"));
+    assertEqual(gen.gen(rnd), new Foo(int.min, "é"));
 }
