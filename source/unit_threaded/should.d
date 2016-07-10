@@ -524,7 +524,7 @@ void fail(in string output, in string file, in size_t line) @safe pure
 }
 
 
-private string[] formatValue(T)(in string prefix, T value) @safe {
+private string[] formatValue(T)(in string prefix, T value) {
     static if(isSomeString!T) {
         return [ prefix ~ `"` ~ value ~ `"`];
     } else static if(isInputRange!T) {
@@ -534,7 +534,7 @@ private string[] formatValue(T)(in string prefix, T value) @safe {
     }
 }
 
-private string[] formatRange(T)(in string prefix, T value) @safe {
+private string[] formatRange(T)(in string prefix, T value) {
     //some versions of `to` are @system
     auto defaultLines = () @trusted { return [prefix ~ value.to!string]; }();
 
