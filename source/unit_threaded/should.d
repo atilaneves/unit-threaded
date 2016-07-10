@@ -542,8 +542,9 @@ private string[] formatRange(T)(in string prefix, T value) {
         return defaultLines;
     else
     {
-        const maxElementSize = value.empty ? 0 : value.map!(a => a.length).reduce!max;
-        const tooBigForOneLine = (value.length > 5 && maxElementSize > 5) || maxElementSize > 10;
+        import std.array: array;
+        const maxElementSize = value.empty ? 0 : value.map!(a => a.array.length).reduce!max;
+        const tooBigForOneLine = (value.array.length > 5 && maxElementSize > 5) || maxElementSize > 10;
         if (!tooBigForOneLine)
             return defaultLines;
         return [prefix ~ "["] ~

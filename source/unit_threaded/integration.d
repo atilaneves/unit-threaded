@@ -146,7 +146,7 @@ struct Sandbox {
 
     /// read a file in the test sandbox and verify its contents
     void shouldEqualLines(in string fileName, in string[] lines,
-                          string file = __FILE__, size_t line = __LINE__) const {
+                          string file = __FILE__, size_t line = __LINE__) const @trusted {
         import std.file;
         import std.string;
 
