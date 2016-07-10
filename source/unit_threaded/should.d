@@ -54,7 +54,7 @@ private:
  */
 void shouldBeTrue(E)(lazy E condition, in string file = __FILE__, in size_t line = __LINE__)
 {
-    shouldEqual(condition, true, file, line);
+    shouldEqual(cast(bool)condition, true, file, line);
 }
 
 ///
@@ -63,19 +63,37 @@ void shouldBeTrue(E)(lazy E condition, in string file = __FILE__, in size_t line
     shouldBeTrue(true);
 }
 
+@safe pure unittest {
+    static struct Foo {
+        bool opCast(T: bool)() {
+            return true;
+        }
+    }
+    shouldBeTrue(Foo());
+}
+
 /**
  * Verify that the condition is `false`.
  * Throws: UnitTestException on failure.
  */
 void shouldBeFalse(E)(lazy E condition, in string file = __FILE__, in size_t line = __LINE__)
 {
-    shouldEqual(condition, false, file, line);
+    shouldEqual(cast(bool)condition, false, file, line);
 }
 
 ///
 @safe pure unittest
 {
     shouldBeFalse(false);
+}
+
+@safe pure unittest {
+    static struct Foo {
+        bool opCast(T: bool)() {
+            return false;
+        }
+    }
+    shouldBeFalse(Foo());
 }
 
 /**
