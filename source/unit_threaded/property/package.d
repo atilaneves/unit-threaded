@@ -16,10 +16,22 @@ static this() {
     gRandom = Random(unpredictableSeed);
 }
 
+
+class PropertyException : Exception
+{
+    this(in string msg, string file = __FILE__,
+         size_t line = __LINE__, Throwable next = null) @safe pure nothrow
+    {
+        super(msg, file, line, next);
+    }
+}
+
 void check(alias F)(int numFuncCalls = 100,
-                    in string file = __FILE__, in size_t line = __LINE__) {
+                    in string file = __FILE__, in size_t line = __LINE__) @trusted {
     import std.traits;
     import std.conv;
+    import std.typecons;
+    import std.array;
 
     static assert(is(ReturnType!F == bool),
                   text("check only accepts functions that return bool, not ", ReturnType!F.stringof));
@@ -28,10 +40,51 @@ void check(alias F)(int numFuncCalls = 100,
 
     import unit_threaded.io;
     foreach(i; 0 .. numFuncCalls) {
-        gen.genValues;
-        if(!F(gen.values))
-            throw new UnitTestException(["Property failed with input:", gen.values.to!string], file, line);
+        bool pass;
+
+        try {
+            gen.genValues;
+        } catch(Throwable t) {
+            throw new PropertyException("Error generating values\n" ~ t.toString, file, line, t);
+        }
+
+        try {
+            pass = F(gen.values);
+        } catch(Throwable t) {
+            throw new PropertyException("Error calling property function\n" ~ t.toString, file, line, t);
+        }
+
+        if(!pass) {
+            string[] input;
+
+            Tuple!(Parameters!F) values;
+            foreach(j, ref v; values) {
+                import std.stdio;
+                debug writeln(j, ": ", gen.values[j]);
+                v = gen.values[j];
+            }
+
+            foreach(j, ref valueGen; gen.values) {
+                static if(false && canShrink!(valueGen.Value) && !isGen!(typeof(values[j])))
+                    input ~= shrinkOne!(F, j)(values).to!string;
+                else
+                    input ~= valueGen.to!string;
+            }
+
+            throw new UnitTestException(["Property failed with input:", input.join(", ")], file, line);
+        }
     }
+}
+
+private auto shrinkOne(alias F, int index, T)(T values) {
+    import std.stdio;
+    import std.traits;
+    auto orig = values[index];
+    return shrink!((a) {
+        values[index] = a;
+        return F(values.expand);
+    })(orig);
+
 }
 
 @("Verify identity property for int[] succeeds")
@@ -59,7 +112,8 @@ void check(alias F)(int numFuncCalls = 100,
     }
 
     check!antiIdentity.shouldThrow!UnitTestException;
-    numCalls.shouldEqual(1); // always fails so only gets called once
+    // gets called twice due to shrinking
+    numCalls.shouldEqual(1);
 }
 
 @("Verify property that sometimes succeeds")
@@ -91,8 +145,8 @@ private T shrinkImpl(alias F, T)(T value, T[] values) if(isIntegral!T) {
     import std.algorithm: canFind, minPos, maxPos;
     import std.traits: isSigned;
 
-    if(F(value + 1)) return value;
-    if(F(value - 1)) return value;
+    if(value < T.max && F(value + 1)) return value;
+    if(value > T.min && F(value - 1)) return value;
 
     bool try_(T attempt) {
         if(!F(attempt) && !values.canFind(attempt)) {
@@ -145,6 +199,7 @@ static assert(canShrink!int);
 @safe pure unittest {
     assertEqual(int.max.shrink!(a => a == 0), 1);
     assertEqual(int.min.shrink!(a => a == 0), -1);
+    assertEqual(int.max.shrink!(a => a < 3), 3);
 }
 
 @("shrink unsigneds")
@@ -157,9 +212,6 @@ static assert(canShrink!int);
 }
 
 private T shrinkImpl(alias F, T)(T value, T[] values) if(isArray!T) {
-    import std.stdio;
-    debug writeln("value: ", value, ", values: ", values);
-
     if(value == []) return value;
 
     if(value.length == 1) {
@@ -190,3 +242,9 @@ private T shrinkImpl(alias F, T)(T value, T[] values) if(isArray!T) {
     import std.algorithm: canFind;
     assertEqual("abcdef".shrink!(a => !a.canFind("e")), "e");
 }
+
+// @("shrink two items with check")
+// unittest {
+//     import std.algorithm;
+//     check!((string s, int i) => s.length >= 3 && s[3] == 'e' && i < 3);
+// }

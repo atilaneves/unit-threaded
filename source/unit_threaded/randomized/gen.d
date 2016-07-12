@@ -178,8 +178,9 @@ charatacters that is between template parameter $(D low) and $(D high).
 */
 struct Gen(T, size_t low = 0, size_t high = 32) if (isSomeString!T)
 {
-    static T charSet;
+    static immutable T charSet;
     static immutable size_t numCharsInCharSet;
+    alias Value = T;
 
     T value;
     static this()
@@ -192,10 +193,10 @@ struct Gen(T, size_t low = 0, size_t high = 32) if (isSomeString!T)
         import std.conv : to;
         import std.utf : count;
 
-        Gen!(T, low, high).charSet = to!T(chain(iota(0x21,
-            0x7E).map!(a => to!T(cast(dchar) a)), iota(0xA1,
-            0x1EF).map!(a => to!T(cast(dchar) a))).joiner.array);
-
+        Gen!(T, low, high).charSet = chain(
+            iota(0x21, 0x7E).map!(a => to!T(cast(dchar) a)),
+            iota(0xA1, 0x1EF).map!(a => to!T(cast(dchar) a)))
+            .joiner.array.to!T;
         Gen!(T, low, high).numCharsInCharSet = count(charSet);
     }
 
@@ -217,7 +218,6 @@ struct Gen(T, size_t low = 0, size_t high = 32) if (isSomeString!T)
 
         for (size_t i = 0; i < numElems; ++i)
         {
-            import std.conv;
             size_t toSelect = uniform!("[)")(0, numCharsInCharSet, gen);
             app.put(charSet.byDchar().drop(toSelect).front);
         }
@@ -242,7 +242,7 @@ struct Gen(T, size_t low = 0, size_t high = 32) if (isSomeString!T)
         else
         {
             formattedWrite(sink, "'%s' low = '%s' high = '%s'", this.value,
-                low, high);
+                           low, high);
         }
     }
 
@@ -372,6 +372,7 @@ private:
 struct Gen(T, size_t low = 1, size_t high = 1024) if(isInputRange!T && isNumeric!(ElementType!T)) {
 
     import std.traits: Unqual, isIntegral, isFloatingPoint;
+    alias Value = T;
     alias E = Unqual!(ElementType!T);
 
     T value;
@@ -516,6 +517,7 @@ struct Gen(T) if(isAggregateType!T) {
     import std.traits: Fields;
     AggregateTuple!(Fields!T) generators;
 
+    alias Value = T;
 
     T gen(ref Random rnd) @safe {
         static if(is(T == class))
