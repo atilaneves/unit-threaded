@@ -5,7 +5,7 @@ public import unit_threaded.should;
 import unit_threaded.randomized.gen;
 import unit_threaded.randomized.random;
 import std.random: Random, unpredictableSeed;
-import std.traits: isIntegral;
+import std.traits: isIntegral, isArray;
 
 version(unittest) import unit_threaded.asserts;
 
@@ -79,20 +79,17 @@ void check(alias F)(int numFuncCalls = 100,
     check!((Gen!(int, 1, 1) a) => a == 2).shouldThrow!UnitTestException;
 }
 
+private enum canShrink(T) = __traits(compiles, shrink!((T _) => true)(T.init));
 
 T shrink(alias F, T)(T value) {
+    import std.conv: text;
+    assert(!F(value), text("Property did not fail for value ", value));
     return shrinkImpl!F(value, [value]);
 }
 
-T shrinkImpl(alias F, T)(T value, T[] values) if(isIntegral!T) {
-    import std.conv: text;
+private T shrinkImpl(alias F, T)(T value, T[] values) if(isIntegral!T) {
     import std.algorithm: canFind, minPos, maxPos;
     import std.traits: isSigned;
-
-    assert(!F(value), text("Property did not fail for value ", value));
-
-    // import std.stdio;
-    // writeln("value: ", value, ", values: ", values);
 
     if(F(value + 1)) return value;
     if(F(value - 1)) return value;
@@ -126,35 +123,70 @@ T shrinkImpl(alias F, T)(T value, T[] values) if(isIntegral!T) {
     return values[0];
 }
 
-
+static assert(canShrink!int);
 
 @("shrink int when already shrunk")
-@safe unittest {
+@safe pure unittest {
     assertEqual(0.shrink!(a => a != 0), 0);
 }
 
 
 @("shrink int when not already shrunk going up")
-@safe unittest {
+@safe pure unittest {
     assertEqual(0.shrink!(a => a > 3), 3);
 }
 
 @("shrink int when not already shrunk going down")
-@safe unittest {
+@safe pure unittest {
     assertEqual(10.shrink!(a => a < -3), -3);
 }
 
 @("shrink int.max")
-@safe unittest {
+@safe pure unittest {
     assertEqual(int.max.shrink!(a => a == 0), 1);
     assertEqual(int.min.shrink!(a => a == 0), -1);
 }
 
 @("shrink unsigneds")
-@safe unittest {
+@safe pure unittest {
     import std.meta;
     foreach(T; AliasSeq!(ubyte, ushort, uint, ulong)) {
         T value = 3;
         assertEqual(value.shrink!(a => a == 0), 1);
     }
+}
+
+private T shrinkImpl(alias F, T)(T value, T[] values) if(isArray!T) {
+    import std.stdio;
+    debug writeln("value: ", value, ", values: ", values);
+
+    if(value == []) return value;
+
+    if(value.length == 1) {
+        T empty;
+        return !F(empty) ? empty : value;
+    }
+
+    auto fst = value[0 .. $ / 2];
+    auto snd = value[$ / 2 .. $];
+    if(!F(fst)) return shrinkImpl!F(fst, values);
+    if(!F(snd)) return shrinkImpl!F(snd, values);
+    return values[0];
+}
+
+@("shrink empty int array")
+@safe pure unittest {
+    int[] value;
+    assertEqual(value.shrink!(a => a != []), value);
+}
+
+@("shrink int array")
+@safe pure unittest {
+    assertEqual([1, 2, 3].shrink!(a => a == []), [1]);
+}
+
+@("shrink string")
+@safe pure unittest {
+    import std.algorithm: canFind;
+    assertEqual("abcdef".shrink!(a => !a.canFind("e")), "e");
 }
