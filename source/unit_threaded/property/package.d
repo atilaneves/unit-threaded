@@ -76,7 +76,7 @@ void check(alias F)(int numFuncCalls = 100,
 
 
 @("Explicit Gen")
-@system unittest {
+@safe unittest {
     check!((Gen!(int, 1, 1) a) => a == 1);
     check!((Gen!(int, 1, 1) a) => a == 2).shouldThrow!UnitTestException;
 }

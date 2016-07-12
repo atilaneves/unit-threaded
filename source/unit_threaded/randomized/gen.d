@@ -80,7 +80,7 @@ mixin template GenNumeric(T, T low, T high) {
         return this.value;
     }
 
-    void toString(scope void delegate(const(char)[]) sink)
+    void toString(scope void delegate(const(char)[]) sink) @trusted
     {
         import std.format : formattedWrite;
 
