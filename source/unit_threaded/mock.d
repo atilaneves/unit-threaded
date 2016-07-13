@@ -91,6 +91,8 @@ auto mock(T)() {
 version(unittest)
 private class Class {
     abstract int foo(int, string) @safe pure;
+    final int timesTwo(int i) @safe pure nothrow const { return i * 2; }
+    int timesThree(int i) @safe pure nothrow const { return i * 3; }
 }
 
 @("mock interface positive test")
