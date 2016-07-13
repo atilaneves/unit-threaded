@@ -15,10 +15,16 @@ string implMixinStr(T)() {
     foreach(m; __traits(allMembers, T)) {
         alias member = Identity!(__traits(getMember, T, m));
         static if(__traits(isAbstractFunction, member)) {
+
+            static if(is(ReturnType!member == void))
+                enum returnDefault = "    {}\n";
+            else
+                enum returnDefault = `    return ` ~ ReturnType!member.stringof ~ ".init;\n";
+
             ret ~= `override ` ~ ReturnType!member.stringof ~ " " ~ m ~
-                 Parameters!member.stringof ~ " {\n" ~
+                Parameters!member.stringof ~ " {\n" ~
                 "    called = true;\n" ~
-                `    return ` ~ ReturnType!member.stringof ~ ".init;\n" ~
+                returnDefault ~
                 "}";
         }
     }
@@ -57,6 +63,7 @@ auto mock(T)() {
 @safe pure unittest {
     interface Foo {
         int foo(int, string) @safe pure;
+        void bar() @safe pure;
     }
 
     int fun(Foo f) {
