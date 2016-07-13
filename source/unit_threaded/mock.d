@@ -75,11 +75,7 @@ auto mock(T)() {
         int foo(int, string) @safe pure;
     }
 
-    int fun(Foo f) {
-        return 2 * f.foo(5, "foobar");
-    }
-
     auto m = mock!Foo;
     m.expect(&m.foo);
-    m.verify.shouldThrow;
+    m.verify.shouldThrowWithMessage("Expected call did not happen");
 }
