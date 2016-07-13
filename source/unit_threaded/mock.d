@@ -17,7 +17,7 @@ string implMixinStr(T)() {
         static if(__traits(isAbstractFunction, member)) {
 
             static if(is(ReturnType!member == void))
-                enum returnDefault = "    {}\n";
+                enum returnDefault = "\n";
             else
                 enum returnDefault = `    return ` ~ ReturnType!member.stringof ~ ".init;\n";
 
