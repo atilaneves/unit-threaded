@@ -15,7 +15,7 @@ string implMixinStr(T)() {
     foreach(m; __traits(allMembers, T)) {
         alias member = Identity!(__traits(getMember, T, m));
         static if(__traits(isAbstractFunction, member)) {
-            ret ~= ReturnType!member.stringof ~ " " ~ m ~
+            ret ~= `override ` ~ ReturnType!member.stringof ~ " " ~ m ~
                  Parameters!member.stringof ~ " {\n" ~
                 "    called = true;\n" ~
                 `    return ` ~ ReturnType!member.stringof ~ ".init;\n" ~
@@ -31,11 +31,11 @@ mixin template Foo(T) {
 
 struct Mock(T) {
 
-    MockInterface _mocked = new MockInterface;
+    auto _mocked = new MockAbstract;
 
     alias _mocked this;
 
-    class MockInterface: T {
+    class MockAbstract: T {
         bool called;
         //pragma(msg, implMixinStr!T);
         mixin(implMixinStr!T);
@@ -78,4 +78,23 @@ auto mock(T)() {
     auto m = mock!Foo;
     m.expect(&m.foo);
     m.verify.shouldThrowWithMessage("Expected call did not happen");
+}
+
+// can't be in the unit test itself
+version(unittest)
+private class Class {
+    abstract int foo(int, string) @safe pure;
+}
+
+@("mock interface positive test")
+@safe pure unittest {
+
+    int fun(Class f) {
+        return 2 * f.foo(5, "foobar");
+    }
+
+    auto m = mock!Class;
+    m.expect(&m.foo);
+    fun(m);
+    m.verify;
 }
