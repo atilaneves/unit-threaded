@@ -57,19 +57,14 @@ void check(alias F)(int numFuncCalls = 100,
         if(!pass) {
             string[] input;
 
-            Tuple!(Parameters!F) values;
-            foreach(j, ref v; values) {
-                import std.stdio;
-                debug writeln(j, ": ", gen.values[j]);
-                v = gen.values[j];
-            }
-
-            foreach(j, ref valueGen; gen.values) {
-                static if(false && canShrink!(valueGen.Value) && !isGen!(typeof(values[j])))
-                    input ~= shrinkOne!(F, j)(values).to!string;
-                else
+            static if(Parameters!F.length == 1 && canShrink!(Parameters!F[0])) {
+                input ~= gen.values[0].value.shrink!F.to!string;
+                static if(isSomeString!(Parameters!F[0]))
+                    input[$-1] = `"` ~ input[$-1] ~ `"`;
+            } else
+                foreach(j, ref valueGen; gen.values) {
                     input ~= valueGen.to!string;
-            }
+                }
 
             throw new UnitTestException(["Property failed with input:", input.join(", ")], file, line);
         }
@@ -113,7 +108,7 @@ private auto shrinkOne(alias F, int index, T)(T values) {
 
     check!antiIdentity.shouldThrow!UnitTestException;
     // gets called twice due to shrinking
-    numCalls.shouldEqual(1);
+    numCalls.shouldEqual(2);
 }
 
 @("Verify property that sometimes succeeds")
@@ -223,6 +218,12 @@ private T shrinkImpl(alias F, T)(T value, T[] values) if(isArray!T) {
     auto snd = value[$ / 2 .. $];
     if(!F(fst)) return shrinkImpl!F(fst, values);
     if(!F(snd)) return shrinkImpl!F(snd, values);
+
+    if(F(value[0 .. $ - 1])) return value[0 .. $ - 1];
+    if(F(value[1 .. $])) return value[1 .. $];
+
+    if(!F(value[0 .. $ - 1])) return shrinkImpl!F(value[0 .. $ - 1], values);
+    if(!F(value[1 .. $])) return shrinkImpl!F(value[1 .. $], values);
     return values[0];
 }
 
@@ -243,8 +244,14 @@ private T shrinkImpl(alias F, T)(T value, T[] values) if(isArray!T) {
     assertEqual("abcdef".shrink!(a => !a.canFind("e")), "e");
 }
 
-// @("shrink two items with check")
-// unittest {
-//     import std.algorithm;
-//     check!((string s, int i) => s.length >= 3 && s[3] == 'e' && i < 3);
-// }
+@("shrink one item with check")
+unittest {
+    assertEqual("ǭĶƶØľĶĄÔ0".shrink!((s) => s.length < 3 || s[2] == 'e'), "ǭ");
+}
+
+@("shrink one item with check")
+unittest {
+    assertExceptionMsg(check!((int i) => i < 3),
+                       "    source/unit_threaded/property/package.d:123 - Property failed with input:\n"
+                       "    source/unit_threaded/property/package.d:123 - 3");
+}
