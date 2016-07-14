@@ -41,21 +41,28 @@ string implMixinStr(T)() {
 
 struct Mock(T) {
 
+    private bool verified;
     auto _mocked = new MockAbstract;
 
     alias _mocked this;
 
     class MockAbstract: T {
         bool called;
-        pragma(msg, implMixinStr!T);
+        //pragma(msg, implMixinStr!T);
         mixin(implMixinStr!T);
+    }
+
+    ~this() {
+        if(!verified) verify;
     }
 
     void expect(U...)(U) {
     }
 
     void verify(string file = __FILE__, ulong line = __LINE__) {
-        if(!called) throw new Exception("Expected call did not happen", file, line);
+        import unit_threaded.should: fail;
+        verified = true;
+        if(!called) fail("Expected call did not happen", file, line);
     }
 }
 
@@ -77,7 +84,6 @@ auto mock(T)() {
     auto m = mock!Foo;
     m.expect(&m.foo);
     fun(m);
-    m.verify;
 }
 
 @("mock interface negative test")
@@ -109,5 +115,4 @@ private class Class {
     auto m = mock!Class;
     m.expect(&m.foo);
     fun(m);
-    m.verify;
 }
