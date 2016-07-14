@@ -11,29 +11,33 @@ version(unittest) {
 alias Identity(alias T) = T;
 
 string implMixinStr(T)() {
-    string ret;
+    import std.array: join;
+
+    string[] lines;
+
     foreach(m; __traits(allMembers, T)) {
+
         alias member = Identity!(__traits(getMember, T, m));
+
         static if(__traits(isAbstractFunction, member)) {
 
-            static if(is(ReturnType!member == void))
-                enum returnDefault = "\n";
-            else
-                enum returnDefault = `    return ` ~ ReturnType!member.stringof ~ ".init;\n";
+            enum returnType = ReturnType!member.stringof;
 
-            ret ~= `override ` ~ ReturnType!member.stringof ~ " " ~ m ~
-                Parameters!member.stringof ~ " {\n" ~
-                "    called = true;\n" ~
-                returnDefault ~
-                "}";
+            static if(is(ReturnType!member == void))
+                enum returnDefault = "";
+            else
+                enum returnDefault = `    return ` ~ returnType ~ ".init;";
+
+            lines ~= `override ` ~ returnType ~ " " ~ m ~ Parameters!member.stringof ~ " {";
+            lines ~= `   called = true;`;
+            lines ~= returnDefault;
+            lines ~= `}`;
         }
     }
 
-    return ret;
+    return lines.join("\n");
 }
 
-mixin template Foo(T) {
-}
 
 struct Mock(T) {
 
@@ -43,7 +47,7 @@ struct Mock(T) {
 
     class MockAbstract: T {
         bool called;
-        //pragma(msg, implMixinStr!T);
+        pragma(msg, implMixinStr!T);
         mixin(implMixinStr!T);
     }
 
