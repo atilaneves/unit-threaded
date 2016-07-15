@@ -337,7 +337,6 @@ TestData[] moduleTestFunctions(alias module_)() pure {
         }
     }
 
-
     return moduleTestData!(module_, isTestFunction, createFuncTestData);
 }
 
@@ -355,7 +354,7 @@ private TestData[] createFuncTestData(alias module_, string moduleMember)() {
       ------
     */
     // if the predicate returned true (which is always the case here), then it's either
-    // a regular function or a templated one. If regular is has a pointer to it
+    // a regular function or a templated one. If regular we can get a pointer to it
     enum isRegularFunction = __traits(compiles, &__traits(getMember, module_, moduleMember));
 
     static if(isRegularFunction) {
