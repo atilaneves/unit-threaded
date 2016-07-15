@@ -259,7 +259,7 @@ private class Class {
 
     auto m = mock!Foo;
     fun(m);
-    m.expectCalled!"foo";
+    m.expectCalled!"foo"(5, "foobar");
 }
 
 auto mock() {
