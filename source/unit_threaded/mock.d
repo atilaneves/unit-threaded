@@ -139,9 +139,10 @@ struct Mock(T) {
         if(!verified) verify;
     }
 
-    void returnValue(string funcName, V)(V value) {
+    void returnValue(string funcName, V...)(V values) {
         enum varName = funcName ~ `_returnValues`;
-        mixin(varName ~ ` ~=  value;`);
+        foreach(v; values)
+            mixin(varName ~ ` ~=  v;`);
     }
 }
 
@@ -291,6 +292,24 @@ private class Class {
     immutable res = fun(m);
     res.shouldEqual(84);
 }
+
+@("interface return values")
+@safe pure unittest {
+    interface Foo {
+        int timesN(int i) @safe pure;
+    }
+
+    int fun(Foo f) {
+        return f.timesN(3) * 2;
+    }
+
+    auto m = mock!Foo;
+    m.returnValue!"timesN"(42, 12);
+    fun(m).shouldEqual(84);
+    fun(m).shouldEqual(24);
+    fun(m).shouldEqual(0);
+}
+
 
 auto mock() {
     struct Mock {
