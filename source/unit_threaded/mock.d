@@ -28,8 +28,17 @@ private string implMixinStr(T)() {
 
             static if(is(ReturnType!member == void))
                 enum returnDefault = "";
-            else
-                enum returnDefault = `    return ` ~ returnType ~ ".init;";
+            else {
+                enum varName = m ~ `_returnValues`;
+                lines ~= returnType ~ `[] ` ~ varName ~ `;`;
+                lines ~= "";
+                enum returnDefault = [`    if(` ~ varName ~ `.length > 0) {`,
+                                      `        auto ret = ` ~ varName ~ `[0];`,
+                                      `        ` ~ varName ~ ` = ` ~ varName ~ `[1..$];`,
+                                      `        return ret;`,
+                                      `    } else`,
+                                      `        return ` ~ returnType ~ `.init;`];
+            }
 
             lines ~= `override ` ~ returnType ~ " " ~ m ~ typeAndArgsParens!(Parameters!member) ~ ` {`;
             lines ~= `    calledFuncs ~= "` ~ m ~ `";`;
@@ -128,6 +137,11 @@ struct Mock(T) {
 
     ~this() pure @safe {
         if(!verified) verify;
+    }
+
+    void returnValue(string funcName, V)(V value) {
+        enum varName = funcName ~ `_returnValues`;
+        mixin(varName ~ ` ~=  value;`);
     }
 }
 
@@ -262,6 +276,22 @@ private class Class {
     m.expectCalled!"foo"(5, "foobar");
 }
 
+@("interface return value")
+@safe pure unittest {
+    interface Foo {
+        int timesN(int i) @safe pure;
+    }
+
+    int fun(Foo f) {
+        return f.timesN(3) * 2;
+    }
+
+    auto m = mock!Foo;
+    m.returnValue!"timesN"(42);
+    immutable res = fun(m);
+    res.shouldEqual(84);
+}
+
 auto mock() {
     struct Mock {
 
@@ -332,5 +362,4 @@ auto mock() {
     assertExceptionMsg(m.verify,
                        "    source/unit_threaded/mock.d:123 - foobar was called with unexpected Tuple!(int, string)(2, \"quux\")\n"
                        "    source/unit_threaded/mock.d:123 -           instead of the expected Tuple!(int, string)(3, \"quux\")");
-
 }
