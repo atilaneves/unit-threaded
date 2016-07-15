@@ -116,7 +116,8 @@ struct Mock(T) {
                 fail("Expected nth " ~ i.to!string ~ " call to " ~ expectedFuncs[i] ~ " did not happen", file, line);
 
             if(expectedFuncs[i] != called[i])
-                fail("Expected nth " ~ i.to!string ~ " call to " ~ expectedFuncs[i] ~ " but got " ~ called[i] ~ " instead", file, line);
+                fail("Expected nth " ~ i.to!string ~ " call to " ~ expectedFuncs[i] ~ " but got " ~ called[i] ~ " instead",
+                     file, line);
 
             if(_expectedValues[i] != _mocked.values[i] && _expectedValues[i] != "")
                 throw new UnitTestException([expectedFuncs[i] ~ " was called with unexpected " ~ _mocked.values[i],
@@ -129,6 +130,68 @@ struct Mock(T) {
 
 auto mock(T)() {
     return Mock!T();
+}
+
+auto mock() {
+    struct Mock {
+
+        MockImpl* impl;
+        alias impl this;
+
+        static struct MockImpl {
+
+            bool verified;
+            string[] expectedFuncs;
+            string[] calledFuncs;
+            string[] expectedValues;
+            string[] calledValues;
+
+            void expect(string funcName, V...)(V values) @safe pure {
+                import std.conv: to;
+                import std.typecons: tuple;
+
+                expectedFuncs ~= funcName;
+                expectedValues ~= tuple(values).to!string;
+            }
+
+            void verify(string file = __FILE__, ulong line = __LINE__) @safe pure {
+                import std.range;
+                import std.conv;
+
+                if(verified)
+                    fail("Mock already verified", file, line);
+
+                verified = true;
+
+                for(int i = 0; i < expectedFuncs.length; ++i) {
+
+                    if(i >= calledFuncs.length)
+                        fail("Expected nth " ~ i.to!string ~ " call to " ~ expectedFuncs[i] ~ " did not happen", file, line);
+
+                    if(expectedFuncs[i] != calledFuncs[i])
+                        fail("Expected nth " ~ i.to!string ~ " call to " ~ expectedFuncs[i] ~ " but got " ~ calledFuncs[i] ~ " instead",
+                             file, line);
+
+                    if(expectedValues[i] != calledValues[i] && expectedValues[i] != "")
+                        throw new UnitTestException([expectedFuncs[i] ~ " was called with unexpected " ~ calledValues[i],
+                                                     " ".repeat.take(expectedFuncs[i].length + 4).join ~
+                                                     "instead of the expected " ~ expectedValues[i]] ,
+                                                    file, line);
+                }
+            }
+
+            void opDispatch(string funcName, V...)(V values) {
+                import std.conv: to;
+                import std.typecons: tuple;
+                calledFuncs ~= funcName;
+                calledValues ~= tuple(values).to!string;
+            }
+        }
+    }
+
+    Mock m;
+    m.impl = new Mock.MockImpl;
+    return m;
 }
 
 @("mock interface positive test no params")
@@ -237,4 +300,53 @@ private class Class {
     m.expect!"foo"(4, "quux");
     fun(m);
     m.verify;
+}
+
+
+@("mock struct positive")
+@safe pure unittest {
+    void fun(T)(T t) {
+        t.foobar;
+    }
+    auto m = mock;
+    m.expect!"foobar";
+    fun(m);
+    m.verify;
+}
+
+@("mock struct negative")
+@safe pure unittest {
+    auto m = mock;
+    m.expect!"foobar";
+    assertExceptionMsg(m.verify,
+                       "    source/unit_threaded/mock.d:123 - Expected nth 0 call to foobar did not happen\n");
+
+}
+
+
+@("mock struct values positive")
+@safe pure unittest {
+    void fun(T)(T t) {
+        t.foobar(2, "quux");
+    }
+
+    auto m = mock;
+    m.expect!"foobar"(2, "quux");
+    fun(m);
+    m.verify;
+}
+
+@("mock struct values negative")
+@safe pure unittest {
+    void fun(T)(T t) {
+        t.foobar(2, "quux");
+    }
+
+    auto m = mock;
+    m.expect!"foobar"(3, "quux");
+    fun(m);
+    assertExceptionMsg(m.verify,
+                       "    source/unit_threaded/mock.d:123 - foobar was called with unexpected Tuple!(int, string)(2, \"quux\")\n"
+                       "    source/unit_threaded/mock.d:123 -           instead of the expected Tuple!(int, string)(3, \"quux\")");
+
 }
