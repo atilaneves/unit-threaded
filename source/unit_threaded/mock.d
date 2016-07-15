@@ -32,8 +32,8 @@ private string implMixinStr(T)() {
                 enum returnDefault = `    return ` ~ returnType ~ ".init;";
 
             lines ~= `override ` ~ returnType ~ " " ~ m ~ typeAndArgsParens!(Parameters!member) ~ ` {`;
-            lines ~= `    called ~= "` ~ m ~ `";`;
-            lines ~= `    values ~= tuple` ~ argNamesParens(arity!member) ~ `.to!string;`;
+            lines ~= `    calledFuncs ~= "` ~ m ~ `";`;
+            lines ~= `    calledValues ~= tuple` ~ argNamesParens(arity!member) ~ `.to!string;`;
             lines ~= returnDefault;
             lines ~= `}`;
             lines ~= "";
@@ -63,54 +63,32 @@ private string typeAndArgsParens(T...)() {
     return "(" ~ parts.join(", ") ~ ")";
 }
 
+mixin template MockImplCommon() {
+    bool verified;
+    string[] expectedFuncs;
+    string[] calledFuncs;
+    string[] expectedValues;
+    string[] calledValues;
 
-struct Mock(T) {
-
-    private bool verified;
-    private string[] expectedFuncs;
-    private string[] _expectedValues;
-    MockAbstract _mocked;
-
-    alias _mocked this;
-
-    class MockAbstract: T {
-
+    void expect(string funcName, V...)(V values) @safe pure {
         import std.conv: to;
+        import std.typecons: tuple;
 
-        string[] called;
-        string[] values;
-
-        //pragma(msg, implMixinStr!T);
-        mixin(implMixinStr!T);
-    }
-
-    ~this() pure @safe {
-        if(!verified) verify;
+        expectedFuncs ~= funcName;
+        static if(V.length > 0)
+            expectedValues ~= tuple(values).to!string;
+        else
+            expectedValues ~= "";
     }
 
     void expectCalled(string func, string file = __FILE__, ulong line = __LINE__, V...)(V values) {
-        assert(_mocked !is null);
         expect!func(values);
         verify(file, line);
     }
 
-    void expect(string func, V...)(V values) {
-        import std.conv: to;
-        assert(_mocked !is null);
-
-        expectedFuncs ~= func;
-        static if(V.length > 0)
-            _expectedValues ~= tuple(values).to!string;
-        else
-            _expectedValues ~= "";
-    }
-
     void verify(string file = __FILE__, ulong line = __LINE__) @safe pure {
-        import unit_threaded.should: fail;
-        import std.conv: to;
-        import std.range: repeat, take;
-        import std.array: join;
-        assert(_mocked !is null);
+        import std.range;
+        import std.conv;
 
         if(verified)
             fail("Mock already verified", file, line);
@@ -119,25 +97,43 @@ struct Mock(T) {
 
         for(int i = 0; i < expectedFuncs.length; ++i) {
 
-            if(i >= called.length)
+            if(i >= calledFuncs.length)
                 fail("Expected nth " ~ i.to!string ~ " call to " ~ expectedFuncs[i] ~ " did not happen", file, line);
 
-            if(expectedFuncs[i] != called[i])
-                fail("Expected nth " ~ i.to!string ~ " call to " ~ expectedFuncs[i] ~ " but got " ~ called[i] ~ " instead",
+            if(expectedFuncs[i] != calledFuncs[i])
+                fail("Expected nth " ~ i.to!string ~ " call to " ~ expectedFuncs[i] ~ " but got " ~ calledFuncs[i] ~
+                     " instead",
                      file, line);
 
-            if(_expectedValues[i] != _mocked.values[i] && _expectedValues[i] != "")
-                throw new UnitTestException([expectedFuncs[i] ~ " was called with unexpected " ~ _mocked.values[i],
+            if(expectedValues[i] != calledValues[i] && expectedValues[i] != "")
+                throw new UnitTestException([expectedFuncs[i] ~ " was called with unexpected " ~ calledValues[i],
                                              " ".repeat.take(expectedFuncs[i].length + 4).join ~
-                                             "instead of the expected " ~ _expectedValues[i]] ,
+                                             "instead of the expected " ~ expectedValues[i]] ,
                                             file, line);
         }
     }
 }
 
+struct Mock(T) {
+
+    private MockAbstract _impl;
+    alias _impl this;
+
+    class MockAbstract: T {
+        import std.conv: to;
+        //pragma(msg, implMixinStr!T);
+        mixin(implMixinStr!T);
+        mixin MockImplCommon;
+    }
+
+    ~this() pure @safe {
+        if(!verified) verify;
+    }
+}
+
 auto mock(T)() {
     auto m = Mock!T();
-    m._mocked = new Mock!T.MockAbstract;
+    m._impl = new Mock!T.MockAbstract;
     return m;
 }
 
@@ -269,50 +265,12 @@ private class Class {
 auto mock() {
     struct Mock {
 
-        MockImpl* impl;
-        alias impl this;
+        private MockImpl* _impl;
+        alias _impl this;
 
         static struct MockImpl {
 
-            bool verified;
-            string[] expectedFuncs;
-            string[] calledFuncs;
-            string[] expectedValues;
-            string[] calledValues;
-
-            void expect(string funcName, V...)(V values) @safe pure {
-                import std.conv: to;
-                import std.typecons: tuple;
-
-                expectedFuncs ~= funcName;
-                expectedValues ~= tuple(values).to!string;
-            }
-
-            void verify(string file = __FILE__, ulong line = __LINE__) @safe pure {
-                import std.range;
-                import std.conv;
-
-                if(verified)
-                    fail("Mock already verified", file, line);
-
-                verified = true;
-
-                for(int i = 0; i < expectedFuncs.length; ++i) {
-
-                    if(i >= calledFuncs.length)
-                        fail("Expected nth " ~ i.to!string ~ " call to " ~ expectedFuncs[i] ~ " did not happen", file, line);
-
-                    if(expectedFuncs[i] != calledFuncs[i])
-                        fail("Expected nth " ~ i.to!string ~ " call to " ~ expectedFuncs[i] ~ " but got " ~ calledFuncs[i] ~ " instead",
-                             file, line);
-
-                    if(expectedValues[i] != calledValues[i] && expectedValues[i] != "")
-                        throw new UnitTestException([expectedFuncs[i] ~ " was called with unexpected " ~ calledValues[i],
-                                                     " ".repeat.take(expectedFuncs[i].length + 4).join ~
-                                                     "instead of the expected " ~ expectedValues[i]] ,
-                                                    file, line);
-                }
-            }
+            mixin MockImplCommon;
 
             void opDispatch(string funcName, V...)(V values) {
                 import std.conv: to;
@@ -324,7 +282,7 @@ auto mock() {
     }
 
     Mock m;
-    m.impl = new Mock.MockImpl;
+    m._impl = new Mock.MockImpl;
     return m;
 }
 
