@@ -311,7 +311,8 @@ private class Class {
 }
 
 
-auto mock() {
+auto mockStruct(T...)(T returns) {
+
     struct Mock {
 
         private MockImpl* _impl;
@@ -319,19 +320,33 @@ auto mock() {
 
         static struct MockImpl {
 
+            static if(T.length > 0) {
+                alias FirstType = typeof(returns[0]);
+                private FirstType[] _returnValues;
+            }
+
             mixin MockImplCommon;
 
-            void opDispatch(string funcName, V...)(V values) {
+            auto opDispatch(string funcName, V...)(V values) {
                 import std.conv: to;
                 import std.typecons: tuple;
                 calledFuncs ~= funcName;
                 calledValues ~= tuple(values).to!string;
+                static if(T.length > 0) {
+                    if(_returnValues.length == 0) return typeof(_returnValues[0]).init;
+                    auto ret = _returnValues[0];
+                     _returnValues = _returnValues[1..$];
+                    return ret;
+                }
             }
         }
     }
 
     Mock m;
     m._impl = new Mock.MockImpl;
+    static if(T.length > 0)
+        foreach(r; returns)
+            m._impl._returnValues ~= r;
     return m;
 }
 
@@ -341,7 +356,7 @@ auto mock() {
     void fun(T)(T t) {
         t.foobar;
     }
-    auto m = mock;
+    auto m = mockStruct;
     m.expect!"foobar";
     fun(m);
     m.verify;
@@ -349,7 +364,7 @@ auto mock() {
 
 @("mock struct negative")
 @safe pure unittest {
-    auto m = mock;
+    auto m = mockStruct;
     m.expect!"foobar";
     assertExceptionMsg(m.verify,
                        "    source/unit_threaded/mock.d:123 - Expected nth 0 call to foobar did not happen\n");
@@ -363,7 +378,7 @@ auto mock() {
         t.foobar(2, "quux");
     }
 
-    auto m = mock;
+    auto m = mockStruct;
     m.expect!"foobar"(2, "quux");
     fun(m);
     m.verify;
@@ -375,10 +390,35 @@ auto mock() {
         t.foobar(2, "quux");
     }
 
-    auto m = mock;
+    auto m = mockStruct;
     m.expect!"foobar"(3, "quux");
     fun(m);
     assertExceptionMsg(m.verify,
                        "    source/unit_threaded/mock.d:123 - foobar was called with unexpected Tuple!(int, string)(2, \"quux\")\n"
                        "    source/unit_threaded/mock.d:123 -           instead of the expected Tuple!(int, string)(3, \"quux\")");
+}
+
+
+@("struct return value")
+@safe pure unittest {
+    int fun(T)(T f) {
+        return f.timesN(3) * 2;
+    }
+
+    auto m = mockStruct(42, 12);
+    fun(m).shouldEqual(84);
+    fun(m).shouldEqual(24);
+    fun(m).shouldEqual(0);
+    m.expectCalled!"timesN";
+}
+
+@("struct expectCalled")
+@safe pure unittest {
+    void fun(T)(T t) {
+        t.foobar(2, "quux");
+    }
+
+    auto m = mockStruct;
+    fun(m);
+    m.expectCalled!"foobar"(2, "quux");
 }
