@@ -371,33 +371,56 @@ private TestData[] createFuncTestData(alias module_, string moduleMember)() {
             // the function has parameters, check if it has UDAs for value parameters to be passed to it
             alias params = Parameters!func;
 
-            static if(arity == 1) {
-                import std.typecons;
-                // bind a range of tuples to prod just as cartesianProduct returns
-                enum prod = [GetAttributes!(module_, moduleMember, params[0])].map!(a => tuple(a));
+            import std.range: iota;
+            import std.algorithm: any;
+            import std.typecons: tuple, Tuple;
+
+            bool hasAttributesForAllParams() {
+                auto ret = true;
+                foreach(p; params) {
+                    if(tuple(GetAttributes!(module_, moduleMember, p)).length == 0) {
+                        ret = false;
+                    }
+                }
+                return ret;
+            }
+
+            static if(!hasAttributesForAllParams) {
+                import std.conv: text;
+                pragma(msg, text("Warning: ", moduleMember, " passes the criteria for a value-parameterized test function",
+                                 " but doesn't have the appropriate value UDAs.\n",
+                                 "         Consider changing its name or annotating it with @DontTest"));
+                return [];
             } else {
-                import std.range;
-                mixin(`enum prod = cartesianProduct(` ~ params.length.iota.map!
-                      (a => `[GetAttributes!(module_, moduleMember, params[` ~ guaranteedToString(a) ~ `])]`).join(", ") ~ `);`);
+
+                static if(arity == 1) {
+                    // bind a range of tuples to prod just as cartesianProduct returns
+                    enum prod = [GetAttributes!(module_, moduleMember, params[0])].map!(a => tuple(a));
+                } else {
+                    import std.conv: text;
+
+                    mixin(`enum prod = cartesianProduct(` ~ params.length.iota.map!
+                          (a => `[GetAttributes!(module_, moduleMember, params[` ~ guaranteedToString(a) ~ `])]`).join(", ") ~ `);`);
+                }
+
+                TestData[] testData;
+                foreach(comb; aliasSeqOf!prod) {
+                    enum valuesName = valuesName(comb);
+
+                    static if(HasAttribute!(module_, moduleMember, AutoTags))
+                        enum extraTags = valuesName.split(".").array;
+                    else
+                        enum string[] extraTags = [];
+
+
+                    testData ~= memberTestData!(module_, moduleMember, extraTags)(
+                        // func(value0, value1, ...)
+                        () { func(comb.expand); },
+                        valuesName);
+                }
+
+                return testData;
             }
-
-            TestData[] testData;
-            foreach(comb; aliasSeqOf!prod) {
-                enum valuesName = valuesName(comb);
-
-                static if(HasAttribute!(module_, moduleMember, AutoTags))
-                    enum extraTags = valuesName.split(".").array;
-                else
-                    enum string[] extraTags = [];
-
-
-                testData ~= memberTestData!(module_, moduleMember, extraTags)(
-                    // func(value0, value1, ...)
-                    () { func(comb.expand); },
-                    valuesName);
-            }
-
-            return testData;
         }
     } else static if(HasTypes!(mixin(moduleMember))) { //template function with @Types
         alias types = GetTypes!(mixin(moduleMember));

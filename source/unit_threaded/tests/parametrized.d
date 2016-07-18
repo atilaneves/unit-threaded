@@ -53,3 +53,8 @@ unittest {
 testCartesianFunction(int i, string s) {
     assert(i == 2 && s == "bar");
 }
+
+
+void testIssue31(int, string) {
+    // this used to fail because there are no UDAs on this function
+}
