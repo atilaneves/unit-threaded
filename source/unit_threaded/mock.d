@@ -125,7 +125,7 @@ mixin template MockImplCommon() {
 
 struct Mock(T) {
 
-    private MockAbstract _impl;
+    MockAbstract _impl;
     alias _impl this;
 
     class MockAbstract: T {
