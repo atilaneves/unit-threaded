@@ -749,14 +749,13 @@ unittest {
 unittest {
     import unit_threaded.testcase;
     import unit_threaded.factory;
+    import unit_threaded.randomized.gen;
 
-	import unit_threaded.randomized.gen;
-
-	auto testData = allTestData!(unit_threaded.randomized.gen).array;
+    auto testData = allTestData!(unit_threaded.randomized.gen).array;
     auto tests = createTestCases(testData);
-	foreach(test; tests) {
+    foreach(test; tests) {
 
-	}
+    }
 }
 
 @("issue 33") unittest {
