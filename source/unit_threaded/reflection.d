@@ -82,16 +82,18 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
 
     // Return a name for a unittest block. If no @Name UDA is found a name is
     // created automatically, else the UDA is used.
-    string unittestName(alias test, int index)() @safe nothrow {
+    // the weird name for the first template parameter is so that it doesn't clash
+    // with a package name
+    string unittestName(alias _theUnitTest, int index)() @safe nothrow {
         import std.conv;
         mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
 
-        enum nameAttrs = getUDAs!(test, Name);
+        enum nameAttrs = getUDAs!(_theUnitTest, Name);
         static assert(nameAttrs.length == 0 || nameAttrs.length == 1, "Found multiple Name UDAs on unittest");
 
-        enum strAttrs = Filter!(isStringUDA, __traits(getAttributes, test));
+        enum strAttrs = Filter!(isStringUDA, __traits(getAttributes, _theUnitTest));
         enum hasName = nameAttrs.length || strAttrs.length == 1;
-        enum prefix = fullyQualifiedName!(__traits(parent, test)) ~ ".";
+        enum prefix = fullyQualifiedName!(__traits(parent, _theUnitTest)) ~ ".";
 
         static if(hasName) {
             static if(nameAttrs.length == 1)
@@ -755,4 +757,13 @@ unittest {
 	foreach(test; tests) {
 
 	}
+}
+
+@("issue 33") unittest {
+    import unit_threaded.factory;
+    import unit_threaded.testcase;
+    import unit_threaded.should;
+
+    const testData = allTestData!"test.issue33";
+
 }
