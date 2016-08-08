@@ -118,11 +118,11 @@ else              { enum ShouldFail; } // so production builds compile
 int adder(int i, int j) { return i + j; }
 
 @("Test adder") unittest {
-    adder(2 + 3).shouldEqual(5);
+    adder(2, 3).shouldEqual(5);
 }
 
 @("Test adder fails", ShouldFail) unittest {
-    adder(2 + 3).shouldEqual(7);
+    adder(2, 3).shouldEqual(7);
 }
 ```
 
