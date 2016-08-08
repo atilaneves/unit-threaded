@@ -2,7 +2,9 @@ unit-threaded
 =============
 [![Build Status](https://travis-ci.org/atilaneves/unit-threaded.png?branch=master)](https://travis-ci.org/atilaneves/unit-threaded)
 
-Multi-threaded unit test framework for D
+[My DConf2016 Lightning talk demonstrating unit-threaded](https://www.youtube.com/watch?v=yIH_0ew-maI#t=6m50s).
+
+Multi-threaded advanced unit test framework for [the D programming language](https://dlang.org/).
 
 Reasoning
 ---------
