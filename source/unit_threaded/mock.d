@@ -90,12 +90,12 @@ mixin template MockImplCommon() {
             expectedValues ~= "";
     }
 
-    void expectCalled(string func, string file = __FILE__, ulong line = __LINE__, V...)(V values) {
+    void expectCalled(string func, string file = __FILE__, size_t line = __LINE__, V...)(V values) {
         expect!func(values);
         verify(file, line);
     }
 
-    void verify(string file = __FILE__, ulong line = __LINE__) @safe pure {
+    void verify(string file = __FILE__, size_t line = __LINE__) @safe pure {
         import std.range;
         import std.conv;
 
