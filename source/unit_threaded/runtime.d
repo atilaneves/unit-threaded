@@ -44,8 +44,8 @@ import std.conv : to;
 import std.algorithm : map, filter, startsWith, endsWith, remove;
 import std.string: strip;
 import std.exception : enforce;
-import std.file : exists, DirEntry, dirEntries, isDir, SpanMode, tempDir, getcwd, dirName, mkdirRecurse;
-import std.path : buildNormalizedPath, buildPath, baseName, relativePath, dirSeparator;
+import std.file : exists, DirEntry, dirEntries, isDir, SpanMode, tempDir, getcwd, mkdirRecurse;
+import std.path : buildNormalizedPath, buildPath, baseName, relativePath, dirSeparator, dirName;
 
 
 mixin template genUtMain() {
