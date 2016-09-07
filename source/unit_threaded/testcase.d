@@ -9,6 +9,24 @@ import std.string;
 import std.conv;
 import std.algorithm;
 
+private shared(bool) _stacktrace = false;
+
+private void setStackTrace(bool value) @trusted nothrow @nogc {
+    synchronized {
+        _stacktrace = value;
+    }
+}
+
+/// Let AssertError(s) propagate and thus dump a stacktrace.
+public void enableStackTrace() @safe nothrow @nogc {
+    setStackTrace(true);
+}
+
+/// (Default behavior) Catch AssertError(s) and thus allow all tests to be ran.
+public void disableStackTrace() @safe nothrow @nogc {
+    setStackTrace(false);
+}
+
 /**
  * Class from which other test cases derive
  */
@@ -160,9 +178,13 @@ class BuiltinTestCase: FunctionTestCase {
     override void test() {
         import core.exception: AssertError;
 
-        try
+        if (_stacktrace) {
             super.test();
-        catch(AssertError e)
-            unit_threaded.should.fail(e.msg, e.file, e.line);
+        } else {
+            try
+                super.test();
+            catch(AssertError e)
+                unit_threaded.should.fail(e.msg, e.file, e.line);
+        }
     }
 }
