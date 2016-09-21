@@ -34,7 +34,7 @@ struct Tags {
 /** Automatically assign @Tags for each parameterized test
  e.g.
 ---------------
-@Values("foo", "bar) @AutoTags unittest { ... }
+@Values("foo", "bar") @AutoTags unittest { ... }
 // there are now two unit tests, one for "foo" with tag "foo"
 // and one for "bar" with tag "bar"
 ---------------
