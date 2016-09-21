@@ -762,7 +762,17 @@ unittest {
     import unit_threaded.factory;
     import unit_threaded.testcase;
     import unit_threaded.should;
+    import test.issue33;
 
     const testData = allTestData!"test.issue33";
+    assertEqual(testData.length, 1);
+}
 
+@("issue 43") unittest {
+    import unit_threaded.factory;
+    import unit_threaded.asserts;
+    import unit_threaded.tests.module_with_tests;
+    import std.algorithm: canFind;
+    const testData = allTestData!"unit_threaded.tests.module_with_tests";
+    assertEqual(testData.canFind!(a => a.getPath.canFind("InStruct" )), true);
 }
