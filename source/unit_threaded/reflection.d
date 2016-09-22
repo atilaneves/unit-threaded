@@ -172,6 +172,8 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
     bool[string] visitedMembers;
 
     void addUnitTestsRecursively(alias composite)() pure nothrow {
+        mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
+
         if (composite.mangleof in visitedMembers)
             return;
         visitedMembers[composite.mangleof] = true;
