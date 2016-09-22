@@ -61,7 +61,7 @@ struct StructWithUnitTests{
 
     @Name("InStruct")
     unittest{
-        assert(true);
+        assert(false);
     }
     unittest{
         // 2nd inner block.

@@ -114,23 +114,23 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
     TestData[] testData;
 
     void addMemberUnittests(alias member)() pure nothrow{
-        foreach(index, test; __traits(getUnitTests, member)) {
-            enum name = unittestName!(test, index);
-            enum hidden = hasUDA!(test, HiddenTest);
-            enum shouldFail = hasUDA!(test, ShouldFail);
-            enum singleThreaded = hasUDA!(test, Serial);
+        foreach(index, eltesto; __traits(getUnitTests, member)) {
+            enum name = unittestName!(eltesto, index);
+            enum hidden = hasUDA!(eltesto, HiddenTest);
+            enum shouldFail = hasUDA!(eltesto, ShouldFail);
+            enum singleThreaded = hasUDA!(eltesto, Serial);
             enum builtin = true;
             enum suffix = "";
 
             // let's check for @Values UDAs, which are actually of type ValuesImpl
             enum isValues(alias T) = is(typeof(T)) && is(typeof(T):ValuesImpl!U, U);
-            alias valuesUDAs = Filter!(isValues, __traits(getAttributes, test));
+            alias valuesUDAs = Filter!(isValues, __traits(getAttributes, eltesto));
 
             enum isTags(alias T) = is(typeof(T)) && is(typeof(T) == Tags);
-            enum tags = tagsFromAttrs!(Filter!(isTags, __traits(getAttributes, test)));
+            enum tags = tagsFromAttrs!(Filter!(isTags, __traits(getAttributes, eltesto)));
 
             static if(valuesUDAs.length == 0) {
-                testData ~= TestData(name, (){ test(); }, hidden, shouldFail, singleThreaded, builtin, suffix, tags);
+                testData ~= TestData(name, (){ eltesto(); }, hidden, shouldFail, singleThreaded, builtin, suffix, tags);
             } else {
                 import std.range;
 
@@ -149,7 +149,7 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
                 foreach(comb; aliasSeqOf!prod) {
                     enum valuesName = valuesName(comb);
 
-                    static if(hasUDA!(test, AutoTags))
+                    static if(hasUDA!(eltesto, AutoTags))
                         enum realTags = tags ~ valuesName.split(".").array;
                     else
                         enum realTags = tags;
@@ -158,7 +158,7 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
                                          () {
                                              foreach(i; aliasSeqOf!(comb.length.iota))
                                                  ValueHolder!(typeof(comb[i])).values[i] = comb[i];
-                                             test();
+                                             eltesto();
                                          },
                                          hidden, shouldFail, singleThreaded, builtin, suffix, realTags);
 
@@ -171,7 +171,7 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
     // Keeps track of mangled names of everything visited.
     bool[string] visitedMembers;
 
-    void addUnitTestsRecursively(alias composite)() pure nothrow{
+    void addUnitTestsRecursively(alias composite)() pure nothrow {
         if (composite.mangleof in visitedMembers)
             return;
         visitedMembers[composite.mangleof] = true;
@@ -558,6 +558,7 @@ version(unittest) {
 unittest {
     import unit_threaded.factory;
     import unit_threaded.testcase;
+    import unit_threaded.tests.parametrized;
 
     const testData = allTestData!(unit_threaded.tests.parametrized).
         filter!(a => a.name.endsWith("testValues")).array;
@@ -577,6 +578,7 @@ unittest {
 unittest {
     import unit_threaded.factory;
     import unit_threaded.testcase;
+    import unit_threaded.tests.parametrized;
 
     const testData = allTestData!(unit_threaded.tests.parametrized).
         filter!(a => a.name.endsWith("testTypes")).array;
@@ -596,6 +598,7 @@ unittest {
 unittest {
     import unit_threaded.factory;
     import unit_threaded.testcase;
+    import unit_threaded.tests.parametrized;
 
     const testData = allTestData!(unit_threaded.tests.parametrized).
         filter!(a => a.name.canFind("builtinIntValues")).array;
@@ -616,6 +619,7 @@ unittest {
 @("Tests can be selected by tags") unittest {
     import unit_threaded.factory;
     import unit_threaded.testcase;
+    import unit_threaded.tests.tags;
 
     const testData = allTestData!(unit_threaded.tests.tags).array;
     auto testsNoTags = createTestCases(testData);
@@ -648,6 +652,7 @@ unittest {
 unittest {
     import unit_threaded.factory;
     import unit_threaded.testcase;
+    import unit_threaded.tests.parametrized;
 
     const testData = allTestData!(unit_threaded.tests.parametrized).
         filter!(a => a.name.canFind("builtinIntValues")).array;
@@ -666,6 +671,7 @@ unittest {
 unittest {
     import unit_threaded.factory;
     import unit_threaded.testcase;
+    import unit_threaded.tests.parametrized;
 
     const testData = allTestData!(unit_threaded.tests.parametrized).
         filter!(a => a.name.canFind("testValues")).array;
@@ -679,6 +685,7 @@ unittest {
 unittest {
     import unit_threaded.factory;
     import unit_threaded.testcase;
+    import unit_threaded.tests.parametrized;
 
     const testData = allTestData!(unit_threaded.tests.parametrized).
         filter!(a => a.name.canFind("testTypes")).array;
@@ -692,6 +699,7 @@ unittest {
     import unit_threaded.factory;
     import unit_threaded.testcase;
     import unit_threaded.should;
+    import unit_threaded.tests.parametrized;
 
     const testData = allTestData!(unit_threaded.tests.parametrized).
         filter!(a => a.name.canFind("cartesianBuiltinNoAutoTags")).array;
@@ -773,6 +781,13 @@ unittest {
     import unit_threaded.asserts;
     import unit_threaded.tests.module_with_tests;
     import std.algorithm: canFind;
+    import std.array: array;
+
     const testData = allTestData!"unit_threaded.tests.module_with_tests";
     assertEqual(testData.canFind!(a => a.getPath.canFind("InStruct" )), true);
+    auto inStructTest = testData
+        .find!(a => a.getPath.canFind("InStruct"))
+        .array
+        .createTestCases[0];
+    assertFail(inStructTest);
 }
