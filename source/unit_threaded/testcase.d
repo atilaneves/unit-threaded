@@ -178,13 +178,10 @@ class BuiltinTestCase: FunctionTestCase {
     override void test() {
         import core.exception: AssertError;
 
-        if (_stacktrace) {
+        try
             super.test();
-        } else {
-            try
-                super.test();
-            catch(AssertError e)
-                unit_threaded.should.fail(e.msg, e.file, e.line);
+        catch(AssertError e) {
+             unit_threaded.should.fail(_stacktrace? e.toString() : e.msg, e.file, e.line);
         }
     }
 }

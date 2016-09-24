@@ -15,6 +15,7 @@ struct Options {
     bool forceEscCodes;
     bool random;
     uint seed;
+    bool stackTraces;
 }
 
 /**
@@ -28,6 +29,7 @@ auto getOptions(string[] args) {
     bool forceEscCodes;
     bool random;
     uint seed = unpredictableSeed;
+    bool stackTraces;
 
     getopt(args,
            "single|s", &single, //single-threaded
@@ -37,6 +39,7 @@ auto getOptions(string[] args) {
            "list|l", &list,
            "random|r", &random,
            "seed", &seed,
+           "trace|t", &stackTraces,
         );
 
     if(help) {
@@ -49,6 +52,7 @@ auto getOptions(string[] args) {
                 "  -e/--esccodes: force ANSI escape codes even for !isatty\n",
                 "  -r/--random: run tests in random order\n",
                 "  --seed: set the seed for the random order\n",
+                "  -t/--trace: enable stack traces\n",
             );
     }
 
@@ -66,5 +70,5 @@ auto getOptions(string[] args) {
 
     immutable exit =  help || list;
     return Options(!single, args[1..$], debugOutput, list, exit, forceEscCodes,
-                   random, seed);
+                   random, seed, stackTraces);
 }
