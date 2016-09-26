@@ -8,7 +8,7 @@ module unit_threaded.runner;
 import unit_threaded.testsuite;
 import unit_threaded.options;
 import unit_threaded.io : enableDebugOutput, forceEscCodes;
-import unit_threaded.testcase : TestData;
+import unit_threaded.testcase : enableStackTrace, TestData;
 import unit_threaded.reflection : allTestData;
 
 import std.conv : text;
@@ -80,4 +80,7 @@ private void handleCmdLineOptions(in Options options, in TestData[] testData) {
 
     if (options.forceEscCodes)
         forceEscCodes();
+
+    if (options.stackTraces)
+        enableStackTrace();
 }
