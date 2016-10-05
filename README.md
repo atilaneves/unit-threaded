@@ -57,6 +57,7 @@ project, you can use a `unittest` configuration as exemplified in this
         { "name": "executable" },
         {
             "name": "unittest",
+            "targetType": "executable",
             "preBuildCommands": ["dub run unit-threaded -c gen_ut_main -- -f bin/ut.d"],
             "mainSourceFile": "bin/ut.d",
             "excludedSourceFiles": ["src/main.d"],
