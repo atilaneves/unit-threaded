@@ -41,7 +41,7 @@ private string implMixinStr(T)() {
                                           `        ` ~ varName ~ ` = ` ~ varName ~ `[1..$];`,
                                           `        return ret;`,
                                           `    } else`,
-                                          `        return ` ~ returnType ~ `.init;`];
+                                          `        return (` ~ returnType ~ `).init;`];
                 }
 
                 lines ~= `override ` ~ returnType ~ " " ~ m ~ typeAndArgsParens!(Parameters!member) ~ ` {`;
@@ -426,4 +426,14 @@ auto mockStruct(T...)(T returns) {
     auto m = mockStruct;
     fun(m);
     m.expectCalled!"foobar"(2, "quux");
+}
+
+
+@("const(ubyte)[] return type]")
+@safe pure unittest {
+    interface Interface {
+        const(ubyte)[] fun();
+    }
+
+    auto m = mock!Interface;
 }
