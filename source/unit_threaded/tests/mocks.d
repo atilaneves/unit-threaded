@@ -8,3 +8,15 @@ import unit_threaded;
 
     auto m = mock!InterfaceWithProtected;
 }
+
+
+struct Struct { }
+
+@("default params")
+@safe pure unittest {
+    interface Interface {
+        void write(Struct stream, ulong nbytes = 0LU);
+    }
+
+    auto m = mock!Interface;
+}

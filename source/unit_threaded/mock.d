@@ -128,13 +128,14 @@ mixin template MockImplCommon() {
     }
 }
 
-struct Mock(T) {
+struct Mock(T, string module_) {
 
     MockAbstract _impl;
     alias _impl this;
 
     class MockAbstract: T {
         import std.conv: to;
+        mixin(`import ` ~ module_ ~ ";");
         //pragma(msg, implMixinStr!T);
         mixin(implMixinStr!T);
         mixin MockImplCommon;
@@ -151,9 +152,10 @@ struct Mock(T) {
     }
 }
 
-auto mock(T)() {
-    auto m = Mock!T();
-    m._impl = new Mock!T.MockAbstract;
+auto mock(T, string module_ = __MODULE__)() {
+    mixin(`import ` ~ module_ ~ ";");
+    auto m = Mock!(T, module_)();
+    m._impl = new Mock!(T, module_).MockAbstract;
     return m;
 }
 
