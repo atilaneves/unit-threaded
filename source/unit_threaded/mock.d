@@ -128,7 +128,7 @@ mixin template MockImplCommon() {
     }
 }
 
-struct Mock(T, string module_) {
+struct Mock(T, string module_ = __MODULE__) {
 
     MockAbstract _impl;
     alias _impl this;
@@ -155,6 +155,10 @@ struct Mock(T, string module_) {
 auto mock(T, string module_ = __MODULE__)() {
     mixin(`import ` ~ module_ ~ ";");
     auto m = Mock!(T, module_)();
+    // The following line is ugly, but necessary.
+    // If moved to the declaration of impl, it's constructed at compile-time
+    // and only one instance is ever used. Since structs can't have default
+    // constructors, it has to be done here
     m._impl = new Mock!(T, module_).MockAbstract;
     return m;
 }
