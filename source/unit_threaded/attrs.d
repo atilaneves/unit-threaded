@@ -93,3 +93,7 @@ T getValue(T, int index = 0)() {
 package struct ValueHolder(T) {
     static T[10] values;
 }
+
+
+enum Setup;
+enum Shutdown;

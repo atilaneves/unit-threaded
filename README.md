@@ -240,6 +240,12 @@ unittest {
 }
 ```
 
+The `@Setup` and `@Shutdown` UDAs can be attached to a
+free function in a module. If they are, they will be run before/after
+each `unittest` block in a composite (usually a module). This feature
+currently only works for `unittest` blocks, not free functions.
+Classes could override `setup` and `shutdown` already.
+
 Property-based testing
 ----------------------
 

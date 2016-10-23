@@ -110,11 +110,27 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
         }
     }
 
+    alias Identity(T...) = T[0];
+
+    void function() getUDAFunction(alias composite, alias uda)() pure nothrow {
+        mixin(`import ` ~ moduleName!composite ~ `;`);
+        void function()[] ret;
+        foreach(memberStr; __traits(allMembers, composite)) {
+            alias member = Identity!(__traits(getMember, composite, memberStr));
+            static if(__traits(compiles, &member)) {
+                static if(isSomeFunction!member && hasUDA!(member, uda)) {
+                    ret ~= &member;
+                }
+            }
+        }
+
+        return ret.length ? ret[0] : null;
+    }
 
     TestData[] testData;
 
-    void addMemberUnittests(alias member)() pure nothrow{
-        foreach(index, eltesto; __traits(getUnitTests, member)) {
+    void addMemberUnittests(alias composite)() pure nothrow {
+        foreach(index, eltesto; __traits(getUnitTests, composite)) {
             enum name = unittestName!(eltesto, index);
             enum hidden = hasUDA!(eltesto, HiddenTest);
             enum shouldFail = hasUDA!(eltesto, ShouldFail);
@@ -130,7 +146,22 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
             enum tags = tagsFromAttrs!(Filter!(isTags, __traits(getAttributes, eltesto)));
 
             static if(valuesUDAs.length == 0) {
-                testData ~= TestData(name, (){ eltesto(); }, hidden, shouldFail, singleThreaded, builtin, suffix, tags);
+                testData ~= TestData(name,
+                                     () {
+                                         auto setup = getUDAFunction!(composite, Setup);
+                                         auto shutdown = getUDAFunction!(composite, Shutdown);
+
+                                         if(setup) setup();
+                                         scope(exit) if(shutdown) shutdown();
+
+                                         eltesto();
+                                     },
+                                     hidden,
+                                     shouldFail,
+                                     singleThreaded,
+                                     builtin,
+                                     suffix,
+                                     tags);
             } else {
                 import std.range;
 
@@ -806,16 +837,23 @@ unittest {
 
 }
 
+@("module setup and shutdown")
 unittest {
     import unit_threaded.testcase;
     import unit_threaded.factory;
-    import unit_threaded.randomized.gen;
+    import unit_threaded.tests.module_with_setup: gNumBefore, gNumAfter;
 
-    auto testData = allTestData!(unit_threaded.randomized.gen).array;
+    const testData = allTestData!"unit_threaded.tests.module_with_setup".array;
     auto tests = createTestCases(testData);
-    foreach(test; tests) {
+    assertEqual(tests.length, 2);
 
-    }
+    assertPass(tests[0]);
+    assertEqual(gNumBefore, 1);
+    assertEqual(gNumAfter, 1);
+
+    assertFail(tests[1]);
+    assertEqual(gNumBefore, 2);
+    assertEqual(gNumAfter, 2);
 }
 
 @("issue 33") unittest {
