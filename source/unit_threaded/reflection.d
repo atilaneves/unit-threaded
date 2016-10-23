@@ -596,12 +596,9 @@ version(unittest) {
         import core.exception;
         import std.conv;
 
-        try {
-            test.silence;
-            assert(test() != [], file ~ ":" ~ line.to!string ~ " Test was expected to fail but didn't");
-            assert(false, file ~ ":" ~ line.to!string ~ " Expected test case " ~ test.getPath ~
+        test.silence;
+        assert(test() != [], file ~ ":" ~ line.to!string ~ " Expected test case " ~ test.getPath ~
                    " to fail with AssertError but it didn't");
-        } catch(AssertError) {}
     }
 
     private void assertPass(TestCase test, string file = __FILE__, size_t line = __LINE__) {
@@ -680,7 +677,7 @@ unittest {
     auto testsNoTags = createTestCases(testData);
     assertEqual(testsNoTags.length, 4);
     assertPass(testsNoTags[0]);
-    assertFail(testsNoTags[1]);
+    assertFail(testsNoTags.find!(a => a.getPath.canFind("unittest1")).front);
     assertFail(testsNoTags[2]);
     assertFail(testsNoTags[3]);
 
