@@ -10,7 +10,11 @@ module unit_threaded.integration;
 
 import unit_threaded.should;
 
-extern(C) char* mkdtemp(char*);
+version(Windows)
+    extern(C) int mktemp_s(char* template_, size_t sizeInChars);
+else
+    extern(C) char* mkdtemp(char* template_);
+
 
 shared static this() {
     import std.file;
@@ -166,26 +170,34 @@ struct Sandbox {
 private:
 
     static string newTestDir() {
-        import std.conv;
-        import std.path;
-        import std.algorithm;
-        import std.exception;
-        import std.file;
-        import core.stdc.string;
-        import core.stdc.errno;
+        import std.file: exists, mkdirRecurse;
 
         if(!sandboxPath.exists) {
             () @trusted { mkdirRecurse(sandboxPath); }();
         }
 
-        char[100] template_;
-        std.algorithm.copy(buildPath(sandboxPath, "XXXXXX") ~ '\0', template_[]);
+        return makeTempDir();
+    }
 
-        auto ret = () @trusted { return mkdtemp(&template_[0]).to!string; }();
+    static string makeTempDir() {
+        import std.algorithm: copy;
+        import std.exception: enforce;
+        import std.conv: to;
+        import core.stdc.string: strerror;
+        import core.stdc.errno: errno;
+
+        char[100] template_;
+        copy(buildPath(sandboxPath, "XXXXXX") ~ '\0', template_[]);
+
+        version(Windows) {
+            errno = () @trusted { return mktemp_s(&template_[0], template_.sizeof); }();
+            auto ret = errno == 0 ? "ok" : "";
+        } else
+            auto ret = () @trusted { return mkdtemp(&template_[0]).to!string; }();
+
         enforce(ret != "", "Failed to create temporary directory name: " ~
                 () @trusted { return strerror(errno).to!string; }());
 
         return ret.absolutePath;
     }
-
 }
