@@ -49,6 +49,8 @@ struct Sandbox {
     }
 
     ///
+    version(Windows) {}
+    else
     @safe unittest {
         auto sb = Sandbox();
         assert(sb.testPath != "");
@@ -61,6 +63,8 @@ struct Sandbox {
     }
 
     ///
+    version(Windows) {}
+    else
     @safe unittest {
         import std.file;
         import std.path;
@@ -101,6 +105,8 @@ struct Sandbox {
     }
 
     ///
+    version(Windows) {}
+    else
     @safe unittest {
         import std.file;
         import std.path;
@@ -122,6 +128,8 @@ struct Sandbox {
     }
 
     ///
+    version(Windows) {}
+    else
     @safe unittest {
         with(immutable Sandbox()) {
             shouldExist("bar.txt").shouldThrow;
@@ -140,6 +148,8 @@ struct Sandbox {
     }
 
     ///
+    version(Windows) {}
+    else
     @safe unittest {
         with(immutable Sandbox()) {
             shouldNotExist("baz.txt");
@@ -159,6 +169,8 @@ struct Sandbox {
     }
 
     ///
+    version(Windows) {}
+    else
     @safe unittest {
         with(immutable Sandbox()) {
             writeFile("lines.txt", ["foo", "toto"]);
@@ -190,14 +202,14 @@ private:
         copy(buildPath(sandboxPath, "XXXXXX") ~ '\0', template_[]);
 
         version(Windows) {
-            errno = () @trusted { return mktemp_s(&template_[0], template_.sizeof); }();
-            auto ret = errno == 0 ? "ok" : "";
-        } else
+            throw new Exception(__FUNCTION__ ~ " unsupported on Windows");
+        } else {
             auto ret = () @trusted { return mkdtemp(&template_[0]).to!string; }();
 
-        enforce(ret != "", "Failed to create temporary directory name: " ~
-                () @trusted { return strerror(errno).to!string; }());
+            enforce(ret != "", "Failed to create temporary directory name: " ~
+                    () @trusted { return strerror(errno).to!string; }());
 
-        return ret.absolutePath;
+            return ret.absolutePath;
+        }
     }
 }

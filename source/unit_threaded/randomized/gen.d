@@ -276,7 +276,10 @@ unittest
         assertEqual(a.gen(r), expected);
         expected = "é";
         assertEqual(a.gen(r), expected);
-        expected = "¥ǫƔSūOēǇĂ¹ũ/ŇQĚćzĬůƫË­ÔRĎƕƙĹÒ";
+        version(Windows)
+            expected = "ę®ƖŎĒƘ²Ɣµã1úƟǣĠµĩćůƙÏl­ĥŴīƍŉů&ñ";
+        else
+            expected = "¥ǫƔSūOēǇĂ¹ũ/ŇQĚćzĬůƫË­ÔRĎƕƙĹÒ";
         assertEqual(a.gen(r), expected);
     }
 }
@@ -366,7 +369,10 @@ private:
     GenASCIIString!() gen;
     assertEqual(gen.gen(rnd), "");
     assertEqual(gen.gen(rnd), "a");
-    assertEqual(gen.gen(rnd), "i<pDqp7-LV;W`d)w/}VXi}TR=8CO|m");
+    version(Windows)
+        assertEqual(gen.gen(rnd), "yt4>%PnZwJ*Nv3L5:9I#N_ZK");
+    else
+        assertEqual(gen.gen(rnd), "i<pDqp7-LV;W`d)w/}VXi}TR=8CO|m");
 }
 
 struct Gen(T, size_t low = 1, size_t high = 1024) if(isInputRange!T && isNumeric!(ElementType!T)) {
@@ -428,9 +434,12 @@ static assert(isGen!(Gen!(int[])));
     assertEqual(gen.gen(rnd), [0]);
     assertEqual(gen.gen(rnd), [1]);
     // then the first pseudo-random one
-    assertEqual(gen.gen(rnd),
-                [-1465941156, -1234426648, -952939353, 185030105,
-                 -174732633, -2001577638, -768796814, -1136496558, 78996564]);
+    version(Windows)
+        assertEqual(gen.gen(rnd), [259973309, -1465941156]);
+    else
+        assertEqual(gen.gen(rnd),
+                    [-1465941156, -1234426648, -952939353, 185030105,
+                     -174732633, -2001577638, -768796814, -1136496558, 78996564]);
 }
 
 @("Gen!ubyte[] generates random arrays of ubyte")
@@ -453,7 +462,10 @@ static assert(isGen!(Gen!(int[])));
     assertEqual(gen.gen(rnd), []);
     assertEqual(gen.gen(rnd), [0]);
     assertEqual(gen.gen(rnd), [1]);
-    assertEqual(gen.gen(rnd).length, 9);
+    version(Windows)
+        assertEqual(gen.gen(rnd).length, 2);
+    else
+        assertEqual(gen.gen(rnd).length, 9);
 }
 
 struct Gen(T) if(is(T == bool)) {
