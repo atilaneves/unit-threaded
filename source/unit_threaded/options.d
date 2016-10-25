@@ -46,16 +46,18 @@ auto getOptions(string[] args) {
         );
 
     if(help) {
-        writeln("Usage: <progname> <options> <tests>...\n",
-                "Options: \n",
+        import unit_threaded.io;
+        utWriteln("Usage: <progname> <options> <tests>...\n",
+                  "Options: \n",
                 "  -h/--help: help\n"
-                "  -s/--single: single-threaded\n",
-                "  -l/--list: list tests\n",
-                "  -d/--debug: enable debug output\n",
-                "  -e/--esccodes: force ANSI escape codes even for !isatty\n",
-                "  -r/--random: run tests in random order\n",
-                "  --seed: set the seed for the random order\n",
-                "  -t/--trace: enable stack traces\n",
+                  "  -s/--single: single-threaded\n",
+                  "  -l/--list: list tests\n",
+                  "  -d/--debug: enable debug output\n",
+                  "  -e/--esccodes: force ANSI escape codes even for !isatty\n",
+                  "  -r/--random: run tests in random order\n",
+                  "  --seed: set the seed for the random order\n",
+                  "  -t/--trace: enable stack traces\n",
+                  "  -c/--chrono: print execution time per test",
             );
     }
 
