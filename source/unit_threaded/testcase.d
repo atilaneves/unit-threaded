@@ -32,6 +32,8 @@ public void disableStackTrace() @safe nothrow @nogc {
  */
 class TestCase {
 
+    import std.datetime;
+
     /**
      * Returns: the name of the test
      */
@@ -44,6 +46,7 @@ class TestCase {
      * Returns: array of failures (child classes may have more than 1)
      */
     string[] opCall() {
+        auto sw = StopWatch(AutoStart.yes);
         doTest();
         printOutput();
         return _failed ? [getPath()] : [];
@@ -53,6 +56,7 @@ class TestCase {
      Certain child classes override this
      */
     ulong numTestsRun() const { return 1; }
+    void showChrono() @safe pure nothrow { _showChrono = true; }
 
 package:
 
@@ -70,13 +74,19 @@ private:
     bool _failed;
     string _output;
     bool _silent;
+    bool _showChrono;
 
     final auto doTest() {
+        import std.conv: to;
+
+        auto sw = StopWatch(AutoStart.yes);
         print(getPath() ~ ":\n");
         check(setup());
         check(test());
         check(shutdown());
-        if(_failed) print("\n\n");
+        if(_failed) print("\n");
+        if(_showChrono) print(text("    (", cast(Duration)sw.peek, ")\n\n"));
+        if(_failed) print("\n");
     }
 
     final bool check(E)(lazy E expression) {
@@ -124,6 +134,10 @@ class CompositeTestCase: TestCase {
 
     package TestCase[] tests() @safe pure nothrow {
         return _tests;
+    }
+
+    override void showChrono() {
+        foreach(test; _tests) test.showChrono;
     }
 
 private:

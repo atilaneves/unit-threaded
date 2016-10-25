@@ -127,13 +127,19 @@ private:
      */
     Duration doRun() {
         auto tests = getTests();
+
+        if(_options.showChrono)
+            foreach(test; tests)
+                test.showChrono;
+
         _stopWatch.start();
 
         if (_options.multiThreaded) {
             _failures = reduce!((a, b) => a ~ b)(_failures, taskPool.amap!runTest(tests));
         } else {
-            foreach (test; tests)
+            foreach (test; tests) {
                 _failures ~= test();
+            }
         }
 
         handleFailures();

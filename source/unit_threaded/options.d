@@ -16,6 +16,7 @@ struct Options {
     bool random;
     uint seed;
     bool stackTraces;
+    bool showChrono;
 }
 
 /**
@@ -30,6 +31,7 @@ auto getOptions(string[] args) {
     bool random;
     uint seed = unpredictableSeed;
     bool stackTraces;
+    bool showChrono;
 
     getopt(args,
            "single|s", &single, //single-threaded
@@ -40,6 +42,7 @@ auto getOptions(string[] args) {
            "random|r", &random,
            "seed", &seed,
            "trace|t", &stackTraces,
+           "chrono|c", &showChrono,
         );
 
     if(help) {
@@ -70,5 +73,5 @@ auto getOptions(string[] args) {
 
     immutable exit =  help || list;
     return Options(!single, args[1..$], debugOutput, list, exit, forceEscCodes,
-                   random, seed, stackTraces);
+                   random, seed, stackTraces, showChrono);
 }
