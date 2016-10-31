@@ -121,10 +121,12 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
         mixin(`import ` ~ moduleName!composite ~ `;`);
         void function()[] ret;
         foreach(memberStr; __traits(allMembers, composite)) {
-            alias member = Identity!(__traits(getMember, composite, memberStr));
-            static if(__traits(compiles, &member)) {
-                static if(isSomeFunction!member && hasUDA!(member, uda)) {
-                    ret ~= &member;
+            static if(__traits(compiles, Identity!(__traits(getMember, composite, memberStr)))) {
+                alias member = Identity!(__traits(getMember, composite, memberStr));
+                static if(__traits(compiles, &member)) {
+                    static if(isSomeFunction!member && hasUDA!(member, uda)) {
+                        ret ~= &member;
+                    }
                 }
             }
         }
