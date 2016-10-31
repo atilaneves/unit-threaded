@@ -204,7 +204,7 @@ auto mock(T, string module_ = __MODULE__)() {
         m.expect!"foo"(6, "foobar");
         fun(m);
         assertExceptionMsg(m.verify,
-                           "    source/unit_threaded/mock.d:123 - foo was called with unexpected Tuple!(int, string)(5, \"foobar\")\n"
+                           "    source/unit_threaded/mock.d:123 - foo was called with unexpected Tuple!(int, string)(5, \"foobar\")\n" ~
                            "    source/unit_threaded/mock.d:123 -        instead of the expected Tuple!(int, string)(6, \"foobar\")");
     }
 
@@ -213,7 +213,7 @@ auto mock(T, string module_ = __MODULE__)() {
         m.expect!"foo"(5, "quux");
         fun(m);
         assertExceptionMsg(m.verify,
-                           "    source/unit_threaded/mock.d:123 - foo was called with unexpected Tuple!(int, string)(5, \"foobar\")\n"
+                           "    source/unit_threaded/mock.d:123 - foo was called with unexpected Tuple!(int, string)(5, \"foobar\")\n" ~
                            "    source/unit_threaded/mock.d:123 -        instead of the expected Tuple!(int, string)(5, \"quux\")");
     }
 }
@@ -405,7 +405,7 @@ auto mockStruct(T...)(T returns) {
     m.expect!"foobar"(3, "quux");
     fun(m);
     assertExceptionMsg(m.verify,
-                       "    source/unit_threaded/mock.d:123 - foobar was called with unexpected Tuple!(int, string)(2, \"quux\")\n"
+                       "    source/unit_threaded/mock.d:123 - foobar was called with unexpected Tuple!(int, string)(2, \"quux\")\n" ~
                        "    source/unit_threaded/mock.d:123 -           instead of the expected Tuple!(int, string)(3, \"quux\")");
 }
 

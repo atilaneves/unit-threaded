@@ -117,7 +117,7 @@ private auto shrinkOne(alias F, int index, T)(T values) {
     // is small enough to disconsider even if it were truly random
     // since Gen!int[] is front-loaded, it'll fail on the second attempt
     assertExceptionMsg(check!((int[] a) => a.length % 2 == 0),
-                       "    source/unit_threaded/property/package.d:123 - Property failed with input:\n"
+                       "    source/unit_threaded/property/package.d:123 - Property failed with input:\n" ~
                        "    source/unit_threaded/property/package.d:123 - [0]");
 }
 
@@ -252,6 +252,6 @@ unittest {
 @("shrink one item with check")
 unittest {
     assertExceptionMsg(check!((int i) => i < 3),
-                       "    source/unit_threaded/property/package.d:123 - Property failed with input:\n"
+                       "    source/unit_threaded/property/package.d:123 - Property failed with input:\n" ~
                        "    source/unit_threaded/property/package.d:123 - 3");
 }

@@ -110,7 +110,12 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
         }
     }
 
-    alias Identity(T...) = T[0];
+    template Identity(T...) if(T.length > 0) {
+        static if(__traits(compiles, { alias x = T[0]; }))
+            alias Identity = T[0];
+        else
+            enum Identity = T[0];
+    }
 
     void function() getUDAFunction(alias composite, alias uda)() pure nothrow {
         mixin(`import ` ~ moduleName!composite ~ `;`);

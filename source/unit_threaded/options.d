@@ -49,7 +49,7 @@ auto getOptions(string[] args) {
         import unit_threaded.io;
         utWriteln("Usage: <progname> <options> <tests>...\n",
                   "Options: \n",
-                "  -h/--help: help\n"
+                  "  -h/--help: help\n",
                   "  -s/--single: single-threaded\n",
                   "  -l/--list: list tests\n",
                   "  -d/--debug: enable debug output\n",
