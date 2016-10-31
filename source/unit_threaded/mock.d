@@ -14,7 +14,7 @@ alias Identity(alias T) = T;
 private enum isPrivate(T, string member) = !__traits(compiles, __traits(getMember, T, member));
 
 
-private string implMixinStr(T)() {
+string implMixinStr(T)() {
     import std.array: join;
 
     string[] lines;
