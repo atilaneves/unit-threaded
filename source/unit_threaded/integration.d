@@ -10,10 +10,18 @@ module unit_threaded.integration;
 
 import unit_threaded.should;
 
-version(Windows)
-    extern(C) int mktemp_s(char* template_, size_t sizeInChars);
-else
+version(Windows) {
+    extern(C) int mkdir(char*);
+    extern(C) char* mktemp(char* template_);
+    char* mkdtemp(char* t) {
+        char* result = mktemp(t);
+        if (result is null) return null;
+        if (mkdir(result)) return null;
+        return result;
+    }
+} else {
     extern(C) char* mkdtemp(char* template_);
+}
 
 
 shared static this() {
@@ -49,8 +57,6 @@ struct Sandbox {
     }
 
     ///
-    version(Windows) {}
-    else
     @safe unittest {
         auto sb = Sandbox();
         assert(sb.testPath != "");
@@ -63,8 +69,6 @@ struct Sandbox {
     }
 
     ///
-    version(Windows) {}
-    else
     @safe unittest {
         import std.file;
         import std.path;
@@ -105,8 +109,6 @@ struct Sandbox {
     }
 
     ///
-    version(Windows) {}
-    else
     @safe unittest {
         import std.file;
         import std.path;
@@ -128,8 +130,6 @@ struct Sandbox {
     }
 
     ///
-    version(Windows) {}
-    else
     @safe unittest {
         with(immutable Sandbox()) {
             shouldExist("bar.txt").shouldThrow;
@@ -148,8 +148,6 @@ struct Sandbox {
     }
 
     ///
-    version(Windows) {}
-    else
     @safe unittest {
         with(immutable Sandbox()) {
             shouldNotExist("baz.txt");
@@ -164,13 +162,11 @@ struct Sandbox {
         import std.file;
         import std.string;
 
-        readText(buildPath(testPath, fileName)).chomp.split("\n")
+        readText(buildPath(testPath, fileName)).chomp.splitLines
             .shouldEqual(lines, file, line);
     }
 
     ///
-    version(Windows) {}
-    else
     @safe unittest {
         with(immutable Sandbox()) {
             writeFile("lines.txt", ["foo", "toto"]);
@@ -201,15 +197,11 @@ private:
         char[100] template_;
         copy(buildPath(sandboxPath, "XXXXXX") ~ '\0', template_[]);
 
-        version(Windows) {
-            throw new Exception(__FUNCTION__ ~ " unsupported on Windows");
-        } else {
-            auto ret = () @trusted { return mkdtemp(&template_[0]).to!string; }();
+        auto ret = () @trusted { return mkdtemp(&template_[0]).to!string; }();
 
-            enforce(ret != "", "Failed to create temporary directory name: " ~
-                    () @trusted { return strerror(errno).to!string; }());
+        enforce(ret != "", "Failed to create temporary directory name: " ~
+                () @trusted { return strerror(errno).to!string; }());
 
-            return ret.absolutePath;
-        }
+        return ret.absolutePath;
     }
 }
