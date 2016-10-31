@@ -24,8 +24,9 @@ private void testPrivate() {
     null.shouldNotBeNull; //won't run, can't fail
 }
 
-private class PrivateTest: TestCase {
-    override void test() {
-        null.shouldNotBeNull; //won't run, can't fail
-    }
-}
+// FIXME: bug in LDC 1.0.0
+// private class PrivateTest: TestCase {
+//     override void test() {
+//         null.shouldNotBeNull; //won't run, can't fail
+//     }
+// }

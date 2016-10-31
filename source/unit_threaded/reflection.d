@@ -72,6 +72,14 @@ const(TestData)[] allTestData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString, ty
 }
 
 
+private template Identity(T...) if(T.length > 0) {
+    static if(__traits(compiles, { alias x = T[0]; }))
+        alias Identity = T[0];
+    else
+        enum Identity = T[0];
+}
+
+
 /**
  * Finds all built-in unittest blocks in the given module.
  * Recurses into structs, classes, and unions of the module.
@@ -108,13 +116,6 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
                 assert(false, text("Error converting ", index, " to string"));
             }
         }
-    }
-
-    template Identity(T...) if(T.length > 0) {
-        static if(__traits(compiles, { alias x = T[0]; }))
-            alias Identity = T[0];
-        else
-            enum Identity = T[0];
     }
 
     void function() getUDAFunction(alias composite, alias uda)() pure nothrow {
@@ -284,7 +285,15 @@ unittest {
 private template isPrivate(alias module_, string moduleMember) {
     mixin(`import ` ~ fullyQualifiedName!module_ ~ `: ` ~ moduleMember ~ `;`);
     static if(__traits(compiles, isSomeFunction!(mixin(moduleMember)))) {
-        enum isPrivate = false;
+        alias member = Identity!(mixin(moduleMember));
+        static if(__traits(compiles, &member))
+            enum isPrivate = false;
+        else static if(__traits(compiles, new member))
+            enum isPrivate = false;
+        else static if(__traits(compiles, HasTypes!member))
+            enum isPrivate = !HasTypes!member;
+        else
+            enum isPrivate = true;
     } else {
         enum isPrivate = true;
     }
