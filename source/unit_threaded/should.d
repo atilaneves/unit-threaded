@@ -382,12 +382,12 @@ void shouldThrowExactly(T : Throwable = Exception, E)(lazy E expr,
     in string file = __FILE__, in size_t line = __LINE__)
 {
 
-    immutable threw = threw!T(expr);
+    const threw = threw!T(expr);
     if (!threw)
         fail("Expression did not throw", file, line);
 
     //Object.opEquals is @system and impure
-    immutable sameType = () @trusted { return threw.typeInfo == typeid(T); }();
+    const sameType = () @trusted { return threw.typeInfo == typeid(T); }();
     if (!sameType)
         fail(text("Expression threw wrong type ", threw.typeInfo,
             "instead of expected type ", typeid(T)), file, line);
