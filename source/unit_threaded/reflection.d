@@ -792,7 +792,7 @@ unittest {
 @("Cartesian parameterized built-in values") unittest {
     import unit_threaded.factory;
     import unit_threaded.testcase;
-    import unit_threaded.should;
+    import unit_threaded.should: shouldBeSameSetAs;
     import unit_threaded.tests.parametrized;
 
     const testData = allTestData!(unit_threaded.tests.parametrized).
@@ -826,7 +826,7 @@ unittest {
 @("Cartesian parameterized function values") unittest {
     import unit_threaded.factory;
     import unit_threaded.testcase;
-    import unit_threaded.should;
+    import unit_threaded.should: shouldBeSameSetAs;
 
     const testData = allTestData!(unit_threaded.tests.parametrized).
         filter!(a => a.name.canFind("CartesianFunction")).array;
@@ -870,7 +870,6 @@ unittest {
 @("issue 33") unittest {
     import unit_threaded.factory;
     import unit_threaded.testcase;
-    import unit_threaded.should;
     import test.issue33;
 
     const testData = allTestData!"test.issue33";
