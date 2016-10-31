@@ -6,7 +6,6 @@ import std.range: isInputRange, ElementType;
 import std.algorithm: filter, map;
 import std.array: array;
 
-import unit_threaded;
 
 /* Return $(D true) if the passed $(D T) is a $(D Gen) struct.
 
@@ -27,7 +26,6 @@ template isGen(T)
 }
 
 ///
-@UnitTest
 unittest
 {
     static assert(!isGen!int);
