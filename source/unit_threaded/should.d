@@ -128,7 +128,6 @@ void shouldEqual(V, E)(V value, E expected, in string file = __FILE__, in size_t
 @safe unittest {
     //impure comparisons
     shouldEqual(1.0, 1.0) ;
-    shouldEqual(3.0, 3.00001); //approximately equal
 }
 
 /**
@@ -564,9 +563,43 @@ private bool isEqual(V, E)(in V value, in E expected)
 private bool isEqual(V, E)(in V value, in E expected)
  if (!isObject!V && (isFloatingPoint!V || isFloatingPoint!E) && is(typeof(value == expected) == bool))
 {
+    return value == expected;
+}
+
+@safe pure unittest {
+    assert(isEqual(1.0, 1.0));
+    assert(!isEqual(1.0, 1.0001));
+}
+
+private bool isApproxEqual(V, E)(in V value, in E expected)
+ if (!isObject!V && (isFloatingPoint!V || isFloatingPoint!E) && is(typeof(value == expected) == bool))
+{
     import std.math;
     return approxEqual(value, expected);
 }
+
+@safe unittest {
+    assert(isApproxEqual(1.0, 1.0));
+    assert(isApproxEqual(1.0, 1.0001));
+}
+
+void shouldApproxEqual(V, E)(in V value, in E expected, string file = __FILE__, ulong line = __LINE__)
+ if (!isObject!V && (isFloatingPoint!V || isFloatingPoint!E) && is(typeof(value == expected) == bool))
+{
+    if (!isApproxEqual(value, expected))
+    {
+        const msg =
+            formatValue("Expected approx: ", expected) ~
+            formatValue("     Got       : ", value);
+        throw new UnitTestException(msg, file, line);
+    }
+}
+
+///
+@safe unittest {
+    1.0.shouldApproxEqual(1.0001);
+}
+
 
 private bool isEqual(V, E)(V value, E expected)
 if (!isObject!V && isInputRange!V && isInputRange!E && is(typeof(value.front == expected.front) == bool))
