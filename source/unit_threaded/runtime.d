@@ -119,10 +119,8 @@ DirEntry[] findModuleEntries(in Options options) {
     // dub list of files, don't bother reading the filesystem since
     // dub has done it already
     if(!options.files.empty && options.dirs == ["."]) {
-        return options.files.
-            filter!(a => a != options.fileName).
-            map!(a => buildNormalizedPath(a)).
-            map!(a => DirEntry(a))
+        return dubFilesToAbsPaths(options.fileName, options.files)
+            .map!(a => DirEntry(a))
             .array;
     }
 
@@ -141,6 +139,32 @@ DirEntry[] findModuleEntries(in Options options) {
     }
 
     return modules;
+}
+
+private string[] dubFilesToAbsPaths(in string fileName, in string[] files) {
+    // package.d files will show up as foo.bar.package
+    // remove .package from the end
+    string removePackage(string name) {
+        enum toRemove = "/package.d";
+        return name.endsWith(toRemove)
+            ? name.replace(toRemove, "")
+            : name;
+    }
+
+    // dub list of files, don't bother reading the filesystem since
+    // dub has done it already
+    return files
+        .filter!(a => a != fileName)
+        .map!(a => removePackage(a))
+        .map!(a => buildNormalizedPath(a))
+        .array;
+}
+
+@("issue 40")
+unittest {
+    import unit_threaded.should;
+    dubFilesToAbsPaths("", ["foo/bar/package.d"]).shouldEqual(
+        ["foo/bar"]);
 }
 
 
@@ -163,7 +187,7 @@ string[] findModuleNames(in Options options) {
     }
 
     return findModuleEntries(options).
-        filter!(a => a.baseName != "package.d" && a.baseName != "reggaefile.d").
+        filter!(a => a.baseName != "reggaefile.d").
         filter!(a => a.absolutePath != options.fileName.absolutePath).
         map!(a => relativeToImportDirs(a.name)).
         map!(a => replace(a.stripExtension, dirSeparator, ".")).
