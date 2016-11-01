@@ -12,8 +12,6 @@ import std.algorithm;
 import std.traits;
 import std.range;
 
-public import unit_threaded.attrs;
-
 
 /**
  * An exception to signal that a test case has failed.

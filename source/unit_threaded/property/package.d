@@ -1,11 +1,11 @@
 module unit_threaded.property;
 
-public import unit_threaded.should;
-
 import unit_threaded.randomized.gen;
 import unit_threaded.randomized.random;
+import unit_threaded.should;
 import std.random: Random, unpredictableSeed;
 import std.traits: isIntegral, isArray;
+
 
 version(unittest) import unit_threaded.asserts;
 
