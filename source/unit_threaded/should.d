@@ -583,7 +583,7 @@ private bool isApproxEqual(V, E)(in V value, in E expected)
     assert(isApproxEqual(1.0, 1.0001));
 }
 
-void shouldApproxEqual(V, E)(in V value, in E expected, string file = __FILE__, ulong line = __LINE__)
+void shouldApproxEqual(V, E)(in V value, in E expected, string file = __FILE__, size_t line = __LINE__)
  if (!isObject!V && (isFloatingPoint!V || isFloatingPoint!E) && is(typeof(value == expected) == bool))
 {
     if (!isApproxEqual(value, expected))
