@@ -163,8 +163,9 @@ private string[] dubFilesToAbsPaths(in string fileName, in string[] files) {
 @("issue 40")
 unittest {
     import unit_threaded.should;
+    import std.path;
     dubFilesToAbsPaths("", ["foo/bar/package.d"]).shouldEqual(
-        ["foo/bar"]);
+        [buildPath("foo", "bar")]);
 }
 
 
