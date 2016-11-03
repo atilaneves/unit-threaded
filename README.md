@@ -1,6 +1,7 @@
 unit-threaded
 =============
-[![Build Status](https://travis-ci.org/atilaneves/unit-threaded.png?branch=master)](https://travis-ci.org/atilaneves/unit-threaded)
+
+| [![Build Status](https://travis-ci.org/atilaneves/unit-threaded.png?branch=master)](https://travis-ci.org/atilaneves/unit-threaded) |  [![Build Status](https://ci.appveyor.com/api/projects/status/github/atilaneves/unit-threaded?branch=master&svg=true)](https://ci.appveyor.com/project/atilaneves/unit-threaded) |
 
 [My DConf2016 Lightning talk demonstrating unit-threaded](https://www.youtube.com/watch?v=yIH_0ew-maI#t=6m50s).
 
