@@ -443,3 +443,11 @@ auto mockStruct(T...)(T returns) {
 
     auto m = mock!Interface;
 }
+
+// @("attributes")
+// @safe pure unittest {
+//     interface Interface {
+//         int twice(int i) @safe pure nothrow /*@nogc*/;
+//     }
+//     auto m = mock!Interface;
+// }
