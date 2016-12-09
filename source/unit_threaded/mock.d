@@ -16,6 +16,7 @@ private enum isPrivate(T, string member) = !__traits(compiles, __traits(getMembe
 
 string implMixinStr(T)() {
     import std.array: join;
+    import std.traits: functionAttributes, FunctionAttribute;
 
     string[] lines;
 
@@ -29,6 +30,12 @@ string implMixinStr(T)() {
 
                 enum parameters = Parameters!member.stringof;
                 enum returnType = ReturnType!member.stringof;
+
+                static if(functionAttributes!member & FunctionAttribute.nothrow_)
+                    enum tryIndent = "    ";
+                else
+                    enum tryIndent = "";
+
 
                 static if(is(ReturnType!member == void))
                     enum returnDefault = "";
@@ -45,9 +52,18 @@ string implMixinStr(T)() {
                 }
 
                 lines ~= `override ` ~ returnType ~ " " ~ m ~ typeAndArgsParens!(Parameters!member) ~ ` {`;
-                lines ~= `    calledFuncs ~= "` ~ m ~ `";`;
-                lines ~= `    calledValues ~= tuple` ~ argNamesParens(arity!member) ~ `.to!string;`;
+
+                static if(functionAttributes!member & FunctionAttribute.nothrow_)
+                    lines ~= "try {";
+
+                lines ~= tryIndent ~ `    calledFuncs ~= "` ~ m ~ `";`;
+                lines ~= tryIndent ~ `    calledValues ~= tuple` ~ argNamesParens(arity!member) ~ `.to!string;`;
+
+                static if(functionAttributes!member & FunctionAttribute.nothrow_)
+                    lines ~= "    } catch(Exception) {}";
+
                 lines ~= returnDefault;
+
                 lines ~= `}`;
                 lines ~= "";
             }
@@ -441,5 +457,13 @@ auto mockStruct(T...)(T returns) {
         const(ubyte)[] fun();
     }
 
+    auto m = mock!Interface;
+}
+
+@("safe pure nothrow")
+@safe pure unittest {
+    interface Interface {
+        int twice(int i) @safe pure nothrow /*@nogc*/;
+    }
     auto m = mock!Interface;
 }

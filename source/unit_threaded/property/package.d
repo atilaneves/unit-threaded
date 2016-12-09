@@ -115,10 +115,10 @@ private auto shrinkOne(alias F, int index, T)(T values) {
 @safe unittest {
     // 2^100 is ~1.26E30, so the chances that no even length array is generated
     // is small enough to disconsider even if it were truly random
-    // since Gen!int[] is front-loaded, it'll fail on the second attempt
-    assertExceptionMsg(check!((int[] a) => a.length % 2 == 0),
+    // since Gen!int[] is front-loaded, it'll fail deterministically
+    assertExceptionMsg(check!((int[] a) => a.length % 2 == 1),
                        "    source/unit_threaded/property/package.d:123 - Property failed with input:\n" ~
-                       "    source/unit_threaded/property/package.d:123 - [0]");
+                       "    source/unit_threaded/property/package.d:123 - []");
 }
 
 
@@ -254,4 +254,12 @@ unittest {
     assertExceptionMsg(check!((int i) => i < 3),
                        "    source/unit_threaded/property/package.d:123 - Property failed with input:\n" ~
                        "    source/unit_threaded/property/package.d:123 - 3");
+}
+
+@("string[]")
+unittest {
+    bool identity(string[] a) pure {
+        return a == a;
+    }
+    check!identity;
 }

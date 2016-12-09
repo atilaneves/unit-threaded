@@ -373,13 +373,14 @@ private:
         assertEqual(gen.gen(rnd), "i<pDqp7-LV;W`d)w/}VXi}TR=8CO|m");
 }
 
-struct Gen(T, size_t low = 1, size_t high = 1024) if(isInputRange!T && isNumeric!(ElementType!T)) {
+struct Gen(T, size_t low = 1, size_t high = 1024) if(isInputRange!T && !isSomeString!T) {
 
     import std.traits: Unqual, isIntegral, isFloatingPoint;
     alias Value = T;
     alias E = Unqual!(ElementType!T);
 
     T value;
+    Gen!E elementGen;
 
     T gen(ref Random rnd) {
         value = _index < frontLoaded.length
@@ -394,8 +395,8 @@ private:
 
     size_t _index;
      //these values are always generated
-    T[] frontLoaded() @safe pure nothrow {
-        T[] ret = [[], [ElementType!T(0)], [ElementType!T(1)]];
+    T[] frontLoaded() @safe nothrow {
+        T[] ret = [[]];
         return ret;
     }
 
@@ -405,12 +406,7 @@ private:
         auto app = appender!T;
         app.reserve(length);
         foreach(i; 0 .. length) {
-            static if(isIntegral!E)
-                app.put(uniform(E.min, E.max, rnd));
-            else static if(isFloatingPoint!E)
-                app.put(uniform(-1e12, 1e12, rnd));
-            else
-                static assert("Cannot generage elements of type ", E.stringof);
+            app.put(elementGen.gen(rnd));
         }
 
         return app.data;
@@ -421,7 +417,7 @@ static assert(isGen!(Gen!(int[])));
 
 
 @("Gen!int[] generates random arrays of int")
-@safe pure unittest {
+@safe unittest {
     import unit_threaded.asserts: assertEqual;
 
     auto rnd = Random(1337);
@@ -429,19 +425,11 @@ static assert(isGen!(Gen!(int[])));
 
     // first the front-loaded values
     assertEqual(gen.gen(rnd), []);
-    assertEqual(gen.gen(rnd), [0]);
-    assertEqual(gen.gen(rnd), [1]);
-    // then the first pseudo-random one
-    version(Windows)
-        assertEqual(gen.gen(rnd), [259973309, -1465941156]);
-    else
-        assertEqual(gen.gen(rnd),
-                    [-1465941156, -1234426648, -952939353, 185030105,
-                     -174732633, -2001577638, -768796814, -1136496558, 78996564]);
+    assertEqual(gen.gen(rnd), [0, 1, -2147483648, 2147483647, 681542492, 913057000, 1194544295, -1962453543, 1972751015]);
 }
 
 @("Gen!ubyte[] generates random arrays of ubyte")
-@safe pure unittest {
+@safe unittest {
     import unit_threaded.asserts: assertEqual;
     auto rnd = Random(1337);
     auto gen = Gen!(ubyte[], 1, 10)();
@@ -458,13 +446,39 @@ static assert(isGen!(Gen!(int[])));
 
     // first the front-loaded values
     assertEqual(gen.gen(rnd), []);
-    assertEqual(gen.gen(rnd), [0]);
-    assertEqual(gen.gen(rnd), [1]);
+    // then the pseudo-random ones
     version(Windows)
         assertEqual(gen.gen(rnd).length, 2);
     else
         assertEqual(gen.gen(rnd).length, 9);
 }
+
+@("Gen!string[] generates random arrays of string")
+@safe unittest {
+    import unit_threaded.asserts: assertEqual;
+
+    auto rnd = Random(1337);
+    auto gen = Gen!(string[])();
+
+    assertEqual(gen.gen(rnd), []);
+    auto strings = gen.gen(rnd);
+    assert(strings.length > 1);
+    assertEqual(strings[1], "a");
+}
+
+@("Gen!string[][] generates random arrays of string")
+@safe unittest {
+    import unit_threaded.asserts: assertEqual;
+
+    auto rnd = Random(1337);
+    auto gen = Gen!(string[][])();
+
+    assertEqual(gen.gen(rnd), []);
+    // takes too long
+    // auto strings = gen.gen(rnd);
+    // assert(strings.length > 1);
+}
+
 
 struct Gen(T) if(is(T == bool)) {
     bool value;
