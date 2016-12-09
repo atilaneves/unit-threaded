@@ -523,7 +523,9 @@ void fail(in string output, in string file, in size_t line) @safe pure
 
 private string[] formatValue(T)(in string prefix, T value) {
     static if(isSomeString!T) {
-        return [ prefix ~ `"` ~ value ~ `"`];
+        // isSomeString is true for wstring and dstring,
+        // so call .to!string anyway
+        return [ prefix ~ `"` ~ value.to!string ~ `"`];
     } else static if(isInputRange!T) {
         return formatRange(prefix, value);
     } else {
@@ -853,4 +855,9 @@ if (isInputRange!V && isInputRange!E && is(typeof(value.front != expected.front)
 
     inOrder.shouldNotBeSameSetAs(oops);
     inOrder.shouldNotBeSameSetAs(noOrder).shouldThrow!UnitTestException;
+}
+
+
+@safe pure unittest {
+    "foo"w.shouldEqual("foo");
 }
