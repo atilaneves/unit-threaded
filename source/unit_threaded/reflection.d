@@ -139,68 +139,74 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
 
     void addMemberUnittests(alias composite)() pure nothrow {
         foreach(index, eltesto; __traits(getUnitTests, composite)) {
-            enum name = unittestName!(eltesto, index);
-            enum hidden = hasUDA!(eltesto, HiddenTest);
-            enum shouldFail = hasUDA!(eltesto, ShouldFail);
-            enum singleThreaded = hasUDA!(eltesto, Serial);
-            enum builtin = true;
-            enum suffix = "";
 
-            // let's check for @Values UDAs, which are actually of type ValuesImpl
-            enum isValues(alias T) = is(typeof(T)) && is(typeof(T):ValuesImpl!U, U);
-            alias valuesUDAs = Filter!(isValues, __traits(getAttributes, eltesto));
+            enum dontTest = hasUDA!(eltesto, DontTest);
 
-            enum isTags(alias T) = is(typeof(T)) && is(typeof(T) == Tags);
-            enum tags = tagsFromAttrs!(Filter!(isTags, __traits(getAttributes, eltesto)));
+            static if(!dontTest) {
 
-            static if(valuesUDAs.length == 0) {
-                testData ~= TestData(name,
-                                     () {
-                                         auto setup = getUDAFunction!(composite, Setup);
-                                         auto shutdown = getUDAFunction!(composite, Shutdown);
+                enum name = unittestName!(eltesto, index);
+                enum hidden = hasUDA!(eltesto, HiddenTest);
+                enum shouldFail = hasUDA!(eltesto, ShouldFail);
+                enum singleThreaded = hasUDA!(eltesto, Serial);
+                enum builtin = true;
+                enum suffix = "";
 
-                                         if(setup) setup();
-                                         scope(exit) if(shutdown) shutdown();
+                // let's check for @Values UDAs, which are actually of type ValuesImpl
+                enum isValues(alias T) = is(typeof(T)) && is(typeof(T):ValuesImpl!U, U);
+                alias valuesUDAs = Filter!(isValues, __traits(getAttributes, eltesto));
 
-                                         eltesto();
-                                     },
-                                     hidden,
-                                     shouldFail,
-                                     singleThreaded,
-                                     builtin,
-                                     suffix,
-                                     tags);
-            } else {
-                import std.range;
+                enum isTags(alias T) = is(typeof(T)) && is(typeof(T) == Tags);
+                enum tags = tagsFromAttrs!(Filter!(isTags, __traits(getAttributes, eltesto)));
 
-                // cartesianProduct doesn't work with only one range, so in the usual case
-                // of only one @Values UDA, we bind to prod with a range of tuples, just
-                // as returned by cartesianProduct.
-
-                static if(valuesUDAs.length == 1) {
-                    import std.typecons;
-                    enum prod = valuesUDAs[0].values.map!(a => tuple(a));
-                } else {
-                    mixin(`enum prod = cartesianProduct(` ~ valuesUDAs.length.iota.map!
-                          (a => `valuesUDAs[` ~ guaranteedToString(a) ~ `].values`).join(", ") ~ `);`);
-                }
-
-                foreach(comb; aliasSeqOf!prod) {
-                    enum valuesName = valuesName(comb);
-
-                    static if(hasUDA!(eltesto, AutoTags))
-                        enum realTags = tags ~ valuesName.split(".").array;
-                    else
-                        enum realTags = tags;
-
-                    testData ~= TestData(name ~ "." ~ valuesName,
+                static if(valuesUDAs.length == 0) {
+                    testData ~= TestData(name,
                                          () {
-                                             foreach(i; aliasSeqOf!(comb.length.iota))
-                                                 ValueHolder!(typeof(comb[i])).values[i] = comb[i];
+                                             auto setup = getUDAFunction!(composite, Setup);
+                                             auto shutdown = getUDAFunction!(composite, Shutdown);
+
+                                             if(setup) setup();
+                                             scope(exit) if(shutdown) shutdown();
+
                                              eltesto();
                                          },
-                                         hidden, shouldFail, singleThreaded, builtin, suffix, realTags);
+                                         hidden,
+                                         shouldFail,
+                                         singleThreaded,
+                                         builtin,
+                                         suffix,
+                                         tags);
+                } else {
+                    import std.range;
 
+                    // cartesianProduct doesn't work with only one range, so in the usual case
+                    // of only one @Values UDA, we bind to prod with a range of tuples, just
+                    // as returned by cartesianProduct.
+
+                    static if(valuesUDAs.length == 1) {
+                        import std.typecons;
+                        enum prod = valuesUDAs[0].values.map!(a => tuple(a));
+                    } else {
+                        mixin(`enum prod = cartesianProduct(` ~ valuesUDAs.length.iota.map!
+                              (a => `valuesUDAs[` ~ guaranteedToString(a) ~ `].values`).join(", ") ~ `);`);
+                    }
+
+                    foreach(comb; aliasSeqOf!prod) {
+                        enum valuesName = valuesName(comb);
+
+                        static if(hasUDA!(eltesto, AutoTags))
+                            enum realTags = tags ~ valuesName.split(".").array;
+                        else
+                            enum realTags = tags;
+
+                        testData ~= TestData(name ~ "." ~ valuesName,
+                                             () {
+                                                 foreach(i; aliasSeqOf!(comb.length.iota))
+                                                     ValueHolder!(typeof(comb[i])).values[i] = comb[i];
+                                                 eltesto();
+                                             },
+                                             hidden, shouldFail, singleThreaded, builtin, suffix, realTags);
+
+                    }
                 }
             }
         }
@@ -899,4 +905,15 @@ unittest {
         .array
         .createTestCases[0];
     assertFail(inStructTest);
+}
+
+@("@DontTest should work for unittest blocks") unittest {
+    import unit_threaded.factory;
+    import unit_threaded.asserts;
+    import unit_threaded.tests.module_with_tests;
+    import std.algorithm: canFind;
+    import std.array: array;
+
+    const testData = allTestData!"unit_threaded.tests.module_with_attrs";
+    assertEqual(testData.canFind!(a => a.getPath.canFind("DontTestBlock" )), false);
 }
