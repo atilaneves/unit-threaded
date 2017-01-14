@@ -64,6 +64,17 @@ unittest {
 
 private shared(bool) _debugOutput = false; ///print debug msgs?
 private shared(bool) _forceEscCodes = false; ///use ANSI escape codes anyway?
+bool _useEscCodes;
+enum _escCodes = ["\033[31;1m", "\033[32;1m", "\033[33;1m", "\033[0;;m"];
+
+
+static this() {
+    version (Posix) {
+        import std.stdio: stdout;
+        import core.sys.posix.unistd: isatty;
+        _useEscCodes = _forceEscCodes || isatty(stdout.fileno()) != 0;
+    }
+}
 
 package void enableDebugOutput(bool value = true) nothrow {
     synchronized {
@@ -111,6 +122,42 @@ package void utWriteYellow(T...)(T args) {
 interface Output {
     void send(in string output);
 }
+
+private enum Color {
+    red,
+    green,
+    yellow,
+    cancel,
+}
+
+/**
+ * Generate green coloured output on POSIX systems
+ */
+private string green(in string msg) @safe {
+    return escCode(Color.green) ~ msg ~ escCode(Color.cancel);
+}
+
+/**
+ * Generate red coloured output on POSIX systems
+ */
+private string red(in string msg) @safe {
+    return escCode(Color.red) ~ msg ~ escCode(Color.cancel);
+}
+
+/**
+ * Generate yellow coloured output on POSIX systems
+ */
+private string yellow(in string msg) @safe {
+    return escCode(Color.yellow) ~ msg ~ escCode(Color.cancel);
+}
+
+/**
+ * Send escape code to the console
+ */
+private string escCode(in Color code) @safe {
+    return _useEscCodes ? _escCodes[code] : "";
+}
+
 
 /**
  * Writes the args in a thread-safe manner.
@@ -182,38 +229,6 @@ class WriterThread: Output {
     }
 
     /**
-     * Writes the args in a thread-safe manner in green (POSIX only).
-     * and appends a newline.
-     */
-    void writelnGreen(T...)(T args) {
-        _tid.send(green(text(args) ~ "\n"));
-    }
-
-    /**
-     * Writes the args in a thread-safe manner in red (POSIX only)
-     * and appends a newline.
-     */
-    void writelnRed(T...)(T args) {
-        _tid.send(red(text(args) ~ "\n"));
-    }
-
-    /**
-     * Writes the args in a thread-safe manner in red (POSIX only).
-     * and appends a newline.
-     */
-    void writeRed(T...)(T args) {
-        _tid.send(red(text(args)));
-    }
-
-    /**
-     * Writes the args in a thread-safe manner in yellow (POSIX only).
-     * and appends a newline.
-     */
-    void writeYellow(T...)(T args) {
-        _tid.send(yellow(text(args)));
-    }
-
-    /**
      * Creates the singleton instance and waits until it's ready.
      */
     static void start() {
@@ -233,54 +248,12 @@ class WriterThread: Output {
 
 private:
 
-    enum Color {
-        red,
-        green,
-        yellow,
-        cancel,
-    }
-
     this() {
         _tid = spawn(&threadWriter);
-
-        version (Posix) {
-            import core.sys.posix.unistd;
-            _useEscCodes = _forceEscCodes || isatty(stdout.fileno()) != 0;
-        }
     }
 
-    /**
-     * Generate green coloured output on POSIX systems
-     */
-    string green(in string msg) @safe pure const {
-        return escCode(Color.green) ~ msg ~ escCode(Color.cancel);
-    }
-
-    /**
-     * Generate red coloured output on POSIX systems
-     */
-    string red(in string msg) @safe pure const {
-        return escCode(Color.red) ~ msg ~ escCode(Color.cancel);
-    }
-
-    /**
-     * Generate yellow coloured output on POSIX systems
-     */
-    string yellow(in string msg) @safe pure const {
-        return escCode(Color.yellow) ~ msg ~ escCode(Color.cancel);
-    }
-
-    /**
-     * Send escape code to the console
-     */
-    string escCode(in Color code) @safe pure const {
-        return _useEscCodes ? _escCodes[code] : "";
-    }
 
     Tid _tid;
-    static immutable string[] _escCodes = ["\033[31;1m", "\033[32;1m", "\033[33;1m",
-        "\033[0;;m"];
-    bool _useEscCodes;
 
     static bool _instantiated; /// Thread local
     __gshared WriterThread _instance;
