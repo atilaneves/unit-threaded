@@ -76,6 +76,10 @@ static this() {
     }
 }
 
+static ~this() {
+    if(WriterThread._instantiated) WriterThread.get.join;
+}
+
 package void enableDebugOutput(bool value = true) nothrow {
     synchronized {
         _debugOutput = value;
@@ -92,31 +96,6 @@ package void forceEscCodes() nothrow {
     synchronized {
         _forceEscCodes = true;
     }
-}
-
-
-package void utWrite(T...)(T args) {
-    WriterThread.get().write(args);
-}
-
-package void utWriteln(T...)(T args) {
-    WriterThread.get().writeln(args);
-}
-
-package void utWritelnGreen(T...)(T args) {
-    WriterThread.get().writelnGreen(args);
-}
-
-package void utWritelnRed(T...)(T args) {
-    WriterThread.get().writelnRed(args);
-}
-
-package void utWriteRed(T...)(T args) {
-    WriterThread.get().writeRed(args);
-}
-
-package void utWriteYellow(T...)(T args) {
-    WriterThread.get().writeYellow(args);
 }
 
 interface Output {
