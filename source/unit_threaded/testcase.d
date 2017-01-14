@@ -46,6 +46,7 @@ class TestCase {
      * Returns: array of failures (child classes may have more than 1)
      */
     string[] opCall() {
+        currentTest = this;
         auto sw = StopWatch(AutoStart.yes);
         doTest();
         printOutput();
@@ -60,7 +61,10 @@ class TestCase {
 
 package:
 
+    static TestCase currentTest;
     Output outputObj;
+    string _output;
+
     void silence() @safe pure nothrow { _silent = true; }
     string output() @safe const pure nothrow { return _output; }
 
@@ -73,7 +77,6 @@ protected:
 private:
 
     bool _failed;
-    string _output;
     bool _silent;
     bool _showChrono;
 
