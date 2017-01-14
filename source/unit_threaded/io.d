@@ -44,6 +44,46 @@ unittest {
     file.output.shouldEqual(["    foobar"]);
 }
 
+unittest {
+    import unit_threaded.should;
+    import unit_threaded.testcase: TestCase;
+    import unit_threaded.reflection: TestData;
+    import unit_threaded.factory: createTestCase;
+    import std.traits: fullyQualifiedName;
+    import std.string: split;
+
+    enableDebugOutput;
+    scope(exit) enableDebugOutput(false);
+
+    class TestOutput: Output {
+        string output;
+        override void send(in string output) {
+            import std.conv: text;
+            this.output ~= output;
+        }
+    }
+
+    class PrintTest: TestCase {
+        override void test() {
+            writelnUt("foo", "bar");
+        }
+        override string getPath() @safe pure nothrow const {
+            return "PrintTest";
+        }
+    }
+
+    auto test = new PrintTest;
+    auto writer = new TestOutput;
+    test.outputObj = writer;
+    test();
+
+    writer.output.split("\n").shouldEqual(
+        [
+            "PrintTest:",
+            "foobar",
+        ]
+    );
+}
 
 private shared(bool) _debugOutput = false; ///print debug msgs?
 private shared(bool) _forceEscCodes = false; ///use ANSI escape codes anyway?
@@ -91,10 +131,60 @@ package void utWriteYellow(T...)(T args) {
     WriterThread.get().writeYellow(args);
 }
 
+interface Output {
+    void send(in string output);
+}
+
+/**
+ * Writes the args in a thread-safe manner.
+ */
+void write(T...)(Output output, T args) {
+    output.send(text(args));
+}
+
+/**
+ * Writes the args in a thread-safe manner and appends a newline.
+ */
+void writeln(T...)(Output output, T args) {
+    write(args, "\n");
+}
+
+/**
+ * Writes the args in a thread-safe manner in green (POSIX only).
+ * and appends a newline.
+ */
+void writelnGreen(T...)(Output output, T args) {
+    output.send(green(text(args) ~ "\n"));
+}
+
+/**
+ * Writes the args in a thread-safe manner in red (POSIX only)
+ * and appends a newline.
+ */
+void writelnRed(T...)(Output output, T args) {
+    output.send(red(text(args) ~ "\n"));
+}
+
+/**
+ * Writes the args in a thread-safe manner in red (POSIX only).
+ * and appends a newline.
+ */
+void writeRed(T...)(Output output, T args) {
+    output.send(red(text(args)));
+}
+
+/**
+ * Writes the args in a thread-safe manner in yellow (POSIX only).
+ * and appends a newline.
+ */
+void writeYellow(T...)(Output output, T args) {
+    output.send(yellow(text(args)));
+}
+
 /**
  * Thread to output to stdout
  */
-class WriterThread {
+class WriterThread: Output {
     /**
      * Returns a reference to the only instance of this class.
      */
@@ -108,6 +198,10 @@ class WriterThread {
             }
         }
         return _instance;
+    }
+
+    override void send(in string output) {
+        _tid.send(output);
     }
 
     /**

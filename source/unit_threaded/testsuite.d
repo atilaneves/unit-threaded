@@ -30,6 +30,8 @@ auto runTest(TestCase test)
  */
 struct TestSuite
 {
+    package Output output;
+
     /**
      * Params:
      * options = The options to run tests with.

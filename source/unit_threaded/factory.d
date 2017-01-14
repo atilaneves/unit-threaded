@@ -4,6 +4,7 @@ import unit_threaded.testcase;
 import unit_threaded.reflection;
 import unit_threaded.asserts;
 import unit_threaded.should;
+import unit_threaded.io: Output, WriterThread;
 
 import std.stdio;
 import std.traits;
@@ -25,22 +26,32 @@ TestCase[] createTestCases(in TestData[] testData, in string[] testsToRun = []) 
     foreach(const data; testData) {
         if(!isWantedTest(data, testsToRun)) continue;
         auto test = createTestCase(data);
-        if(test !is null) tests[test] = true; //can be null if abtract base class
+         if(test !is null) tests[test] = true; //can be null if abtract base class
     }
 
     return tests.keys.sort!((a, b) => a.getPath < b.getPath).array;
 }
 
 
-private TestCase createTestCase(in TestData testData) {
+package TestCase createTestCase(in TestData testData, Output output = WriterThread.get) {
     TestCase createImpl() {
+        import unit_threaded.io: WriterThread;
+
         TestCase testCase;
         if(testData.isTestClass)
             testCase = cast(TestCase) Object.factory(testData.name);
-        else
+         else
             testCase = testData.builtin ? new BuiltinTestCase(testData) : new FunctionTestCase(testData);
 
-        return testData.shouldFail ? new ShouldFailTestCase(testCase) : testCase;
+        assert(testCase !is null, "Error creating test case");
+        testCase.outputObj = output;
+
+        if(testData.shouldFail) {
+            testCase = new ShouldFailTestCase(testCase);
+            testCase.outputObj = output;
+        }
+
+        return testCase;
     }
 
     auto testCase = createImpl();

@@ -60,6 +60,7 @@ class TestCase {
 
 package:
 
+    Output outputObj;
     void silence() @safe pure nothrow { _silent = true; }
     string output() @safe const pure nothrow { return _output; }
 
@@ -110,8 +111,8 @@ private:
         _output ~= msg;
     }
 
-    final void printOutput() const {
-        if(!_silent) utWrite(_output);
+    final void printOutput() {
+        if(!_silent) outputObj.send(_output);
     }
 }
 
