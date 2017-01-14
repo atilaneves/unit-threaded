@@ -44,11 +44,9 @@ package TestCase createTestCase(in TestData testData, Output output = WriterThre
             testCase = testData.builtin ? new BuiltinTestCase(testData) : new FunctionTestCase(testData);
 
         assert(testCase !is null, "Error creating test case");
-        testCase.outputObj = output;
 
         if(testData.shouldFail) {
             testCase = new ShouldFailTestCase(testCase);
-            testCase.outputObj = output;
         }
 
         return testCase;
