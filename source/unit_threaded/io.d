@@ -15,34 +15,11 @@ import std.conv;
  * is selected.
  */
 void writelnUt(T...)(T args) {
-    writelnUtFile(WriterThread.get, args);
+    import std.conv: text;
+    import unit_threaded: TestCase;
+    TestCase.currentTest._output ~= text(args);
 }
 
-void writelnUtFile(F, T...)(auto ref F file, T args) {
-    if (_debugOutput)
-        file.writeln("    ", args);
-}
-
-unittest {
-    import unit_threaded.should;
-    import unit_threaded.testcase;
-
-    struct File {
-        string[] output;
-        void writeln(T...)(T args) {
-            import std.conv: text;
-            output ~= text(args);
-        }
-    }
-
-
-    enableDebugOutput;
-    scope(exit) enableDebugOutput(false);
-
-    auto file = File();
-    writelnUtFile(file, "foo", "bar");
-    file.output.shouldEqual(["    foobar"]);
-}
 
 unittest {
     import unit_threaded.should;
@@ -146,7 +123,7 @@ void write(T...)(Output output, T args) {
  * Writes the args in a thread-safe manner and appends a newline.
  */
 void writeln(T...)(Output output, T args) {
-    write(args, "\n");
+    write(output, args, "\n");
 }
 
 /**
@@ -202,20 +179,6 @@ class WriterThread: Output {
 
     override void send(in string output) {
         _tid.send(output);
-    }
-
-    /**
-     * Writes the args in a thread-safe manner.
-     */
-    void write(T...)(T args) {
-        _tid.send(text(args));
-    }
-
-    /**
-     * Writes the args in a thread-safe manner and appends a newline.
-     */
-    void writeln(T...)(T args) {
-        write(args, "\n");
     }
 
     /**
