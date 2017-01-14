@@ -51,7 +51,7 @@ unittest {
 
     auto test = new PrintTest;
     auto writer = new TestOutput;
-    test.outputObj = writer;
+    test.setOutput(writer);
     test();
 
     writer.output.split("\n").shouldEqual(

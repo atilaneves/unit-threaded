@@ -58,11 +58,12 @@ class TestCase {
      */
     ulong numTestsRun() const { return 1; }
     void showChrono() @safe pure nothrow { _showChrono = true; }
+    void setOutput(Output output) @safe pure nothrow { _outputObj = output; }
 
 package:
 
     static TestCase currentTest;
-    Output outputObj;
+    Output _outputObj;
     string _output;
 
     void silence() @safe pure nothrow { _silent = true; }
@@ -115,7 +116,11 @@ private:
     }
 
     final void printOutput() {
-        if(!_silent) outputObj.send(_output);
+        import unit_threaded.io: WriterThread;
+        if(!_silent) {
+            auto writer = _outputObj is null ? WriterThread.get : _outputObj;
+            writer.write(_output);
+        }
     }
 }
 
