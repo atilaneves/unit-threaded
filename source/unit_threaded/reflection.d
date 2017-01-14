@@ -38,17 +38,20 @@ struct TestData {
  * Template parameters are module strings
  */
 const(TestData)[] allTestData(MOD_STRINGS...)() if(allSatisfy!(isSomeString, typeof(MOD_STRINGS))) {
+    import std.array: join;
+    import std.range : iota;
+    import std.format : format;
+    import std.algorithm : map;
 
     string getModulesString() {
-        import std.array: join;
         string[] modules;
-        foreach(module_; MOD_STRINGS) modules ~= module_;
+        foreach(i, module_; MOD_STRINGS) modules ~= "module%d = %s".format(i, module_);
         return modules.join(", ");
     }
 
     enum modulesString =  getModulesString;
     mixin("import " ~ modulesString ~ ";");
-    mixin("return allTestData!(" ~ modulesString ~ ");");
+    mixin("return allTestData!(" ~ 0.iota(MOD_STRINGS.length).map!(i => "module%d".format(i)).join(", ") ~ ");");
 }
 
 
