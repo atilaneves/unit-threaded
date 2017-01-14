@@ -17,9 +17,44 @@ import std.conv;
 void writelnUt(T...)(T args) {
     import std.conv: text;
     import unit_threaded: TestCase;
-    TestCase.currentTest._output ~= text(args);
+    if(isDebugOutputEnabled) TestCase.currentTest._output ~= text(args);
 }
 
+unittest {
+    import unit_threaded.testcase: TestCase;
+    import unit_threaded.should;
+    import std.string: split;
+
+    enableDebugOutput(false);
+    class TestOutput: Output {
+        string output;
+        override void send(in string output) {
+            import std.conv: text;
+            this.output ~= output;
+        }
+    }
+
+    class PrintTest: TestCase {
+        override void test() {
+            writelnUt("foo", "bar");
+        }
+        override string getPath() @safe pure nothrow const {
+            return "PrintTest";
+        }
+    }
+
+    auto test = new PrintTest;
+    auto writer = new TestOutput;
+    test.setOutput(writer);
+    test();
+
+    writer.output.split("\n").shouldEqual(
+        [
+            "PrintTest:",
+            "",
+            ]
+        );
+}
 
 unittest {
     import unit_threaded.should;
