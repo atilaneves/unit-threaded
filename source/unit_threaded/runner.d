@@ -56,12 +56,14 @@ int runTests(Modules...)(string[] args) if(Modules.length > 0) {
  * Returns: An integer suitable for the program's return code.
  */
 int runTests(string[] args, in TestData[] testData) {
+    import unit_threaded.io: WriterThread;
+
     const options = getOptions(args);
     handleCmdLineOptions(options, testData);
     if (options.exit)
         return 0;
 
-    auto suite = TestSuite(options, testData);
+    auto suite = TestSuite(options, testData, WriterThread.get);
     return suite.run ? 0 : 1;
 }
 

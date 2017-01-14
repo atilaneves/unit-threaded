@@ -47,7 +47,7 @@ auto getOptions(string[] args) {
 
     if(help) {
         import unit_threaded.io;
-        utWriteln("Usage: <progname> <options> <tests>...\n",
+        WriterThread.get.writeln("Usage: <progname> <options> <tests>...\n",
                   "Options: \n",
                   "  -h/--help: help\n",
                   "  -s/--single: single-threaded\n",
