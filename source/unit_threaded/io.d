@@ -15,18 +15,42 @@ import std.conv;
  * is selected.
  */
 void writelnUt(T...)(T args) {
-    import std.stdio;
-
-    if (_debugOutput)
-        writeln("    ", args);
+    writelnUtFile(WriterThread.get, args);
 }
+
+void writelnUtFile(F, T...)(auto ref F file, T args) {
+    if (_debugOutput)
+        file.writeln("    ", args);
+}
+
+unittest {
+    import unit_threaded.should;
+    import unit_threaded.testcase;
+
+    struct File {
+        string[] output;
+        void writeln(T...)(T args) {
+            import std.conv: text;
+            output ~= text(args);
+        }
+    }
+
+
+    enableDebugOutput;
+    scope(exit) enableDebugOutput(false);
+
+    auto file = File();
+    writelnUtFile(file, "foo", "bar");
+    file.output.shouldEqual(["    foobar"]);
+}
+
 
 private shared(bool) _debugOutput = false; ///print debug msgs?
 private shared(bool) _forceEscCodes = false; ///use ANSI escape codes anyway?
 
-package void enableDebugOutput() nothrow {
+package void enableDebugOutput(bool value = true) nothrow {
     synchronized {
-        _debugOutput = true;
+        _debugOutput = value;
     }
 }
 
