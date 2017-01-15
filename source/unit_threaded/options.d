@@ -47,7 +47,7 @@ auto getOptions(string[] args) {
 
     if(help) {
         import unit_threaded.io;
-        utWriteln("Usage: <progname> <options> <tests>...\n",
+        WriterThread.get.writeln("Usage: <progname> <options> <tests>...\n",
                   "Options: \n",
                   "  -h/--help: help\n",
                   "  -s/--single: single-threaded\n",
@@ -59,13 +59,6 @@ auto getOptions(string[] args) {
                   "  -t/--trace: enable stack traces\n",
                   "  -c/--chrono: print execution time per test",
             );
-    }
-
-    if(debugOutput) {
-        if(!single) {
-            writeln("-d implies -s, running in a single thread\n");
-        }
-        single = true;
     }
 
     if(random) {

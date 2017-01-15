@@ -46,9 +46,10 @@ class TestCase {
      * Returns: array of failures (child classes may have more than 1)
      */
     string[] opCall() {
+        currentTest = this;
         auto sw = StopWatch(AutoStart.yes);
         doTest();
-        printOutput();
+        flushOutput();
         return _failed ? [getPath()] : [];
     }
 
@@ -57,11 +58,19 @@ class TestCase {
      */
     ulong numTestsRun() const { return 1; }
     void showChrono() @safe pure nothrow { _showChrono = true; }
+    void setOutput(Output output) @safe pure nothrow { _output = output; }
 
 package:
 
+    static TestCase currentTest;
+    Output _output;
+
     void silence() @safe pure nothrow { _silent = true; }
-    string output() @safe const pure nothrow { return _output; }
+
+    final Output getWriter() {
+        import unit_threaded.io: WriterThread;
+        return _output is null ? WriterThread.get : _output;
+    }
 
 protected:
 
@@ -72,7 +81,6 @@ protected:
 private:
 
     bool _failed;
-    string _output;
     bool _silent;
     bool _showChrono;
 
@@ -107,11 +115,11 @@ private:
     }
 
     final void print(in string msg) {
-        _output ~= msg;
+        if(!_silent) getWriter.write(msg);
     }
 
-    final void printOutput() const {
-        if(!_silent) utWrite(_output);
+    final void flushOutput() {
+        getWriter.flush;
     }
 }
 

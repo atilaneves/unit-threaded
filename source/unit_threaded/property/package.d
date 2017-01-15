@@ -38,7 +38,6 @@ void check(alias F)(int numFuncCalls = 100,
 
     auto gen = RndValueGen!(Parameters!F)(&gRandom);
 
-    import unit_threaded.io;
     foreach(i; 0 .. numFuncCalls) {
         bool pass;
 
