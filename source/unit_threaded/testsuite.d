@@ -30,20 +30,23 @@ auto runTest(TestCase test)
  */
 struct TestSuite
 {
+    package Output output;
+
+    this(in Options options, in TestData[] testData) {
+        import unit_threaded.io: WriterThread;
+        this(options, testData, WriterThread.get);
+    }
+
     /**
      * Params:
      * options = The options to run tests with.
      * testData = The information about the tests to run.
      */
-    this(in Options options, in TestData[] testData) {
+    this(in Options options, in TestData[] testData, Output output) {
         _options = options;
         _testData = testData;
+        _output = output;
         _testCases = createTestCases(testData, options.testsToRun);
-        WriterThread.start;
-    }
-
-    ~this() {
-        WriterThread.get.join;
     }
 
     /**
@@ -52,25 +55,25 @@ struct TestSuite
      */
     bool run() {
         if (!_testCases.length) {
-            utWritelnRed("Error! No tests to run for args: ");
-            utWriteln(_options.testsToRun);
+            _output.writelnRed("Error! No tests to run for args: ");
+            _output.writeln(_options.testsToRun);
             return false;
         }
 
         immutable elapsed = doRun();
 
         if (!numTestsRun) {
-            utWriteln("Did not run any tests!!!");
+            _output.writeln("Did not run any tests!!!");
             return false;
         }
 
-        utWriteln("\nTime taken: ", elapsed);
-        utWrite(numTestsRun, " test(s) run, ");
+        _output.writeln("\nTime taken: ", elapsed);
+        _output.write(numTestsRun, " test(s) run, ");
         const failuresStr = text(_failures.length, " failed");
         if (_failures.length) {
-            utWriteRed(failuresStr);
+            _output.writeRed(failuresStr);
         } else {
-            utWrite(failuresStr);
+            _output.write(failuresStr);
         }
 
         ulong numTestsWithAttr(string attr)() {
@@ -80,8 +83,8 @@ struct TestSuite
         void printHidden() {
             const num = numTestsWithAttr!"hidden";
             if(!num) return;
-            utWrite(", ");
-            utWriteYellow(num, " ", "hidden");
+            _output.write(", ");
+            _output.writeYellow(num, " ", "hidden");
         }
 
         void printShouldFail() {
@@ -94,21 +97,21 @@ struct TestSuite
             }
 
             if(!total) return;
-            utWrite(", ");
-            utWriteYellow(num, "/", total, " ", "failing as expected");
+            _output.write(", ");
+            _output.writeYellow(num, "/", total, " ", "failing as expected");
         }
 
         printHidden();
         printShouldFail();
 
-        utWriteln(".\n");
+        _output.writeln(".\n");
 
         if (_failures.length) {
-            utWritelnRed("Tests failed!\n");
+            _output.writelnRed("Tests failed!\n");
             return false; //oops
         }
 
-        utWritelnGreen("OK!\n");
+        _output.writelnGreen("OK!\n");
 
         return true;
     }
@@ -120,6 +123,7 @@ private:
     TestCase[] _testCases;
     string[] _failures;
     StopWatch _stopWatch;
+    Output _output;
 
     /**
      * Runs the tests with the given options.
@@ -155,22 +159,22 @@ private:
 
             auto generator = Random(_options.seed);
             tests.randomShuffle(generator);
-            utWriteln("Running tests in random order. ",
+            _output.writeln("Running tests in random order. ",
                 "To repeat this run, use --seed ", _options.seed);
         }
         return tests;
     }
 
-    void handleFailures() const {
+    void handleFailures() {
         if (!_failures.empty)
-            utWriteln("");
+            _output.writeln("");
         foreach (failure; _failures) {
-            utWrite("Test ", (failure.canFind(" ") ? `"` ~ failure ~ `"` : failure), " ");
-            utWriteRed("failed");
-            utWriteln(".");
+            _output.write("Test ", (failure.canFind(" ") ? `"` ~ failure ~ `"` : failure), " ");
+            _output.writeRed("failed");
+            _output.writeln(".");
         }
         if (!_failures.empty)
-            utWriteln("");
+            _output.writeln("");
     }
 
     @property ulong numTestsRun() @trusted const {
@@ -202,6 +206,10 @@ private bool moduleUnitTester() {
         if(module_ && module_.unitTest &&
            module_.name.startsWith("unit_threaded") && // we want to run the "normal" unit tests
            !module_.name.startsWith("unit_threaded.tests")) { //but not the ones from the test modules
+            version(testing_unit_threaded) {
+                import std.stdio: writeln;
+                writeln("Running unit-threaded UT for module " ~ module_.name);
+            }
             module_.unitTest()();
         }
     }
