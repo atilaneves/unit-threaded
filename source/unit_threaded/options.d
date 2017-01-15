@@ -61,13 +61,6 @@ auto getOptions(string[] args) {
             );
     }
 
-    if(debugOutput) {
-        if(!single) {
-            writeln("-d implies -s, running in a single thread\n");
-        }
-        single = true;
-    }
-
     if(random) {
         if(!single) writeln("-r implies -s, running in a single thread\n");
         single = true;
