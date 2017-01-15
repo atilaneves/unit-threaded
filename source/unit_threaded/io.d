@@ -134,38 +134,25 @@ interface Output {
     void send(in string output);
 }
 
-private enum Color {
+private enum Colour {
     red,
     green,
     yellow,
     cancel,
 }
 
-/**
- * Generate green coloured output on POSIX systems
- */
-private string green(in string msg) @safe {
-    return escCode(Color.green) ~ msg ~ escCode(Color.cancel);
+private string colour(alias C)(in string msg) {
+    return escCode(C) ~ msg ~ escCode(Colour.cancel);
 }
 
-/**
- * Generate red coloured output on POSIX systems
- */
-private string red(in string msg) @safe {
-    return escCode(Color.red) ~ msg ~ escCode(Color.cancel);
-}
-
-/**
- * Generate yellow coloured output on POSIX systems
- */
-private string yellow(in string msg) @safe {
-    return escCode(Color.yellow) ~ msg ~ escCode(Color.cancel);
-}
+private alias green = colour!(Colour.green);
+private alias red = colour!(Colour.red);
+private alias yellow = colour!(Colour.yellow);
 
 /**
  * Send escape code to the console
  */
-private string escCode(in Color code) @safe {
+private string escCode(in Colour code) @safe {
     return _useEscCodes ? _escCodes[code] : "";
 }
 
