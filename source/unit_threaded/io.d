@@ -9,10 +9,7 @@ import std.stdio;
 import std.conv;
 
 /**
- * Write if debug output was enabled. Not thread-safe in the sense that it
- * will get printed out immediately and may overlap with other output.
- * This is why the test runner forces single-threaded mode when debug mode
- * is selected.
+ * Write if debug output was enabled.
  */
 void writelnUt(T...)(T args) {
     import std.conv: text;
