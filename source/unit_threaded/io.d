@@ -108,9 +108,6 @@ static this() {
     }
 }
 
-static ~this() {
-    if(WriterThread._instantiated) WriterThread.get.join;
-}
 
 package void enableDebugOutput(bool value = true) nothrow {
     synchronized {
