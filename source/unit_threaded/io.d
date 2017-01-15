@@ -14,7 +14,8 @@ import std.conv;
 void writelnUt(T...)(T args) {
     import std.conv: text;
     import unit_threaded: TestCase;
-    if(isDebugOutputEnabled) TestCase.currentTest._output ~= text(args);
+    if(isDebugOutputEnabled)
+        TestCase.currentTest.getWriter.writeln(text(args));
 }
 
 unittest {
@@ -29,6 +30,8 @@ unittest {
             import std.conv: text;
             this.output ~= output;
         }
+
+        override void flush() {}
     }
 
     class PrintTest: TestCase {
@@ -69,6 +72,8 @@ unittest {
             import std.conv: text;
             this.output ~= output;
         }
+
+        override void flush() {}
     }
 
     class PrintTest: TestCase {
@@ -128,6 +133,7 @@ package void forceEscCodes() nothrow {
 
 interface Output {
     void send(in string output);
+    void flush();
 }
 
 private enum Colour {
@@ -220,6 +226,10 @@ class WriterThread: Output {
 
     override void send(in string output) {
         _tid.send(output, thisTid);
+    }
+
+    override void flush() {
+        _tid.send(Flush());
     }
 
     /**
@@ -426,15 +436,17 @@ unittest {
 
 version(testing_unit_threaded) {
     void otherThread(Tid writerTid, Tid testTid) {
-        writerTid.send("what about me?\n", thisTid);
-        testTid.send(true);
-        receiveOnly!bool;
-        writerTid.send("seriously, what about me?\n", thisTid);
-        testTid.send(true);
-        receiveOnly!bool;
-        writerTid.send("final attempt\n", thisTid);
-        testTid.send(true);
-        receiveOnly!bool;
+        try {
+            writerTid.send("what about me?\n", thisTid);
+            testTid.send(true);
+            receiveOnly!bool;
+            writerTid.send("seriously, what about me?\n", thisTid);
+            testTid.send(true);
+            receiveOnly!bool;
+            writerTid.send("final attempt\n", thisTid);
+            testTid.send(true);
+            receiveOnly!bool;
+        } catch(OwnerTerminated ex) {}
     }
 }
 

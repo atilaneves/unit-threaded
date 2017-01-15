@@ -49,7 +49,7 @@ class TestCase {
         currentTest = this;
         auto sw = StopWatch(AutoStart.yes);
         doTest();
-        printOutput();
+        flushOutput();
         return _failed ? [getPath()] : [];
     }
 
@@ -58,16 +58,19 @@ class TestCase {
      */
     ulong numTestsRun() const { return 1; }
     void showChrono() @safe pure nothrow { _showChrono = true; }
-    void setOutput(Output output) @safe pure nothrow { _outputObj = output; }
+    void setOutput(Output output) @safe pure nothrow { _output = output; }
 
 package:
 
     static TestCase currentTest;
-    Output _outputObj;
-    string _output;
+    Output _output;
 
     void silence() @safe pure nothrow { _silent = true; }
-    string output() @safe const pure nothrow { return _output; }
+
+    final Output getWriter() {
+        import unit_threaded.io: WriterThread;
+        return _output is null ? WriterThread.get : _output;
+    }
 
 protected:
 
@@ -112,15 +115,11 @@ private:
     }
 
     final void print(in string msg) {
-        _output ~= msg;
+        if(!_silent) getWriter.write(msg);
     }
 
-    final void printOutput() {
-        import unit_threaded.io: WriterThread;
-        if(!_silent) {
-            auto writer = _outputObj is null ? WriterThread.get : _outputObj;
-            writer.write(_output);
-        }
+    final void flushOutput() {
+        getWriter.flush;
     }
 }
 
