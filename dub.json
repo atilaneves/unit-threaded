@@ -17,6 +17,15 @@
             "versions": ["testing_unit_threaded"]
         },
         {
+            "name": "unittest-fail",
+            "targetType": "executable",
+            "sourcePaths": ["tests/pass", "tests/fail/"],
+            "sourceFiles": ["example/example_fail.d"],
+            "mainSourceFile": "example/example_fail.d",
+            "versions": ["testing_unit_threaded"]
+        },
+
+        {
             "name": "gen_ut_main",
             "targetType": "executable",
             "mainSourceFile": "gen/gen_ut_main.d"
