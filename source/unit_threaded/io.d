@@ -227,16 +227,16 @@ class WriterThread: Output {
      * Creates the singleton instance and waits until it's ready.
      */
     static void start() {
-        WriterThread.get._tid.send(true, thisTid);
-        receiveOnly!bool; //wait for it to start
+        WriterThread.get._tid.send(ThreadWait());
+        receiveOnly!ThreadStarted;
     }
 
     /**
      * Waits for the writer thread to terminate.
      */
     void join() {
-        _tid.send(thisTid); //tell it to join
-        receiveOnly!Tid(); //wait for it to join
+        _tid.send(ThreadFinish()); //tell it to join
+        receiveOnly!ThreadEnded;
         _instance = null;
         _instantiated = false;
     }
@@ -244,7 +244,7 @@ class WriterThread: Output {
 private:
 
     this() {
-        _tid = spawn(&threadWriter);
+        _tid = spawn(&threadWriter!(stdout, stderr), thisTid);
     }
 
 
@@ -254,59 +254,143 @@ private:
     __gshared WriterThread _instance;
 }
 
-private void threadWriter()
-{
-    auto done = false;
-    Tid _tid;
-
-    auto saveStdout = stdout;
-    auto saveStderr = stderr;
-
-    scope (exit) {
-        saveStdout.flush();
-        stdout = saveStdout;
-        stderr = saveStderr;
-    }
-
-    if (!isDebugOutputEnabled()) {
-        version (Posix) {
-            enum nullFileName = "/dev/null";
-        } else {
-            enum nullFileName = "NUL";
-        }
-
-        stdout = File(nullFileName, "w");
-        stderr = File(nullFileName, "w");
-    }
-
-    while (!done) {
-        string output;
-        receive(
-            (string msg) {
-                output ~= msg;
-            },
-           (bool, Tid tid) {
-               //another thread is waiting for confirmation
-               //that we started, let them know it's ok to proceed
-                tid.send(true);
-            },
-            (Tid tid) {
-                done = true;
-                _tid = tid;
-            },
-            (OwnerTerminated trm) {
-                done = true;
-            }
-        );
-        saveStdout.write(output);
-    }
-    if (_tid != Tid.init)
-        _tid.send(thisTid);
-}
-
 unittest
 {
     //make sure this can be brought up and down again
     WriterThread.get.join;
     WriterThread.get.join;
+}
+
+private struct ThreadWait{};
+private struct ThreadFinish{};
+private struct ThreadStarted{};
+private struct ThreadEnded{};
+
+version (Posix) {
+    enum nullFileName = "/dev/null";
+} else {
+    enum nullFileName = "NUL";
+}
+
+shared bool gBool;
+private void threadWriter(alias OUT, alias ERR)(Tid tid)
+{
+    auto done = false;
+
+    auto saveStdout = OUT;
+    auto saveStderr = ERR;
+
+    void restore() {
+        saveStdout.flush();
+        OUT = saveStdout;
+        ERR = saveStderr;
+    }
+
+    scope (failure) restore;
+
+    if (!isDebugOutputEnabled()) {
+        OUT = typeof(OUT)(nullFileName, "w");
+        ERR = typeof(ERR)(nullFileName, "w");
+    }
+
+    while (!done) {
+        receive(
+            (string msg) {
+                if(msg.length) saveStdout.write(msg);
+            },
+            (ThreadWait w) {
+                tid.send(ThreadStarted());
+            },
+            (ThreadFinish f) {
+                done = true;
+            },
+            (OwnerTerminated trm) {
+                done = true;
+            }
+        );
+    }
+
+    restore;
+    tid.send(ThreadEnded());
+}
+
+version(testing_unit_threaded) {
+    struct FakeFile {
+        string fileName;
+        string mode;
+        string[] output;
+        void flush() shared {}
+        void write(string s) shared {
+            output ~= s;
+        }
+    }
+    shared FakeFile gOut;
+    shared FakeFile gErr;
+    void resetFakeFiles() {
+        gOut = FakeFile("out", "mode");
+        gErr = FakeFile("err", "mode");
+    }
+}
+
+unittest {
+    import std.concurrency: spawn;
+    import unit_threaded.should;
+
+    enableDebugOutput(false);
+    resetFakeFiles;
+
+    auto tid = spawn(&threadWriter!(gOut, gErr), thisTid);
+    tid.send(ThreadWait());
+    receiveOnly!ThreadStarted;
+
+    gOut.shouldEqual(shared FakeFile(nullFileName, "w"));
+    gErr.shouldEqual(shared FakeFile(nullFileName, "w"));
+
+    tid.send(ThreadFinish());
+    receiveOnly!ThreadEnded;
+}
+
+unittest {
+    import std.concurrency: spawn;
+    import unit_threaded.should;
+
+    enableDebugOutput(true);
+    scope(exit) enableDebugOutput(false);
+    resetFakeFiles;
+
+    auto tid = spawn(&threadWriter!(gOut, gErr), thisTid);
+    tid.send(ThreadWait());
+    receiveOnly!ThreadStarted;
+
+    gOut.shouldEqual(shared FakeFile("out", "mode"));
+    gErr.shouldEqual(shared FakeFile("err", "mode"));
+
+    tid.send(ThreadFinish());
+    receiveOnly!ThreadEnded;
+}
+
+unittest {
+    import std.concurrency: spawn;
+    import unit_threaded.should;
+
+    resetFakeFiles;
+
+    auto tid = spawn(&threadWriter!(gOut, gErr), thisTid);
+    tid.send(ThreadWait());
+    receiveOnly!ThreadStarted;
+
+    tid.send("foobar");
+    tid.send("toto");
+    gOut.output.shouldBeEmpty; // since it writes to the old gOut
+
+    tid.send(ThreadFinish());
+    receiveOnly!ThreadEnded;
+
+    // gOut is restored so the output should be here
+    gOut.output.shouldEqual(
+        [
+            "foobar",
+            "toto",
+            ]
+        );
 }

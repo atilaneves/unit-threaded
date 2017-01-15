@@ -13,7 +13,8 @@
             "targetType": "executable",
             "sourcePaths": ["tests/pass"],
             "sourceFiles": ["example/example_pass.d"],
-            "mainSourceFile": "example/example_pass.d"
+            "mainSourceFile": "example/example_pass.d",
+            "versions": ["testing_unit_threaded"]
         },
         {
             "name": "gen_ut_main",
