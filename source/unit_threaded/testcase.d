@@ -165,7 +165,7 @@ class ShouldFailTestCase: TestCase {
     override void test() {
         const ex = collectException!Throwable(testCase.test());
         if(ex is null) {
-            throw new Exception("Test " ~ testCase.getPath() ~ " was expected to fail but did not");
+            throw new UnitTestException("Test " ~ testCase.getPath() ~ " was expected to fail but did not");
         }
     }
 

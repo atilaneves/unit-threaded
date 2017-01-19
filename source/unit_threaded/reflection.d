@@ -662,7 +662,9 @@ version(unittest) {
     }
 
     private void assertPass(TestCase test, string file = __FILE__, size_t line = __LINE__) {
-        assertEqual(test(), [], file, line);
+        import unit_threaded.should: fail;
+        if(test() != [])
+            fail("'" ~ test.getPath ~ "' was expected to pass but failed", file, line);
     }
 }
 
@@ -919,4 +921,52 @@ unittest {
 
     const testData = allTestData!"unit_threaded.tests.module_with_attrs";
     assertEqual(testData.canFind!(a => a.getPath.canFind("DontTestBlock" )), false);
+}
+
+@("@ShouldFail") unittest {
+    import unit_threaded.factory;
+    import unit_threaded.asserts;
+    import unit_threaded.tests.module_with_tests;
+    import std.algorithm: find, canFind;
+    import std.array: array;
+
+    const testData = allTestData!"unit_threaded.tests.module_with_attrs";
+
+    auto willFail = testData
+        .find!(a => a.getPath.canFind("will fail"))
+        .array
+        .createTestCases[0];
+    assertPass(willFail);
+}
+
+
+@("@ShouldFailWith") unittest {
+    import unit_threaded.factory;
+    import unit_threaded.asserts;
+    import unit_threaded.tests.module_with_attrs;
+    import unit_threaded.should: shouldThrowExactly, UnitTestException;
+    import std.algorithm: find, canFind;
+    import std.array: array;
+
+    const testData = allTestData!"unit_threaded.tests.module_with_attrs";
+
+    auto wrongType = testData
+        .find!(a => a.getPath.canFind("ShouldFailWith that fails due to wrong type"))
+        .array
+        .createTestCases[0];
+    wrongType.silence;
+    wrongType().shouldThrowExactly!UnitTestException;
+
+   auto doesntFail = testData
+        .find!(a => a.getPath.canFind("ShouldFailWith that fails due not failing"))
+        .array
+        .createTestCases[0];
+   doesntFail.silence;
+   doesntFail().shouldThrowExactly!UnitTestException;
+
+   auto passes = testData
+        .find!(a => a.getPath.canFind("ShouldFailWith that passes"))
+        .array
+        .createTestCases[0];
+    assertPass(passes);
 }

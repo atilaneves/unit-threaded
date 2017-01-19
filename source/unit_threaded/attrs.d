@@ -18,6 +18,11 @@ struct ShouldFail {
     string reason;
 }
 
+/// The suite fails unless the test throws T
+struct ShouldFailWith(T: Throwable) {
+    string reason;
+}
+
 /// Associate a name with a unittest block.
 struct Name {
     string value;
