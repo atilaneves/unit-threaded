@@ -69,7 +69,7 @@ unittest {
 
     static assert(HasAttribute!(unit_threaded.tests.module_with_attrs, "testValues", ShouldFail));
 
-    static assert(hasUDA!(unit_threaded.tests.module_with_attrs.testOtherAttrs, ShouldFailWith));
+    //static assert(hasUDA!(unit_threaded.tests.module_with_attrs.testOtherAttrs, ShouldFailWith));
     static assert(hasUDA!(unit_threaded.tests.module_with_attrs.testOtherAttrs, ShouldFailWith!Exception));
     static assert(!hasUDA!(unit_threaded.tests.module_with_attrs.testOtherAttrs, ShouldFailWith!Throwable));
 }
