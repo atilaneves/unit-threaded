@@ -151,7 +151,7 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
 
                 enum name = unittestName!(eLtEstO, index);
                 enum hidden = hasUDA!(eLtEstO, HiddenTest);
-                enum shouldFail = hasUDA!(eLtEstO, ShouldFail) || hasUDA!(eLtEstO, ShouldFailWith);
+                enum shouldFail = hasUDA!(eLtEstO, ShouldFail) || hasUtUDA!(eLtEstO, ShouldFailWith);
                 enum singleThreaded = hasUDA!(eLtEstO, Serial);
                 enum builtin = true;
                 enum suffix = "";
@@ -260,8 +260,8 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
 private TypeInfo getExceptionTypeInfo(alias Test)() {
     import unit_threaded.should: UnitTestException;
 
-    static if(hasUDA!(Test, ShouldFailWith)) {
-        alias uda = getUDAs!(Test, ShouldFailWith)[0];
+    static if(hasUtUDA!(Test, ShouldFailWith)) {
+        alias uda = getUtUDAs!(Test, ShouldFailWith)[0];
         return typeid(uda.Type);
     } else
         return null;
@@ -617,7 +617,7 @@ private TestData memberTestData(alias module_, string moduleMember, string[] ext
     return TestData(fullyQualifiedName!module_~ "." ~ moduleMember,
                     testFunction,
                     HasAttribute!(module_, moduleMember, HiddenTest),
-                    HasAttribute!(module_, moduleMember, ShouldFail),
+                    HasAttribute!(module_, moduleMember, ShouldFail) || hasUtUDA!(mixin(moduleMember), ShouldFailWith),
                     singleThreaded,
                     builtin,
                     suffix,
@@ -677,8 +677,9 @@ version(unittest) {
         import std.conv;
 
         test.silence;
-        assert(test() != [], file ~ ":" ~ line.to!string ~ " Expected test case " ~ test.getPath ~
-                   " to fail with AssertError but it didn't");
+        assert(test() != [],
+               file ~ ":" ~ line.to!string ~ " Expected test case " ~ test.getPath ~
+               " to fail but it didn't");
     }
 
     private void assertPass(TestCase test, string file = __FILE__, size_t line = __LINE__) {

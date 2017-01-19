@@ -68,10 +68,6 @@ unittest {
     static assert(!HasAttribute!(unit_threaded.tests.module_with_attrs, "testAttrs", DontTest));
 
     static assert(HasAttribute!(unit_threaded.tests.module_with_attrs, "testValues", ShouldFail));
-
-    static assert(hasUDA!(unit_threaded.tests.module_with_attrs.testOtherAttrs, ShouldFailWith));
-    static assert(hasUDA!(unit_threaded.tests.module_with_attrs.testOtherAttrs, ShouldFailWith!Exception));
-    static assert(!hasUDA!(unit_threaded.tests.module_with_attrs.testOtherAttrs, ShouldFailWith!Throwable));
 }
 
 template isTypesAttr(alias T) {
@@ -109,4 +105,48 @@ unittest {
     static assert(HasTypes!i);
     static assert(is(GetTypes!i == AliasSeq!(int, float)));
 
+}
+
+// copy of recent hasUDA from Phobos here because old
+// compilers will fail otherwise
+
+enum hasUtUDA(alias symbol, alias attribute) = getUtUDAs!(symbol, attribute).length > 0;
+
+template getUtUDAs(alias symbol, alias attribute)
+{
+    import std.meta : Filter;
+
+    template isDesiredUDA(alias toCheck)
+    {
+        static if (is(typeof(attribute)) && !__traits(isTemplate, attribute))
+        {
+            static if (__traits(compiles, toCheck == attribute))
+                enum isDesiredUDA = toCheck == attribute;
+            else
+                enum isDesiredUDA = false;
+        }
+        else static if (is(typeof(toCheck)))
+        {
+            static if (__traits(isTemplate, attribute))
+                enum isDesiredUDA =  isInstanceOf!(attribute, typeof(toCheck));
+            else
+                enum isDesiredUDA = is(typeof(toCheck) == attribute);
+        }
+        else static if (__traits(isTemplate, attribute))
+            enum isDesiredUDA = isInstanceOf!(attribute, toCheck);
+        else
+            enum isDesiredUDA = is(toCheck == attribute);
+    }
+
+    alias getUtUDAs = Filter!(isDesiredUDA, __traits(getAttributes, symbol));
+}
+
+unittest {
+    import unit_threaded.attrs;
+    import unit_threaded.tests.module_with_attrs;
+    import std.traits: hasUDA;
+
+    static assert(hasUtUDA!(unit_threaded.tests.module_with_attrs.testOtherAttrs, ShouldFailWith));
+    static assert(hasUtUDA!(unit_threaded.tests.module_with_attrs.testOtherAttrs, ShouldFailWith!Exception));
+    static assert(!hasUtUDA!(unit_threaded.tests.module_with_attrs.testOtherAttrs, ShouldFailWith!Throwable));
 }

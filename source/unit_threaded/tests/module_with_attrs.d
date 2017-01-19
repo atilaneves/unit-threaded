@@ -28,7 +28,7 @@ unittest {
     assert(0);
 }
 
-class TestException : Exception { mixin basicExceptionCtors; }
+class TestException : Exception { this(string m) { super(m); } }
 
 @ShouldFailWith!TestException
 @("ShouldFailWith that fails due to wrong type")
