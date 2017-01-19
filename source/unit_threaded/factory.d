@@ -46,7 +46,7 @@ package TestCase createTestCase(in TestData testData, Output output = WriterThre
         assert(testCase !is null, "Error creating test case");
 
         if(testData.shouldFail) {
-            testCase = new ShouldFailTestCase(testCase);
+            testCase = new ShouldFailTestCase(testCase, testData.exceptionTypeInfo);
         }
 
         return testCase;

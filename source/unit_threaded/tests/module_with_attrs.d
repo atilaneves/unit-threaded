@@ -30,14 +30,14 @@ unittest {
 
 class TestException : Exception { mixin basicExceptionCtors; }
 
-//@ShouldFailWith!TestException
+@ShouldFailWith!TestException
 @("ShouldFailWith that fails due to wrong type")
 unittest {
     assert(0);
 }
 
 @ShouldFailWith!TestException
-@("ShouldFailWith that fails due not failing")
+@("ShouldFailWith that fails due to not failing")
 unittest {
 }
 

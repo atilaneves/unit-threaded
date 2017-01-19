@@ -20,6 +20,7 @@ struct ShouldFail {
 
 /// The suite fails unless the test throws T
 struct ShouldFailWith(T: Throwable) {
+    alias Type = T;
     string reason;
 }
 
