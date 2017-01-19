@@ -154,8 +154,9 @@ private:
 }
 
 class ShouldFailTestCase: TestCase {
-    this(TestCase testCase) {
+    this(TestCase testCase, in TypeInfo exceptionTypeInfo) {
         this.testCase = testCase;
+        this.exceptionTypeInfo = exceptionTypeInfo;
     }
 
     override string getPath() const pure nothrow {
@@ -163,15 +164,20 @@ class ShouldFailTestCase: TestCase {
     }
 
     override void test() {
+        import std.exception: enforce;
+        import std.conv: text;
+
         const ex = collectException!Throwable(testCase.test());
-        if(ex is null) {
-            throw new Exception("Test " ~ testCase.getPath() ~ " was expected to fail but did not");
-        }
+        enforce!UnitTestException(ex !is null, "Test '" ~ testCase.getPath ~ "' was expected to fail but did not");
+        enforce!UnitTestException(exceptionTypeInfo is null || typeid(ex) == exceptionTypeInfo,
+                                  text("Test '", testCase.getPath, "' was expected to throw ",
+                                       exceptionTypeInfo, " but threw ", typeid(ex)));
     }
 
 private:
 
     TestCase testCase;
+    const(TypeInfo) exceptionTypeInfo;
 }
 
 class FunctionTestCase: TestCase {

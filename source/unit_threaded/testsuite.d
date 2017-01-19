@@ -202,15 +202,18 @@ shared static this() {
  */
 private bool moduleUnitTester() {
     //this is so unit-threaded's own tests run
+    import std.algorithm;
     foreach(module_; ModuleInfo) {
         if(module_ && module_.unitTest &&
            module_.name.startsWith("unit_threaded") && // we want to run the "normal" unit tests
+           //!module_.name.startsWith("unit_threaded.property") && // left here for fast iteration when developing
            !module_.name.startsWith("unit_threaded.tests")) { //but not the ones from the test modules
             version(testing_unit_threaded) {
                 import std.stdio: writeln;
                 writeln("Running unit-threaded UT for module " ~ module_.name);
             }
             module_.unitTest()();
+
         }
     }
 

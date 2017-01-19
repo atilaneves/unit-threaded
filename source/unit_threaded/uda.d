@@ -56,6 +56,7 @@ private template TypeOf(alias T) {
 unittest {
     import unit_threaded.attrs;
     import unit_threaded.tests.module_with_attrs;
+    import std.traits: hasUDA;
 
     //check for value UDAs
     static assert(HasAttribute!(unit_threaded.tests.module_with_attrs, "testAttrs", HiddenTest));
@@ -67,6 +68,10 @@ unittest {
     static assert(!HasAttribute!(unit_threaded.tests.module_with_attrs, "testAttrs", DontTest));
 
     static assert(HasAttribute!(unit_threaded.tests.module_with_attrs, "testValues", ShouldFail));
+
+    static assert(hasUDA!(unit_threaded.tests.module_with_attrs.testOtherAttrs, ShouldFailWith));
+    static assert(hasUDA!(unit_threaded.tests.module_with_attrs.testOtherAttrs, ShouldFailWith!Exception));
+    static assert(!hasUDA!(unit_threaded.tests.module_with_attrs.testOtherAttrs, ShouldFailWith!Throwable));
 }
 
 template isTypesAttr(alias T) {
