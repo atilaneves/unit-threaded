@@ -361,11 +361,19 @@ if (!isAssociativeArray!U && isInputRange!U)
  * Throws: UnitTestException on failure (when expr does not
  * throw the expected exception)
  */
-void shouldThrow(T : Throwable = Exception, E)(lazy E expr,
-    in string file = __FILE__, in size_t line = __LINE__)
+void shouldThrow(T : Throwable = Exception, E)
+                (lazy E expr, in string file = __FILE__, in size_t line = __LINE__)
 {
-    if (!threw!T(expr))
-        fail("Expression did not throw", file, line);
+    import std.conv: text;
+    import std.stdio;
+
+    () @trusted { // @trusted because of catching Throwable
+        try {
+            if (!threw!T(expr))
+                fail("Expression did not throw", file, line);
+        } catch(Throwable t)
+            fail(text("Expression threw ", typeid(t), " instead of the expected ", T.stringof), file, line);
+    }();
 }
 
 /**
@@ -394,7 +402,7 @@ void shouldThrowExactly(T : Throwable = Exception, E)(lazy E expr,
  * Verify that expr does not throw the templated Exception class.
  * Throws: UnitTestException on failure
  */
-void shouldNotThrow(T : Throwable = Exception, E)(lazy E expr,
+void shouldNotThrow(T: Throwable = Exception, E)(lazy E expr,
     in string file = __FILE__, in size_t line = __LINE__)
 {
     if (threw!T(expr))
@@ -441,6 +449,7 @@ private auto threw(T : Throwable, E)(lazy E expr) @trusted
         }
     }
 
+    import std.stdio;
     try
     {
         expr();
@@ -511,6 +520,21 @@ private auto threw(T : Throwable, E)(lazy E expr) @trusted
     import core.exception : RangeError;
 
     throwRangeError.shouldThrow!RangeError;
+}
+
+@safe pure unittest {
+    import std.stdio;
+
+    import core.exception: OutOfMemoryError;
+
+    class CustomException : Exception {
+        this(string msg = "", in string file = __FILE__, in size_t line = __LINE__) { super(msg, file, line); }
+    }
+
+    void func() { throw new CustomException("oh noes"); }
+
+    func.shouldThrow!CustomException;
+    assertFail(func.shouldThrow!OutOfMemoryError);
 }
 
 
