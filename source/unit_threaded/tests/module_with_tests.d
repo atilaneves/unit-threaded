@@ -57,7 +57,7 @@ unittest {
 }
 
 struct StructWithUnitTests{
-    alias StructWithUnitTests SelfSoDontRecurseForever;
+    alias SelfSoDontRecurseForever = StructWithUnitTests;
 
     @Name("InStruct")
     unittest{
