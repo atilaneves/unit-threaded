@@ -9,6 +9,7 @@ import tests.pass.attributes;
 import tests.pass.register;
 import tests.pass.io;
 import tests.pass.fixtures;
+import tests.pass.mock;
 
 import std.stdio;
 
@@ -23,5 +24,6 @@ int main(string[] args) {
         tests.pass.io,
         tests.pass.fixtures,
         tests.pass.property,
-        );
+        tests.pass.mock,
+    );
 }

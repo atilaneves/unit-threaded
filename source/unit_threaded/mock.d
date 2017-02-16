@@ -342,7 +342,7 @@ auto mockStruct(T...)(T returns) {
 
     struct Mock {
 
-        private MockImpl* _impl;
+        MockImpl* _impl;
         alias _impl this;
 
         static struct MockImpl {
