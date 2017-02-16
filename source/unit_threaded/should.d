@@ -279,13 +279,21 @@ void shouldNotBeNull(T)(in T value, in string file = __FILE__, in size_t line = 
     assertFail(shouldNotEqual(new Foo(5), new Foo(5)));
 }
 
+enum isLikeAssociativeArray(T, K) = is(typeof({
+    if(K.init in T) { }
+    if(K.init !in T) { }
+}));
+
+static assert(isLikeAssociativeArray!(string[string], string));
+static assert(!isLikeAssociativeArray!(string[string], int));
+
 
 /**
  * Verify that the value is in the container.
  * Throws: UnitTestException on failure
 */
 void shouldBeIn(T, U)(in T value, in U container, in string file = __FILE__, in size_t line = __LINE__)
-if (isAssociativeArray!U)
+    if (isLikeAssociativeArray!(U, T))
 {
     if (value !in container)
     {
@@ -294,12 +302,27 @@ if (isAssociativeArray!U)
     }
 }
 
+///
+@safe pure unittest {
+    5.shouldBeIn([5: "foo"]);
+
+    struct AA {
+        int onlyKey;
+        bool opBinaryRight(string op)(in int key) const {
+            return key == onlyKey;
+        }
+    }
+
+    5.shouldBeIn(AA(5));
+    assertFail(5.shouldBeIn(AA(4)));
+}
+
 /**
  * Verify that the value is in the container.
  * Throws: UnitTestException on failure
  */
 void shouldBeIn(T, U)(in T value, U container, in string file = __FILE__, in size_t line = __LINE__)
-if (!isAssociativeArray!U && isInputRange!U)
+    if (!isLikeAssociativeArray!(U, T) && isInputRange!U)
 {
     if (find(container, value).empty)
     {
@@ -322,13 +345,28 @@ if (!isAssociativeArray!U && isInputRange!U)
  */
 void shouldNotBeIn(T, U)(in T value, in U container,
                          in string file = __FILE__, in size_t line = __LINE__)
-if (isAssociativeArray!U)
+    if (isLikeAssociativeArray!(U, T))
 {
     if (value in container)
     {
         fail("Value " ~ to!string(value) ~ " is in " ~ to!string(container), file,
             line);
     }
+}
+
+///
+@safe pure unittest {
+    5.shouldNotBeIn([4: "foo"]);
+
+    struct AA {
+        int onlyKey;
+        bool opBinaryRight(string op)(in int key) const {
+            return key == onlyKey;
+        }
+    }
+
+    5.shouldNotBeIn(AA(4));
+    assertFail(5.shouldNotBeIn(AA(5)));
 }
 
 
@@ -338,7 +376,7 @@ if (isAssociativeArray!U)
  */
 void shouldNotBeIn(T, U)(in T value, U container,
                          in string file = __FILE__, in size_t line = __LINE__)
-if (!isAssociativeArray!U && isInputRange!U)
+    if (!isLikeAssociativeArray!(U, T) && isInputRange!U)
 {
     if (find(container, value).length > 0)
     {
@@ -705,9 +743,9 @@ if (isObject!V && isObject!E)
 }
 
 
-private void assertFail(E)(lazy E expression)
+private void assertFail(E)(lazy E expression, in string file = __FILE__, in size_t line = __LINE__)
 {
-    assertThrown!UnitTestException(expression);
+    assertThrown!UnitTestException(expression, null, file, line);
 }
 
 /**
