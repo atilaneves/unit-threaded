@@ -3,6 +3,7 @@ module unit_threaded.mock;
 import unit_threaded.should: fail;
 import std.traits;
 import std.typecons;
+import std.meta: allSatisfy;
 
 version(unittest) {
     import unit_threaded.asserts;
@@ -144,15 +145,17 @@ mixin template MockImplCommon() {
     }
 }
 
-struct Mock(T, string module_ = __MODULE__) {
+private enum isString(alias T) = is(typeof(T) == string);
+
+struct Mock(T, string module_ = __MODULE__, Modules...) if(allSatisfy!(isString, Modules)) {
 
     MockAbstract _impl;
     alias _impl this;
 
     class MockAbstract: T {
         import std.conv: to;
-        mixin(`import ` ~ module_ ~ ";");
-        //pragma(msg, implMixinStr!T);
+        mixin(importsString(module_, Modules));
+        //pragma(msg, "\n\n", implMixinStr!T, "\n\n");
         mixin(implMixinStr!T);
         mixin MockImplCommon;
     }
@@ -168,14 +171,23 @@ struct Mock(T, string module_ = __MODULE__) {
     }
 }
 
-auto mock(T, string module_ = __MODULE__)() {
+private string importsString(string module_, string[] Modules...) {
+    auto ret = `import ` ~ module_ ~ ";\n";
+    foreach(extraModule; Modules) {
+        ret ~= `import ` ~ extraModule ~ ";\n";
+    }
+    return ret;
+}
+
+auto mock(T, string module_ = __MODULE__, Modules...)() if(allSatisfy!(isString, Modules)) {
     mixin(`import ` ~ module_ ~ ";");
-    auto m = Mock!(T, module_)();
+
+    auto m = Mock!(T, module_, Modules)();
     // The following line is ugly, but necessary.
     // If moved to the declaration of impl, it's constructed at compile-time
     // and only one instance is ever used. Since structs can't have default
     // constructors, it has to be done here
-    m._impl = new Mock!(T, module_).MockAbstract;
+    m._impl = new typeof(m).MockAbstract;
     return m;
 }
 
