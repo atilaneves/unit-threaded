@@ -11,6 +11,7 @@
         {
             "name": "unittest",
             "targetType": "executable",
+            "targetName": "ut_pass",
             "sourcePaths": ["tests/pass"],
             "sourceFiles": ["example/example_pass.d"],
             "mainSourceFile": "example/example_pass.d",
@@ -19,6 +20,7 @@
         {
             "name": "unittest-fail",
             "targetType": "executable",
+            "targetName": "ut_fail",
             "sourcePaths": ["tests/pass", "tests/fail/"],
             "sourceFiles": ["example/example_fail.d"],
             "mainSourceFile": "example/example_fail.d",
@@ -28,6 +30,7 @@
         {
             "name": "gen_ut_main",
             "targetType": "executable",
+            "targetName": "get_ut_main",
             "mainSourceFile": "gen/gen_ut_main.d"
         }
     ]
