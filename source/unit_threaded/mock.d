@@ -17,6 +17,8 @@ private enum isPrivate(T, string member) = !__traits(compiles, __traits(getMembe
 
 string implMixinStr(T)() {
     import std.array: join;
+    import std.format : format;
+    import std.range : iota;
     import std.traits: functionAttributes, FunctionAttribute;
 
     string[] lines;
@@ -29,8 +31,8 @@ string implMixinStr(T)() {
 
             static if(__traits(isAbstractFunction, member)) {
 
-                enum parameters = Parameters!member.stringof;
-                enum returnType = ReturnType!member.stringof;
+                lines ~= "private alias %s_parameters = Parameters!(Identity!(__traits(getMember, T, \"%s\")));".format(m, m);
+                lines ~= "private alias %s_returnType = ReturnType!(Identity!(__traits(getMember, T, \"%s\")));".format(m, m);
 
                 static if(functionAttributes!member & FunctionAttribute.nothrow_)
                     enum tryIndent = "    ";
@@ -42,17 +44,17 @@ string implMixinStr(T)() {
                     enum returnDefault = "";
                 else {
                     enum varName = m ~ `_returnValues`;
-                    lines ~= returnType ~ `[] ` ~ varName ~ `;`;
+                    lines ~= `%s_returnType[] %s;`.format(m, varName);
                     lines ~= "";
                     enum returnDefault = [`    if(` ~ varName ~ `.length > 0) {`,
                                           `        auto ret = ` ~ varName ~ `[0];`,
                                           `        ` ~ varName ~ ` = ` ~ varName ~ `[1..$];`,
                                           `        return ret;`,
                                           `    } else`,
-                                          `        return (` ~ returnType ~ `).init;`];
+                                          `        return %s_returnType.init;`.format(m)];
                 }
 
-                lines ~= `override ` ~ returnType ~ " " ~ m ~ typeAndArgsParens!(Parameters!member) ~ ` {`;
+                lines ~= `override ` ~ m ~ "_returnType " ~ m ~ typeAndArgsParens!(Parameters!member)(m) ~ ` {`;
 
                 static if(functionAttributes!member & FunctionAttribute.nothrow_)
                     lines ~= "try {";
@@ -85,12 +87,13 @@ private string argNames(int N) @safe pure {
     return iota(N).map!(a => "arg" ~ a.to!string).join(", ");
 }
 
-private string typeAndArgsParens(T...)() {
+private string typeAndArgsParens(T...)(string prefix) {
     import std.array;
     import std.conv;
+    import std.format : format;
     string[] parts;
     foreach(i, t; T)
-        parts ~= T[i].stringof ~ " arg" ~ i.to!string;
+        parts ~= "%s_parameters[%s] arg%s".format(prefix, i, i);
     return "(" ~ parts.join(", ") ~ ")";
 }
 
@@ -147,17 +150,20 @@ mixin template MockImplCommon() {
 
 private enum isString(alias T) = is(typeof(T) == string);
 
-struct Mock(T, string module_ = __MODULE__, Modules...) if(allSatisfy!(isString, Modules)) {
+struct Mock(T) {
 
     MockAbstract _impl;
     alias _impl this;
 
     class MockAbstract: T {
         import std.conv: to;
-        mixin(importsString(module_, Modules));
         //pragma(msg, "\n\n", implMixinStr!T, "\n\n");
         mixin(implMixinStr!T);
         mixin MockImplCommon;
+    }
+
+    this(int/* force constructor*/) {
+        _impl = new MockAbstract;
     }
 
     ~this() pure @safe {
@@ -179,16 +185,8 @@ private string importsString(string module_, string[] Modules...) {
     return ret;
 }
 
-auto mock(T, string module_ = __MODULE__, Modules...)() if(allSatisfy!(isString, Modules)) {
-    mixin(`import ` ~ module_ ~ ";");
-
-    auto m = Mock!(T, module_, Modules)();
-    // The following line is ugly, but necessary.
-    // If moved to the declaration of impl, it's constructed at compile-time
-    // and only one instance is ever used. Since structs can't have default
-    // constructors, it has to be done here
-    m._impl = new typeof(m).MockAbstract;
-    return m;
+auto mock(T)() {
+    return Mock!T(0);
 }
 
 
