@@ -14,7 +14,7 @@ import unit_threaded;
 
     enum isString(alias T) = is(typeof(T) == string);
     static assert(isString!"tests.pass.types");
-    auto m = mock!(Foo, __MODULE__, "tests.pass.types");
+    auto m = mock!(Foo);
     m.expect!"foo";
     fun(m);
 }
