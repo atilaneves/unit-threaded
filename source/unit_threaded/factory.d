@@ -4,7 +4,6 @@ import unit_threaded.testcase;
 import unit_threaded.reflection;
 import unit_threaded.asserts;
 import unit_threaded.should;
-import unit_threaded.io: Output, WriterThread;
 
 import std.stdio;
 import std.traits;
@@ -33,7 +32,7 @@ TestCase[] createTestCases(in TestData[] testData, in string[] testsToRun = []) 
 }
 
 
-package TestCase createTestCase(in TestData testData, Output output = WriterThread.get) {
+package TestCase createTestCase(in TestData testData) {
     TestCase createImpl() {
         import unit_threaded.io: WriterThread;
 
