@@ -224,36 +224,50 @@ class WriterThread: Output {
         return _instance;
     }
 
+
     override void send(in string output) {
-        _tid.send(output, thisTid);
+        version(unitUnthreaded) {
+            import std.stdio: write;
+            write(output);
+        } else
+              _tid.send(output, thisTid);
     }
 
     override void flush() {
-        _tid.send(Flush());
+        version(unitUnthreaded) {}
+        else _tid.send(Flush());
     }
 
     /**
      * Creates the singleton instance and waits until it's ready.
      */
     static void start() {
-        WriterThread.get._tid.send(ThreadWait());
-        receiveOnly!ThreadStarted;
+        version(unitUnthreaded) {}
+        else {
+            WriterThread.get._tid.send(ThreadWait());
+            receiveOnly!ThreadStarted;
+        }
     }
 
     /**
      * Waits for the writer thread to terminate.
      */
     void join() {
-        _tid.send(ThreadFinish()); //tell it to join
-        receiveOnly!ThreadEnded;
-        _instance = null;
-        _instantiated = false;
+        version(unitUnthreaded) {}
+        else {
+            _tid.send(ThreadFinish()); //tell it to join
+            receiveOnly!ThreadEnded;
+            _instance = null;
+            _instantiated = false;
+        }
     }
 
 private:
 
     this() {
-        _tid = spawn(&threadWriter!(stdout, stderr), thisTid);
+        version(unitUnthreaded) {}
+        else
+            _tid = spawn(&threadWriter!(stdout, stderr), thisTid);
     }
 
 

@@ -18,6 +18,17 @@
             "versions": ["testing_unit_threaded"]
         },
         {
+            "name": "unittest-unthreaded",
+            "targetType": "executable",
+            "targetName": "ut_pass",
+            "dflags": ["-unittest"],
+            "sourcePaths": ["tests/pass"],
+            "sourceFiles": ["example/example_pass.d"],
+            "mainSourceFile": "example/example_pass.d",
+            "versions": ["testing_unit_threaded", "unitUnthreaded"]
+        },
+
+        {
             "name": "unittest-fail",
             "targetType": "executable",
             "targetName": "ut_fail",
@@ -33,5 +44,6 @@
             "targetName": "get_ut_main",
             "mainSourceFile": "gen/gen_ut_main.d"
         }
+
     ]
 }

@@ -7,3 +7,7 @@ matrix:
         - d: dmd-2.071.2
         - d: dmd-2.070.2
         - d: ldc
+
+script:
+  - dub test
+  - dub run -c unittest-unthreaded
