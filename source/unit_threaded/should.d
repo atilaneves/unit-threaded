@@ -956,3 +956,32 @@ if (isInputRange!V && isInputRange!E && is(typeof(value.front != expected.front)
 @safe pure unittest {
     "foo"w.shouldEqual("foo");
 }
+
+
+/**
+   If two strings represent the same JSON regardless of formatting
+ */
+void shouldBeSameJsonAs(in string actual,
+                        in string expected,
+                        in string file = __FILE__,
+                        in size_t line = __LINE__)
+    @safe // not pure due to parseJSON
+{
+    import std.json: parseJSON, JSONException;
+
+    auto parse(in string str) {
+        try
+            return str.parseJSON;
+        catch(JSONException ex)
+            throw new UnitTestException("Error parsing JSON: " ~ ex.msg, file, line);
+    }
+
+    parse(actual).toPrettyString.shouldEqual(parse(expected).toPrettyString, file, line);
+}
+
+///
+@safe unittest {
+    `{"foo": "bar"}`.shouldBeSameJsonAs(`{"foo": "bar"}`);
+    `{"foo":    "bar"}`.shouldBeSameJsonAs(`{"foo":"bar"}`);
+    `{"foo":"bar"}`.shouldBeSameJsonAs(`{"foo": "baz"}`).shouldThrow!UnitTestException;
+}
