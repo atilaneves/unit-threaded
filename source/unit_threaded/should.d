@@ -965,7 +965,7 @@ void shouldBeSameJsonAs(in string actual,
                         in string expected,
                         in string file = __FILE__,
                         in size_t line = __LINE__)
-    @safe // not pure due to parseJSON
+    @trusted // not @safe pure due to parseJSON
 {
     import std.json: parseJSON, JSONException;
 
