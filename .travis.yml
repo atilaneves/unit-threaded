@@ -10,4 +10,4 @@ matrix:
 
 script:
   - dub test
-  - dub run -c unittest-unthreaded
+  - dub run -c unittest-unthreaded --build=unittest
