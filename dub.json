@@ -21,7 +21,6 @@
             "name": "unittest-unthreaded",
             "targetType": "executable",
             "targetName": "ut_pass",
-            "dflags": ["-unittest"],
             "sourcePaths": ["tests/pass"],
             "sourceFiles": ["example/example_pass.d"],
             "mainSourceFile": "example/example_pass.d",
