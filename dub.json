@@ -40,7 +40,7 @@
         {
             "name": "gen_ut_main",
             "targetType": "executable",
-            "targetName": "get_ut_main",
+            "targetName": "gen_ut_main",
             "mainSourceFile": "gen/gen_ut_main.d"
         }
 

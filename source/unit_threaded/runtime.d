@@ -120,7 +120,7 @@ DirEntry[] findModuleEntries(in Options options) {
     // dub has done it already
     if(!options.files.empty && options.dirs == ["."]) {
         return dubFilesToAbsPaths(options.fileName, options.files)
-            .map!(a => DirEntry(a))
+            .map!toDirEntry
             .array;
     }
 
@@ -135,21 +135,27 @@ DirEntry[] findModuleEntries(in Options options) {
 
         modules ~= normalised.
             filter!(a => !anyHiddenDir(a)).
-            map!(a => DirEntry(a)).array;
+            map!toDirEntry.array;
     }
 
     return modules;
 }
 
+auto toDirEntry(string a) {
+    return DirEntry(removePackage(a));
+}
+
+// package.d files will show up as foo.bar.package
+// remove .package from the end
+string removePackage(string name) {
+    enum toRemove = "/package.d";
+    return name.endsWith(toRemove)
+        ? name.replace(toRemove, "")
+        : name;
+}
+
+
 private string[] dubFilesToAbsPaths(in string fileName, in string[] files) {
-    // package.d files will show up as foo.bar.package
-    // remove .package from the end
-    string removePackage(string name) {
-        enum toRemove = "/package.d";
-        return name.endsWith(toRemove)
-            ? name.replace(toRemove, "")
-            : name;
-    }
 
     // dub list of files, don't bother reading the filesystem since
     // dub has done it already
