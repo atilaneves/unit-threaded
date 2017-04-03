@@ -119,7 +119,7 @@ package void enableDebugOutput(bool value = true) nothrow {
     }
 }
 
-package bool isDebugOutputEnabled() nothrow {
+package bool isDebugOutputEnabled() nothrow @trusted {
     synchronized {
         return _debugOutput;
     }
@@ -132,8 +132,8 @@ package void forceEscCodes() nothrow {
 }
 
 interface Output {
-    void send(in string output);
-    void flush();
+    void send(in string output) @safe;
+    void flush() @safe;
 }
 
 private enum Colour {
@@ -212,7 +212,7 @@ class WriterThread: Output {
     /**
      * Returns a reference to the only instance of this class.
      */
-    static WriterThread get() {
+    static WriterThread get() @trusted {
         if (!_instantiated) {
             synchronized {
                 if (_instance is null) {
@@ -225,17 +225,17 @@ class WriterThread: Output {
     }
 
 
-    override void send(in string output) {
+    override void send(in string output) @safe {
         version(unitUnthreaded) {
             import std.stdio: write;
             write(output);
         } else
-              _tid.send(output, thisTid);
+              () @trusted { _tid.send(output, thisTid); }();
     }
 
-    override void flush() {
+    override void flush() @safe {
         version(unitUnthreaded) {}
-        else _tid.send(Flush());
+        else () @trusted { _tid.send(Flush()); }();
     }
 
     /**

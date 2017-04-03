@@ -67,7 +67,7 @@ package:
 
     void silence() @safe pure nothrow { _silent = true; }
 
-    final Output getWriter() {
+    final Output getWriter() @safe {
         import unit_threaded.io: WriterThread;
         return _output is null ? WriterThread.get : _output;
     }
