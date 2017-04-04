@@ -35,6 +35,7 @@ TestCase[] createTestCases(in TestData[] testData, in string[] testsToRun = []) 
 package TestCase createTestCase(in TestData testData) {
     TestCase createImpl() {
         import unit_threaded.io: WriterThread;
+        import std.conv: text;
 
         TestCase testCase;
         if(testData.isTestClass)
@@ -42,7 +43,10 @@ package TestCase createTestCase(in TestData testData) {
          else
             testCase = testData.builtin ? new BuiltinTestCase(testData) : new FunctionTestCase(testData);
 
-        assert(testCase !is null, "Error creating test case");
+        assert(testCase !is null,
+               text("Error creating test case with ",
+                    testData.isTestClass ? "test class data: " : "data: ",
+                    testData));
 
         if(testData.shouldFail) {
             testCase = new ShouldFailTestCase(testCase, testData.exceptionTypeInfo);
