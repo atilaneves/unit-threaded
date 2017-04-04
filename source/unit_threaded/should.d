@@ -755,8 +755,9 @@ private void assertFail(E)(lazy E expression, in string file = __FILE__, in size
 void shouldBeEmpty(R)(R rng, in string file = __FILE__, in size_t line = __LINE__)
 if (isInputRange!R)
 {
+    import std.conv: text;
     if (!rng.empty)
-        fail("Range not empty", file, line);
+        fail(text("Range not empty: ", rng), file, line);
 }
 
 /**

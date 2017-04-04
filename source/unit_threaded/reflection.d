@@ -404,18 +404,21 @@ TestData[] moduleTestClasses(alias module_)() pure nothrow {
 
     template isTestClass(alias module_, string moduleMember) {
         mixin(importMember!module_(moduleMember));
+
+        alias member = Identity!(mixin(moduleMember));
+
         static if(isPrivate!(module_, moduleMember)) {
             enum isTestClass = false;
-        } else static if(!__traits(compiles, isAggregateType!(mixin(moduleMember)))) {
+        } else static if(!__traits(compiles, isAggregateType!(member))) {
             enum isTestClass = false;
-        } else static if(!isAggregateType!(mixin(moduleMember))) {
+        } else static if(!isAggregateType!(member)) {
             enum isTestClass = false;
         } else static if(!__traits(compiles, mixin("new " ~ moduleMember))) {
             enum isTestClass = false; //can't new it, can't use it
         } else {
             enum hasUnitTest = HasAttribute!(module_, moduleMember, UnitTest);
-            enum hasTestMethod = __traits(hasMember, mixin(moduleMember), "test");
-            enum isTestClass = hasTestMethod || hasUnitTest;
+            enum hasTestMethod = __traits(hasMember, member, "test");
+            enum isTestClass = is(member == class) && (hasTestMethod || hasUnitTest);
         }
     }
 
@@ -988,4 +991,11 @@ unittest {
         .array
         .createTestCases[0];
     assertPass(passes);
+}
+
+@("structs are not classes") unittest {
+    import unit_threaded.should;
+    import unit_threaded.tests.structs_are_not_classes;
+    const testData = allTestData!"unit_threaded.tests.structs_are_not_classes";
+    testData.shouldBeEmpty;
 }
