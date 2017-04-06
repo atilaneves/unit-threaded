@@ -1,6 +1,7 @@
 module tests.pass.attributes;
 
 import unit_threaded;
+import tests.pass.types;
 
 enum myEnumNum = "foo.bar"; //there was a bug that made this not compile
 enum myOtherEnumNum;
@@ -96,6 +97,11 @@ void testIssue14(int i) {
 @Types!(int, byte)
 void testTemplate(T)() {
     T.init.shouldEqual(0);
+}
+
+@Types!(A)
+void testTemplateWithUDT(T)() {
+
 }
 
 @("Built-in with values")
