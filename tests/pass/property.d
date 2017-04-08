@@ -30,6 +30,6 @@ unittest {
             return MyStruct(5);
         },
         (MyStruct s) {
-            return s.i == 3;
+            return s.i == 5;
         });
 }
