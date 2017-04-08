@@ -17,3 +17,19 @@ unittest {
         return a == b;
     });
 }
+
+
+struct MyStruct {
+    int i;
+}
+
+@("Property testing with user defined type")
+unittest {
+    checkCustom!(
+        () {
+            return MyStruct(5);
+        },
+        (MyStruct s) {
+            return s.i == 3;
+        });
+}

@@ -70,6 +70,44 @@ void check(alias F)(int numFuncCalls = 100,
     }
 }
 
+void checkCustom(alias Generator, alias Predicate)
+                (int numFuncCalls = 100, in string file = __FILE__, in size_t line = __LINE__) @trusted {
+
+    import std.traits;
+    import std.conv;
+    import std.typecons;
+    import std.array;
+
+    static assert(is(ReturnType!Predicate == bool),
+                  text("check only accepts functions that return bool, not ", ReturnType!F.stringof));
+
+    alias Type = ReturnType!Generator;
+
+    foreach(i; 0 .. numFuncCalls) {
+
+        Type object;
+
+        try {
+            object = Generator();
+        } catch(Throwable t) {
+            throw new PropertyException("Error generating value\n" ~ t.toString, file, line, t);
+        }
+
+        bool pass;
+
+        try {
+            pass = Predicate(object);
+        } catch(Throwable t) {
+            throw new PropertyException("Error calling property function\n" ~ t.toString, file, line, t);
+        }
+
+        if(!pass) {
+            throw new UnitTestException(["Property failed with input:", object.to!string], file, line);
+        }
+    }
+}
+
+
 private auto shrinkOne(alias F, int index, T)(T values) {
     import std.stdio;
     import std.traits;
