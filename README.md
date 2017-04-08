@@ -63,11 +63,25 @@ project, you can use a `unittest` configuration as exemplified in this
             "mainSourceFile": "bin/ut.d",
             "excludedSourceFiles": ["src/main.d"],
             "dependencies": {
-                "unit-threaded": "~>0.7.4"
+                "unit-threaded": "~>0.7.11"
             }
         }
     ]
 }
+```
+
+With `dub.sdl`:
+
+```
+configuration "executable" {
+}
+
+configuration "unittest" {
+    dependency "unit-threaded" version="~>0.7.11"
+    mainSourceFile "bin/ut.d"
+    preBuildCommands "dub run unit-threaded -c gen_ut_main -- -f bin/ut.d"
+}
+
 ```
 
 `excludedSourceFiles` is there to not compile the file containing the
