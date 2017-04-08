@@ -567,18 +567,10 @@ private TestData[] createFuncTestData(alias module_, string moduleMember)() {
             else
                 enum string[] extraTags = [];
 
-            static if(!__traits(compiles, mixin(moduleMember ~ `!(` ~ type.stringof ~ `)()`))) {
-                pragma(msg, "Could not compile Type-parameterized test for T = ", type);
-                void _failFunc() {
-                    mixin(moduleMember ~ `!(` ~ type.stringof ~ `)();`);
-                }
-                static assert(false);
-            }
+            alias member = Identity!(mixin(moduleMember));
 
             testData ~= memberTestData!(module_, moduleMember, extraTags)(
-                () {
-                    mixin(moduleMember ~ `!(` ~ type.stringof ~ `)();`);
-                },
+                () { member!type(); },
                 type.stringof);
         }
         return testData;

@@ -100,7 +100,7 @@ void testTemplate(T)() {
 }
 
 @Types!(A)
-void testTemplateWithUDT(T)() {
+void testTemplateWithTypeFromAnotherModule(T)() {
 
 }
 
