@@ -244,10 +244,10 @@ import unit_threaded;
                   options.fileName.replace("\\", "\\\\") ~ `");`);
     wfile.writeln("    writeln(`Running unit tests from dirs " ~ options.dirs.to!string ~ "`);");
 
-    immutable indent = "                     ";
-    wfile.writeln("    return runTests!(\n" ~
+    immutable indent = "                          ";
+    wfile.writeln("    return args.runTests!(\n" ~
                   modules.map!(a => indent ~ `"` ~ a ~ `"`).join(",\n") ~
-                  "\n" ~ indent ~ ")\n" ~ indent ~ "(args);");
+                  "\n" ~ indent ~ ");");
     wfile.writeln("}");
     wfile.close();
 
