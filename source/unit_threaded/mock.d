@@ -20,55 +20,66 @@ string implMixinStr(T)() {
     import std.format : format;
     import std.range : iota;
     import std.traits: functionAttributes, FunctionAttribute;
+    import std.conv: text;
 
     string[] lines;
 
-    foreach(m; __traits(allMembers, T)) {
+    string getOverload(in string memberName, in int i) {
+        return `Identity!(__traits(getOverloads, T, "%s")[%s])`
+            .format(memberName, i);
+    }
 
-        static if(!isPrivate!(T, m)) {
+    foreach(memberName; __traits(allMembers, T)) {
 
-            alias member = Identity!(__traits(getMember, T, m));
+        static if(!isPrivate!(T, memberName)) {
+
+            alias member = Identity!(__traits(getMember, T, memberName));
 
             static if(__traits(isAbstractFunction, member)) {
+                foreach(i, overload; __traits(getOverloads, T, memberName)) {
 
-                lines ~= "private alias %s_parameters = Parameters!(Identity!(__traits(getMember, T, \"%s\")));".format(m, m);
-                lines ~= "private alias %s_returnType = ReturnType!(Identity!(__traits(getMember, T, \"%s\")));".format(m, m);
+                    enum overloadName = text(memberName, "_", i);
 
-                static if(functionAttributes!member & FunctionAttribute.nothrow_)
-                    enum tryIndent = "    ";
-                else
-                    enum tryIndent = "";
+                    enum overloadString = getOverload(memberName, i);
+                    lines ~= "private alias %s_parameters = Parameters!(%s);".format(overloadName, overloadString);
+                    lines ~= "private alias %s_returnType = ReturnType!(%s);".format(overloadName, overloadString);
 
+                    static if(functionAttributes!member & FunctionAttribute.nothrow_)
+                        enum tryIndent = "    ";
+                    else
+                        enum tryIndent = "";
 
-                static if(is(ReturnType!member == void))
-                    enum returnDefault = "";
-                else {
-                    enum varName = m ~ `_returnValues`;
-                    lines ~= `%s_returnType[] %s;`.format(m, varName);
+                    static if(is(ReturnType!member == void))
+                        enum returnDefault = "";
+                    else {
+                        enum varName = overloadName ~ `_returnValues`;
+                        lines ~= `%s_returnType[] %s;`.format(overloadName, varName);
+                        lines ~= "";
+                        enum returnDefault = [`    if(` ~ varName ~ `.length > 0) {`,
+                                              `        auto ret = ` ~ varName ~ `[0];`,
+                                              `        ` ~ varName ~ ` = ` ~ varName ~ `[1..$];`,
+                                              `        return ret;`,
+                                              `    } else`,
+                                              `        return %s_returnType.init;`.format(overloadName)];
+                    }
+
+                    lines ~= `override ` ~ overloadName ~ "_returnType " ~ memberName ~
+                        typeAndArgsParens!(Parameters!member)(overloadName) ~ ` {`;
+
+                    static if(functionAttributes!member & FunctionAttribute.nothrow_)
+                        lines ~= "try {";
+
+                    lines ~= tryIndent ~ `    calledFuncs ~= "` ~ memberName ~ `";`;
+                    lines ~= tryIndent ~ `    calledValues ~= tuple` ~ argNamesParens(arity!member) ~ `.to!string;`;
+
+                    static if(functionAttributes!member & FunctionAttribute.nothrow_)
+                        lines ~= "    } catch(Exception) {}";
+
+                    lines ~= returnDefault;
+
+                    lines ~= `}`;
                     lines ~= "";
-                    enum returnDefault = [`    if(` ~ varName ~ `.length > 0) {`,
-                                          `        auto ret = ` ~ varName ~ `[0];`,
-                                          `        ` ~ varName ~ ` = ` ~ varName ~ `[1..$];`,
-                                          `        return ret;`,
-                                          `    } else`,
-                                          `        return %s_returnType.init;`.format(m)];
                 }
-
-                lines ~= `override ` ~ m ~ "_returnType " ~ m ~ typeAndArgsParens!(Parameters!member)(m) ~ ` {`;
-
-                static if(functionAttributes!member & FunctionAttribute.nothrow_)
-                    lines ~= "try {";
-
-                lines ~= tryIndent ~ `    calledFuncs ~= "` ~ m ~ `";`;
-                lines ~= tryIndent ~ `    calledValues ~= tuple` ~ argNamesParens(arity!member) ~ `.to!string;`;
-
-                static if(functionAttributes!member & FunctionAttribute.nothrow_)
-                    lines ~= "    } catch(Exception) {}";
-
-                lines ~= returnDefault;
-
-                lines ~= `}`;
-                lines ~= "";
             }
         }
     }
@@ -157,7 +168,7 @@ struct Mock(T) {
 
     class MockAbstract: T {
         import std.conv: to;
-        //pragma(msg, "\n\n", implMixinStr!T, "\n\n");
+        //pragma(msg, "\nimplMixinStr for ", T, "\n\n", implMixinStr!T, "\n\n");
         mixin(implMixinStr!T);
         mixin MockImplCommon;
     }
@@ -171,7 +182,22 @@ struct Mock(T) {
     }
 
     void returnValue(string funcName, V...)(V values) {
-        enum varName = funcName ~ `_returnValues`;
+        return returnValue!(0, funcName)(values);
+    }
+
+    /**
+       This version takes overloads into account. i is the overload
+       index. e.g.:
+       ---------
+       interface Interface { void foo(int); void foo(string); }
+       auto m = mock!Interface;
+       m.returnValue!(0, "foo"); // int overload
+       m.returnValue!(1, "foo"); // string overload
+       ---------
+     */
+    void returnValue(int i, string funcName, V...)(V values) {
+        import std.conv: text;
+        enum varName = funcName ~ text(`_`, i, `_returnValues`);
         foreach(v; values)
             mixin(varName ~ ` ~=  v;`);
     }
@@ -476,4 +502,19 @@ auto mockStruct(T...)(T returns) {
         int twice(int i) @safe pure nothrow /*@nogc*/;
     }
     auto m = mock!Interface;
+}
+
+@("issue 63")
+@safe pure unittest {
+    interface InterfaceWithOverloads {
+        int func(int) @safe pure;
+        int func(string) @safe pure;
+    }
+    alias ov = Identity!(__traits(allMembers, InterfaceWithOverloads)[0]);
+    auto m = mock!InterfaceWithOverloads;
+    m.returnValue!(0, "func")(3); // int overload
+    m.returnValue!(1, "func")(7); // string overload
+    m.expect!"func"("foo");
+    m.func("foo").shouldEqual(7);
+    m.verify;
 }
