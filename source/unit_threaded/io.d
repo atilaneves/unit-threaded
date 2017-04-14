@@ -4,19 +4,17 @@
 
 module unit_threaded.io;
 
-import std.concurrency;
-import std.stdio;
-import std.conv;
+import std.concurrency: Tid;
 
 /**
  * Write if debug output was enabled.
  */
-void writelnUt(T...)(T args) {
-    import std.conv: text;
-    import unit_threaded: TestCase;
+void writelnUt(T...)(auto ref T args) {
+    import unit_threaded.testcase: TestCase;
     if(isDebugOutputEnabled)
-        TestCase.currentTest.getWriter.writeln(text(args));
+        TestCase.currentTest.getWriter.writeln(args);
 }
+
 
 unittest {
     import unit_threaded.testcase: TestCase;
@@ -162,14 +160,15 @@ private string escCode(in Colour code) @safe {
 /**
  * Writes the args in a thread-safe manner.
  */
-void write(T...)(Output output, T args) {
+void write(T...)(Output output, auto ref T args) {
+    import std.conv: text;
     output.send(text(args));
 }
 
 /**
  * Writes the args in a thread-safe manner and appends a newline.
  */
-void writeln(T...)(Output output, T args) {
+void writeln(T...)(Output output, auto ref T args) {
     write(output, args, "\n");
 }
 
@@ -177,7 +176,8 @@ void writeln(T...)(Output output, T args) {
  * Writes the args in a thread-safe manner in green (POSIX only).
  * and appends a newline.
  */
-void writelnGreen(T...)(Output output, T args) {
+void writelnGreen(T...)(Output output, auto ref T args) {
+    import std.conv: text;
     output.send(green(text(args) ~ "\n"));
 }
 
@@ -185,15 +185,16 @@ void writelnGreen(T...)(Output output, T args) {
  * Writes the args in a thread-safe manner in red (POSIX only)
  * and appends a newline.
  */
-void writelnRed(T...)(Output output, T args) {
-    output.send(red(text(args) ~ "\n"));
+void writelnRed(T...)(Output output, auto ref T args) {
+    writeRed(output, args, "\n");
 }
 
 /**
  * Writes the args in a thread-safe manner in red (POSIX only).
  * and appends a newline.
  */
-void writeRed(T...)(Output output, T args) {
+void writeRed(T...)(Output output, auto ref T args) {
+    import std.conv: text;
     output.send(red(text(args)));
 }
 
@@ -201,7 +202,8 @@ void writeRed(T...)(Output output, T args) {
  * Writes the args in a thread-safe manner in yellow (POSIX only).
  * and appends a newline.
  */
-void writeYellow(T...)(Output output, T args) {
+void writeYellow(T...)(Output output, auto ref T args) {
+    import std.conv: text;
     output.send(yellow(text(args)));
 }
 
@@ -209,6 +211,9 @@ void writeYellow(T...)(Output output, T args) {
  * Thread to output to stdout
  */
 class WriterThread: Output {
+
+    import std.concurrency: Tid;
+
     /**
      * Returns a reference to the only instance of this class.
      */
@@ -226,16 +231,22 @@ class WriterThread: Output {
 
 
     override void send(in string output) @safe {
+
         version(unitUnthreaded) {
             import std.stdio: write;
             write(output);
-        } else
-              () @trusted { _tid.send(output, thisTid); }();
+        } else {
+            import std.concurrency: send, thisTid;
+            () @trusted { _tid.send(output, thisTid); }();
+        }
     }
 
     override void flush() @safe {
         version(unitUnthreaded) {}
-        else () @trusted { _tid.send(Flush()); }();
+        else {
+            import std.concurrency: send;
+            () @trusted { _tid.send(Flush()); }();
+        }
     }
 
     /**
@@ -244,6 +255,7 @@ class WriterThread: Output {
     static void start() {
         version(unitUnthreaded) {}
         else {
+            import std.concurrency: send, receiveOnly;
             WriterThread.get._tid.send(ThreadWait());
             receiveOnly!ThreadStarted;
         }
@@ -255,6 +267,7 @@ class WriterThread: Output {
     void join() {
         version(unitUnthreaded) {}
         else {
+            import std.concurrency: send, receiveOnly;
             _tid.send(ThreadFinish()); //tell it to join
             receiveOnly!ThreadEnded;
             _instance = null;
@@ -266,8 +279,11 @@ private:
 
     this() {
         version(unitUnthreaded) {}
-        else
+        else {
+            import std.concurrency: spawn, thisTid;
+            import std.stdio: stdout, stderr;
             _tid = spawn(&threadWriter!(stdout, stderr), thisTid);
+        }
     }
 
 
@@ -299,6 +315,8 @@ version (Posix) {
 shared bool gBool;
 private void threadWriter(alias OUT, alias ERR)(Tid tid)
 {
+    import std.concurrency: receive, send, OwnerTerminated;
+
     auto done = false;
 
     auto saveStdout = OUT;
@@ -385,7 +403,7 @@ version(testing_unit_threaded) {
 }
 
 unittest {
-    import std.concurrency: spawn;
+    import std.concurrency: spawn, thisTid, send, receiveOnly;
     import unit_threaded.should;
 
     enableDebugOutput(false);
@@ -403,7 +421,7 @@ unittest {
 }
 
 unittest {
-    import std.concurrency: spawn;
+    import std.concurrency: spawn, send, thisTid, receiveOnly;
     import unit_threaded.should;
 
     enableDebugOutput(true);
@@ -422,7 +440,7 @@ unittest {
 }
 
 unittest {
-    import std.concurrency: spawn;
+    import std.concurrency: spawn, thisTid, send, receiveOnly;
     import unit_threaded.should;
 
     resetFakeFiles;
@@ -450,6 +468,7 @@ unittest {
 
 version(testing_unit_threaded) {
     void otherThread(Tid writerTid, Tid testTid) {
+        import std.concurrency: send, receiveOnly, OwnerTerminated, thisTid;
         try {
             writerTid.send("what about me?\n", thisTid);
             testTid.send(true);
@@ -465,7 +484,7 @@ version(testing_unit_threaded) {
 }
 
 unittest {
-    import std.concurrency: spawn;
+    import std.concurrency: spawn, thisTid, send, receiveOnly;
     import unit_threaded.should;
 
     resetFakeFiles;

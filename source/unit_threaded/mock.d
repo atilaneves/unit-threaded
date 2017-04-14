@@ -1,15 +1,6 @@
 module unit_threaded.mock;
 
-import unit_threaded.should: fail;
 import std.traits;
-import std.typecons;
-import std.meta: allSatisfy;
-
-version(unittest) {
-    import unit_threaded.asserts;
-    import unit_threaded.should;
-}
-
 
 alias Identity(alias T) = T;
 private enum isPrivate(T, string member) = !__traits(compiles, __traits(getMember, T, member));
@@ -19,7 +10,7 @@ string implMixinStr(T)() {
     import std.array: join;
     import std.format : format;
     import std.range : iota;
-    import std.traits: functionAttributes, FunctionAttribute;
+    import std.traits: functionAttributes, FunctionAttribute, Parameters, arity;
     import std.conv: text;
 
     string[] lines;
@@ -115,7 +106,7 @@ mixin template MockImplCommon() {
     string[] expectedValues;
     string[] calledValues;
 
-    void expect(string funcName, V...)(V values) @safe pure {
+    void expect(string funcName, V...)(auto ref V values) @safe pure {
         import std.conv: to;
         import std.typecons: tuple;
 
@@ -126,14 +117,16 @@ mixin template MockImplCommon() {
             expectedValues ~= "";
     }
 
-    void expectCalled(string func, string file = __FILE__, size_t line = __LINE__, V...)(V values) {
+    void expectCalled(string func, string file = __FILE__, size_t line = __LINE__, V...)(auto ref V values) {
         expect!func(values);
         verify(file, line);
     }
 
     void verify(string file = __FILE__, size_t line = __LINE__) @safe pure {
-        import std.range;
-        import std.conv;
+        import std.range: repeat, take, join;
+        import std.conv: to;
+        import unit_threaded.should: fail, UnitTestException;
+
 
         if(verified)
             fail("Mock already verified", file, line);
@@ -168,6 +161,8 @@ struct Mock(T) {
 
     class MockAbstract: T {
         import std.conv: to;
+        import std.traits: Parameters, ReturnType;
+        import std.typecons: tuple;
         //pragma(msg, "\nimplMixinStr for ", T, "\n\n", implMixinStr!T, "\n\n");
         mixin(implMixinStr!T);
         mixin MockImplCommon;
@@ -273,6 +268,8 @@ auto mock(T)() {
 
 @("mock interface negative test")
 @safe pure unittest {
+    import unit_threaded.should;
+
     interface Foo {
         int foo(int, string) @safe pure;
     }
@@ -342,6 +339,8 @@ private class Class {
 
 @("interface return value")
 @safe pure unittest {
+    import unit_threaded.should;
+
     interface Foo {
         int timesN(int i) @safe pure;
     }
@@ -358,6 +357,8 @@ private class Class {
 
 @("interface return values")
 @safe pure unittest {
+    import unit_threaded.should;
+
     interface Foo {
         int timesN(int i) @safe pure;
     }
@@ -427,6 +428,8 @@ auto mockStruct(T...)(T returns) {
 
 @("mock struct negative")
 @safe pure unittest {
+    import unit_threaded.asserts;
+
     auto m = mockStruct;
     m.expect!"foobar";
     assertExceptionMsg(m.verify,
@@ -449,6 +452,8 @@ auto mockStruct(T...)(T returns) {
 
 @("mock struct values negative")
 @safe pure unittest {
+    import unit_threaded.asserts;
+
     void fun(T)(T t) {
         t.foobar(2, "quux");
     }
@@ -464,6 +469,8 @@ auto mockStruct(T...)(T returns) {
 
 @("struct return value")
 @safe pure unittest {
+    import unit_threaded.should;
+
     int fun(T)(T f) {
         return f.timesN(3) * 2;
     }
@@ -506,6 +513,8 @@ auto mockStruct(T...)(T returns) {
 
 @("issue 63")
 @safe pure unittest {
+    import unit_threaded.should;
+
     interface InterfaceWithOverloads {
         int func(int) @safe pure;
         int func(string) @safe pure;

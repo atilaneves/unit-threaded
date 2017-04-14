@@ -95,3 +95,12 @@ void testPairAA() {
     auto othermap = [pair: 105];
     map.shouldEqual(othermap);
 }
+
+@("range shouldEqual")
+unittest {
+    import std.algorithm: map;
+    auto foo = [1, 2, 3].map!(a => a * 2);
+    static assert(__traits(compiles, foo.front));
+    [1, 2, 3].map!(a => a * 2).shouldEqual([2, 4, 6]);
+    [1, 2, 3].map!(a => a * 2).shouldEqual([2, 4, 5]).shouldThrow;
+}
