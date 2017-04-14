@@ -1,7 +1,5 @@
 module unit_threaded.attrs;
 
-import std.range;
-
 enum UnitTest; //opt-in to registration
 enum DontTest; //opt-out of registration
 enum Serial; //run tests in the module in one thread / serially
