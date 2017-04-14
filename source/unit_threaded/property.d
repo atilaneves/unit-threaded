@@ -1,9 +1,6 @@
 module unit_threaded.property;
 
-import unit_threaded.randomized.gen;
-import unit_threaded.randomized.random;
-import unit_threaded.should;
-import std.random: Random, unpredictableSeed;
+import std.random: Random;
 import std.traits: isIntegral, isArray;
 
 
@@ -13,6 +10,7 @@ Random gRandom;
 
 
 static this() {
+    import std.random: unpredictableSeed;
     gRandom = Random(unpredictableSeed);
 }
 
@@ -28,10 +26,12 @@ class PropertyException : Exception
 
 void check(alias F)(int numFuncCalls = 100,
                     in string file = __FILE__, in size_t line = __LINE__) @trusted {
-    import std.traits;
-    import std.conv;
-    import std.typecons;
-    import std.array;
+
+    import unit_threaded.randomized.random: RndValueGen;
+    import unit_threaded.should: UnitTestException;
+    import std.conv: text, to;
+    import std.traits: ReturnType, Parameters, isSomeString;
+    import std.array: join;
 
     static assert(is(ReturnType!F == bool),
                   text("check only accepts functions that return bool, not ", ReturnType!F.stringof));
@@ -73,10 +73,9 @@ void check(alias F)(int numFuncCalls = 100,
 void checkCustom(alias Generator, alias Predicate)
                 (int numFuncCalls = 100, in string file = __FILE__, in size_t line = __LINE__) @trusted {
 
-    import std.traits;
-    import std.conv;
-    import std.typecons;
-    import std.array;
+    import unit_threaded.should: UnitTestException;
+    import std.conv: to, text;
+    import std.traits: ReturnType;
 
     static assert(is(ReturnType!Predicate == bool),
                   text("check only accepts functions that return bool, not ", ReturnType!F.stringof));
@@ -121,6 +120,7 @@ private auto shrinkOne(alias F, int index, T)(T values) {
 
 @("Verify identity property for int[] succeeds")
 @safe unittest {
+    import unit_threaded.should;
     int numCalls;
     bool identity(int[] a) pure {
         ++numCalls;
@@ -137,6 +137,7 @@ private auto shrinkOne(alias F, int index, T)(T values) {
 
 @("Verify anti-identity property for int[] fails")
 @safe unittest {
+    import unit_threaded.should;
     int numCalls;
     bool antiIdentity(int[] a) {
         ++numCalls;
@@ -154,13 +155,16 @@ private auto shrinkOne(alias F, int index, T)(T values) {
     // is small enough to disconsider even if it were truly random
     // since Gen!int[] is front-loaded, it'll fail deterministically
     assertExceptionMsg(check!((int[] a) => a.length % 2 == 1),
-                       "    source/unit_threaded/property/package.d:123 - Property failed with input:\n" ~
-                       "    source/unit_threaded/property/package.d:123 - []");
+                       "    source/unit_threaded/property.d:123 - Property failed with input:\n" ~
+                       "    source/unit_threaded/property.d:123 - []");
 }
 
 
 @("Explicit Gen")
 @safe unittest {
+    import unit_threaded.randomized.gen;
+    import unit_threaded.should;
+
     check!((Gen!(int, 1, 1) a) => a == 1);
     check!((Gen!(int, 1, 1) a) => a == 2).shouldThrow!UnitTestException;
 }
@@ -289,8 +293,8 @@ unittest {
 @("shrink one item with check")
 unittest {
     assertExceptionMsg(check!((int i) => i < 3),
-                       "    source/unit_threaded/property/package.d:123 - Property failed with input:\n" ~
-                       "    source/unit_threaded/property/package.d:123 - 3");
+                       "    source/unit_threaded/property.d:123 - Property failed with input:\n" ~
+                       "    source/unit_threaded/property.d:123 - 3");
 }
 
 @("string[]")
