@@ -766,7 +766,7 @@ private void assertFail(E)(lazy E expression, in string file = __FILE__, in size
  * Verify that rng is empty.
  * Throws: UnitTestException on failure.
  */
-void shouldBeEmpty(R)(auto ref R rng, in string file = __FILE__, in size_t line = __LINE__)
+void shouldBeEmpty(R)(in auto ref R rng, in string file = __FILE__, in size_t line = __LINE__)
 if (isInputRange!R)
 {
     import std.conv: text;
@@ -775,10 +775,23 @@ if (isInputRange!R)
 }
 
 /**
+ * Verify that rng is empty.
+ * Throws: UnitTestException on failure.
+ */
+void shouldBeEmpty(R)(auto ref shared(R) rng, in string file = __FILE__, in size_t line = __LINE__)
+if (isInputRange!R)
+{
+    import std.conv: text;
+    if (!rng.empty)
+        fail(text("Range not empty: ", rng), file, line);
+}
+
+
+/**
  * Verify that aa is empty.
  * Throws: UnitTestException on failure.
  */
-void shouldBeEmpty(T)(in auto ref T aa, in string file = __FILE__, in size_t line = __LINE__)
+void shouldBeEmpty(T)(auto ref T aa, in string file = __FILE__, in size_t line = __LINE__)
 if (isAssociativeArray!T)
 {
     //keys is @system
