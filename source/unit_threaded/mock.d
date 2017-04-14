@@ -1,6 +1,5 @@
 module unit_threaded.mock;
 
-import unit_threaded.should: fail;
 import std.traits;
 import std.typecons;
 import std.meta: allSatisfy;
@@ -115,7 +114,7 @@ mixin template MockImplCommon() {
     string[] expectedValues;
     string[] calledValues;
 
-    void expect(string funcName, V...)(V values) @safe pure {
+    void expect(string funcName, V...)(auto ref V values) @safe pure {
         import std.conv: to;
         import std.typecons: tuple;
 
@@ -126,14 +125,16 @@ mixin template MockImplCommon() {
             expectedValues ~= "";
     }
 
-    void expectCalled(string func, string file = __FILE__, size_t line = __LINE__, V...)(V values) {
+    void expectCalled(string func, string file = __FILE__, size_t line = __LINE__, V...)(auto ref V values) {
         expect!func(values);
         verify(file, line);
     }
 
     void verify(string file = __FILE__, size_t line = __LINE__) @safe pure {
-        import std.range;
-        import std.conv;
+        import std.range: repeat, take, join;
+        import std.conv: to;
+        import unit_threaded.should: fail, UnitTestException;
+
 
         if(verified)
             fail("Mock already verified", file, line);

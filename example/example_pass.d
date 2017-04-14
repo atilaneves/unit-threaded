@@ -1,6 +1,6 @@
 #!/usr/bin/rdmd -unittest
 
-import unit_threaded.runner;
+import unit_threaded;
 
 //these must all be imported in order to be used as a symbol
 import tests.pass.normal;
@@ -11,11 +11,7 @@ import tests.pass.io;
 import tests.pass.fixtures;
 import tests.pass.mock;
 
-import std.stdio;
-
-
 int main(string[] args) {
-    writeln("Unit-threaded examples: Passing\n");
     return args.runTests!(
         tests.pass.normal,
         tests.pass.delayed,

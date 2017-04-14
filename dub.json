@@ -7,7 +7,9 @@
     "license": "BSD 3-clause",
     "targetType": "library",
     "configurations": [
+
         { "name": "library" },
+
         {
             "name": "unittest",
             "targetType": "executable",
@@ -17,6 +19,7 @@
             "mainSourceFile": "example/example_pass.d",
             "versions": ["testing_unit_threaded"]
         },
+
         {
             "name": "unittest-unthreaded",
             "targetType": "executable",
@@ -24,7 +27,19 @@
             "sourcePaths": ["tests/pass"],
             "sourceFiles": ["example/example_pass.d"],
             "mainSourceFile": "example/example_pass.d",
-            "versions": ["testing_unit_threaded", "unitUnthreaded"]
+            "versions": ["testing_unit_threaded", "unitUnthreaded"],
+            "dflags": ["-unittest"]
+        },
+
+        {
+            "name": "unittest-light",
+            "targetType": "executable",
+            "targetName": "ut_pass",
+            "sourcePaths": ["tests/pass"],
+            "sourceFiles": ["example/example_pass.d"],
+            "mainSourceFile": "example/example_pass.d",
+            "versions": ["testing_unit_threaded", "unitThreadedLight"],
+            "dflags": ["-unittest"]
         },
 
         {

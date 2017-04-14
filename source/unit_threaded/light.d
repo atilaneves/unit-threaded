@@ -46,8 +46,40 @@ void writelnUt(T...)(auto ref T args) {
 
 void check(alias F)(int numFuncCalls = 100,
                     in string file = __FILE__, in size_t line = __LINE__) @trusted {
+    import unit_threaded.property: utCheck = check;
+    utCheck!F(numFuncCalls, file, line);
 }
 
+void checkCustom(alias Generator, alias Predicate)
+                (int numFuncCalls = 100, in string file = __FILE__, in size_t line = __LINE__) @trusted {
+    import unit_threaded.property: utCheckCustom = checkCustom;
+    utCheckCustom!(Generator, Predicate)(numFuncCalls, file, line);
+}
+
+
+interface Output {
+    void send(in string output) @safe;
+    void flush() @safe;
+}
+
+class TestCase {
+    abstract void test();
+    void setup() {}
+    void shutdown() {}
+    static TestCase currentTest() { return new class TestCase { override void test() {}}; }
+    Output getWriter() { return new class Output { override void send(in string output) {} override void flush() {}}; }
+}
+
+
+auto mock(T)() {
+    import unit_threaded.mock: utMock = mock;
+    return utMock!T;
+}
+
+auto mockStruct()() {
+    import unit_threaded.mock: utMockStruct = mockStruct;
+    return utMockStruct;
+}
 
 void shouldBeTrue(E)(lazy E condition, in string file = __FILE__, in size_t line = __LINE__) {
     assert_(condition(), file, line);
@@ -57,8 +89,16 @@ void shouldBeFalse(E)(lazy E condition, in string file = __FILE__, in size_t lin
     assert_(!condition(), file, line);
 }
 
-void shouldEqual(V, E)(in auto ref V value, in auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
-    assert_(value == expected, file, line);
+void shouldEqual(V, E)(auto ref V value, auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
+
+    static if(is(V == class)) {
+        assert_(value.tupleof == expected.tupleof, file, line);
+    } else static if(!__traits(compiles, value == expected)) {
+        import std.algorithm: equal;
+        assert_(equal(value, expected), file, line);
+    } else {
+        assert_(value == expected, file, line);
+    }
 }
 
 void shouldNotEqual(V, E)(in auto ref V value, in auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
