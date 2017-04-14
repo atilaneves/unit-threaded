@@ -21,9 +21,20 @@ module unit_threaded.light;
 int runTests(T...)(in string[] args) {
 
     import core.runtime: Runtime;
+    import core.stdc.stdio: printf;
 
     try {
+
         Runtime.moduleUnitTester();
+
+        printf("\n");
+        version(Posix)
+            printf("\033[32;1mOk\033[0;;m");
+        else
+            printf("Ok");
+
+        printf(": All tests passed\n\n");
+
         return 0;
     } catch(Throwable _)
         return 1;
