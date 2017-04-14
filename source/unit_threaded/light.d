@@ -11,16 +11,226 @@
    This module makes it so that unit-threaded gets out of the way, and if
    needed the full features can be turned on at the cost of compiling
    much more slowly.
- */
 
+   There aren't even any template constraints on the `should` functions
+   to avoid imports as much as possible.
+ */
 module unit_threaded.light;
 
 
 int runTests(T...)(in string[] args) {
-    import core.runtime;
+
+    import core.runtime: Runtime;
+
     try {
         Runtime.moduleUnitTester();
         return 0;
     } catch(Throwable _)
         return 1;
+}
+
+void shouldBeTrue(E)(lazy E condition, in string file = __FILE__, in size_t line = __LINE__) {
+    assert_(condition(), file, line);
+}
+
+void shouldBeFalse(E)(lazy E condition, in string file = __FILE__, in size_t line = __LINE__) {
+    assert_(!condition(), file, line);
+}
+
+void shouldEqual(V, E)(auto ref V value, auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
+    assert_(value == expected, file, line);
+}
+
+void shouldNotEqual(V, E)(auto ref V value, auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
+    assert_(value != expected, file, line);
+}
+
+void shouldBeNull(T)(in auto ref T value, in string file = __FILE__, in size_t line = __LINE__) {
+    assert_(value is null, file, line);
+}
+
+void shouldNotBeNull(T)(in auto ref T value, in string file = __FILE__, in size_t line = __LINE__) {
+    assert_(value !is null, file, line);
+}
+
+enum isLikeAssociativeArray(T, K) = is(typeof({
+    if(K.init in T) { }
+    if(K.init !in T) { }
+}));
+static assert(isLikeAssociativeArray!(string[string], string));
+static assert(!isLikeAssociativeArray!(string[string], int));
+
+
+void shouldBeIn(T, U)(in auto ref T value, in auto ref U container, in string file = __FILE__, in size_t line = __LINE__)
+    if(isLikeAssociativeArray!U) {
+    assert_(cast(bool)(value in container), file, line);
+}
+
+void shouldBeIn(T, U)(in auto ref T value, U container, in string file = __FILE__, in size_t line = __LINE__)
+    if (!isLikeAssociativeArray!(U, T))
+{
+    import std.algorithm: find;
+    import std.array: empty;
+    assert_(!find(container, value).empty, file, line);
+}
+
+void shouldNotBeIn(T, U)(in auto ref T value, in auto ref U container, in string file = __FILE__, in size_t line = __LINE__)
+    if(isLikeAssociativeArray!U) {
+    assert_(!cast(bool)(value in container), file, line);
+}
+
+void shouldNotBeIn(T, U)(in auto ref T value, U container, in string file = __FILE__, in size_t line = __LINE__)
+    if (!isLikeAssociativeArray!(U, T))
+{
+    import std.algorithm: find;
+    import std.array: empty;
+    assert_(find(container, value).empty, file, line);
+}
+
+void shouldThrow(T : Throwable = Exception, E)
+                (lazy E expr, in string file = __FILE__, in size_t line = __LINE__) {
+    () @trusted {
+        try {
+            expr();
+            assert_(false, file, line);
+        } catch(T _) {
+
+        }
+    }();
+}
+
+void shouldThrowExactly(T : Throwable = Exception, E)(lazy E expr,
+    in string file = __FILE__, in size_t line = __LINE__)
+{
+    () @trusted {
+        try {
+            expr();
+            assert_(false, file, line);
+        } catch(T _) {
+            //Object.opEquals is @system and impure
+            const sameType = () @trusted { return threw.typeInfo == typeid(T); }();
+            assert_(sameType, file, line);
+        }
+    }();
+}
+
+void shouldNotThrow(T: Throwable = Exception, E)
+                   (lazy E expr, in string file = __FILE__, in size_t line = __LINE__) {
+    () @trusted {
+        try
+            expr();
+        catch(T _)
+            assert_(false, file, line);
+    }();
+}
+
+void shouldThrowWithMessage(T : Throwable = Exception, E)(lazy E expr,
+                                                          string msg,
+                                                          string file = __FILE__,
+                                                          size_t line = __LINE__) {
+    () @trusted {
+        try {
+            expr();
+            assert_(false, file, line);
+        } catch(T ex) {
+            assert_(ex.msg == msg, file, line);
+        }
+    }();
+}
+
+void shouldApproxEqual(V, E)(in V value, in E expected, string file = __FILE__, size_t line = __LINE__) {
+    import std.math: approxEqual;
+    assert_(approxEqual(value, expected), file, line);
+}
+
+void shouldBeEmpty(R)(auto ref R rng, in string file = __FILE__, in size_t line = __LINE__) {
+    import std.range: isInputRange;
+    import std.traits: isAssociativeArray;
+    import std.array;
+
+    static if(isInputRange!R)
+        assert_(rnd.empty, file, line);
+    else static if(isAssociativeArray!R)
+        () @trusted { assert_(rng.keys.empty, file, line); }();
+    else
+        static assert(false, "Cannot call shouldBeEmpty on " ~ R.stringof);
+}
+
+void shouldNotBeEmpty(R)(auto ref R rng, in string file = __FILE__, in size_t line = __LINE__) {
+    import std.range: isInputRange;
+    import std.traits: isAssociativeArray;
+    import std.array;
+
+    static if(isInputRange!R)
+        assert_(!rnd.empty, file, line);
+    else static if(isAssociativeArray!R)
+        () @trusted { assert_(!rng.keys.empty, file, line); }();
+    else
+        static assert(false, "Cannot call shouldBeEmpty on " ~ R.stringof);
+}
+
+void shouldBeGreaterThan(T, U)(in auto ref T t, in auto ref U u,
+                               in string file = __FILE__, in size_t line = __LINE__)
+{
+    assert_(t > u, file, line);
+}
+
+void shouldBeSmallerThan(T, U)(in auto ref T t, in auto ref U u,
+                               in string file = __FILE__, in size_t line = __LINE__)
+{
+    assert_(t < u, file, line);
+}
+
+void shouldBeSameSetAs(V, E)(auto ref V value, auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
+    assert_(isSameSet(value, expected), file, line);
+}
+
+void shouldNotBeSameSetAs(V, E)(auto ref V value, auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
+    assert_(!isSameSet(value, expected), file, line);
+}
+
+private bool isSameSet(T, U)(auto ref T t, auto ref U u) {
+    import std.array: array;
+
+    //sort makes the element types have to implement opCmp
+    //instead, try one by one
+    auto ta = t.array;
+    auto ua = u.array;
+    if (ta.length != ua.length) return false;
+    foreach(element; ta)
+    {
+        if (!ua.canFind(element)) return false;
+    }
+
+    return true;
+}
+
+void shouldBeSameJsonAs(in string actual,
+                        in string expected,
+                        in string file = __FILE__,
+                        in size_t line = __LINE__)
+    @trusted // not @safe pure due to parseJSON
+{
+    import std.json: parseJSON, JSONException;
+
+    auto parse(in string str) {
+        try
+            return str.parseJSON;
+        catch(JSONException ex) {
+            assert_(false, "Failed to parse " ~ str, file, line);
+        }
+        assert(0);
+    }
+
+    assert_(parse(actual) == parse(expected), file, line);
+}
+
+
+private void assert_(bool value, in string file, in size_t line) @safe pure {
+    assert_(value, "Assertion failure", file, line);
+}
+
+private void assert_(bool value, in string message, in string file, in size_t line) @trusted pure {
+    if(!value)
+        throw new Exception(message, file, line);
 }

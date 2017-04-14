@@ -766,7 +766,7 @@ private void assertFail(E)(lazy E expression, in string file = __FILE__, in size
  * Verify that rng is empty.
  * Throws: UnitTestException on failure.
  */
-void shouldBeEmpty(R)(R rng, in string file = __FILE__, in size_t line = __LINE__)
+void shouldBeEmpty(R)(auto ref R rng, in string file = __FILE__, in size_t line = __LINE__)
 if (isInputRange!R)
 {
     import std.conv: text;
@@ -894,7 +894,7 @@ void shouldBeSmallerThan(T, U)(in auto ref T t, in auto ref U u,
  * Verify that t and u represent the same set (ordering is not important).
  * Throws: UnitTestException on failure.
  */
-void shouldBeSameSetAs(V, E)(V value, E expected, in string file = __FILE__, in size_t line = __LINE__)
+void shouldBeSameSetAs(V, E)(auto ref V value, auto ref E expected, in string file = __FILE__, in size_t line = __LINE__)
 if (isInputRange!V && isInputRange!E && is(typeof(value.front != expected.front) == bool))
 {
     if (!isSameSet(value, expected))
@@ -923,7 +923,7 @@ if (isInputRange!V && isInputRange!E && is(typeof(value.front != expected.front)
     [Struct(1), Struct(4)].shouldBeSameSetAs([Struct(4), Struct(1)]);
 }
 
-private bool isSameSet(T, U)(T t, U u) {
+private bool isSameSet(T, U)(auto ref T t, auto ref U u) {
     //sort makes the element types have to implement opCmp
     //instead, try one by one
     auto ta = t.array;
@@ -941,7 +941,7 @@ private bool isSameSet(T, U)(T t, U u) {
  * Verify that value and expected do not represent the same set (ordering is not important).
  * Throws: UnitTestException on failure.
  */
-void shouldNotBeSameSetAs(V, E)(V value, E expected, in string file = __FILE__, in size_t line = __LINE__)
+void shouldNotBeSameSetAs(V, E)(auto ref V value, auto ref E expected, in string file = __FILE__, in size_t line = __LINE__)
 if (isInputRange!V && isInputRange!E && is(typeof(value.front != expected.front) == bool))
 {
     if (isSameSet(value, expected))
