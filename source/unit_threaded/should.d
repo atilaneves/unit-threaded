@@ -99,7 +99,7 @@ void shouldBeFalse(E)(lazy E condition, in string file = __FILE__, in size_t lin
  * Floating point values are compared using $(D std.math.approxEqual).
  * Throws: UnitTestException on failure
  */
-void shouldEqual(V, E)(V value, E expected, in string file = __FILE__, in size_t line = __LINE__)
+void shouldEqual(V, E)(auto ref V value, auto ref E expected, in string file = __FILE__, in size_t line = __LINE__)
 {
     if (!isEqual(value, expected))
     {
@@ -235,7 +235,7 @@ void shouldNotEqual(V, E)(V value, E expected, in string file = __FILE__, in siz
  * Verify that the value is null.
  * Throws: UnitTestException on failure
  */
-void shouldBeNull(T)(in T value, in string file = __FILE__, in size_t line = __LINE__)
+void shouldBeNull(T)(in auto ref T value, in string file = __FILE__, in size_t line = __LINE__)
 {
     if (value !is null)
         fail("Value is null", file, line);
@@ -252,7 +252,7 @@ void shouldBeNull(T)(in T value, in string file = __FILE__, in size_t line = __L
  * Verify that the value is not null.
  * Throws: UnitTestException on failure
  */
-void shouldNotBeNull(T)(in T value, in string file = __FILE__, in size_t line = __LINE__)
+void shouldNotBeNull(T)(in auto ref T value, in string file = __FILE__, in size_t line = __LINE__)
 {
     if (value is null)
         fail("Value is null", file, line);
@@ -292,7 +292,7 @@ static assert(!isLikeAssociativeArray!(string[string], int));
  * Verify that the value is in the container.
  * Throws: UnitTestException on failure
 */
-void shouldBeIn(T, U)(in T value, in U container, in string file = __FILE__, in size_t line = __LINE__)
+void shouldBeIn(T, U)(in auto ref T value, in auto ref U container, in string file = __FILE__, in size_t line = __LINE__)
     if (isLikeAssociativeArray!(U, T))
 {
     if (value !in container)
@@ -321,7 +321,7 @@ void shouldBeIn(T, U)(in T value, in U container, in string file = __FILE__, in 
  * Verify that the value is in the container.
  * Throws: UnitTestException on failure
  */
-void shouldBeIn(T, U)(in T value, U container, in string file = __FILE__, in size_t line = __LINE__)
+void shouldBeIn(T, U)(in auto ref T value, U container, in string file = __FILE__, in size_t line = __LINE__)
     if (!isLikeAssociativeArray!(U, T) && isInputRange!U)
 {
     if (find(container, value).empty)
@@ -343,7 +343,7 @@ void shouldBeIn(T, U)(in T value, U container, in string file = __FILE__, in siz
  * Verify that the value is not in the container.
  * Throws: UnitTestException on failure
  */
-void shouldNotBeIn(T, U)(in T value, in U container,
+void shouldNotBeIn(T, U)(in auto ref T value, in auto ref U container,
                          in string file = __FILE__, in size_t line = __LINE__)
     if (isLikeAssociativeArray!(U, T))
 {
@@ -374,7 +374,7 @@ void shouldNotBeIn(T, U)(in T value, in U container,
  * Verify that the value is not in the container.
  * Throws: UnitTestException on failure
  */
-void shouldNotBeIn(T, U)(in T value, U container,
+void shouldNotBeIn(T, U)(in auto ref T value, U container,
                          in string file = __FILE__, in size_t line = __LINE__)
     if (!isLikeAssociativeArray!(U, T) && isInputRange!U)
 {
@@ -582,7 +582,7 @@ void fail(in string output, in string file, in size_t line) @safe pure
 }
 
 
-private string[] formatValue(T)(in string prefix, T value) {
+private string[] formatValue(T)(in string prefix, auto ref T value) {
     static if(isSomeString!T) {
         // isSomeString is true for wstring and dstring,
         // so call .to!string anyway
@@ -590,8 +590,22 @@ private string[] formatValue(T)(in string prefix, T value) {
     } else static if(isInputRange!T) {
         return formatRange(prefix, value);
     } else {
-        return [() @trusted { return prefix ~ value.to!string; }()];
+        return [prefix ~ convertToString(value)];
     }
+}
+
+// helper function for non-copyable types
+private string convertToString(T)(in auto ref T value) { // std.conv.to sometimes is @system
+    import std.conv: to;
+
+    static if(__traits(compiles, value.to!string))
+        return () @trusted { return value.to!string; }();
+    else static if(__traits(compiles, value.toString))
+        return value.toString;
+    else
+        return T.stringof ~ "<cannot print>";
+
+
 }
 
 private string[] formatRange(T)(in string prefix, T value) {
@@ -615,7 +629,7 @@ private string[] formatRange(T)(in string prefix, T value) {
 
 private enum isObject(T) = is(T == class) || is(T == interface);
 
-private bool isEqual(V, E)(in V value, in E expected)
+private bool isEqual(V, E)(in auto ref V value, in auto ref E expected)
  if (!isObject!V &&
      (!isInputRange!V || !isInputRange!E) &&
      !isFloatingPoint!V && !isFloatingPoint!E &&
@@ -764,7 +778,7 @@ if (isInputRange!R)
  * Verify that aa is empty.
  * Throws: UnitTestException on failure.
  */
-void shouldBeEmpty(T)(in T aa, in string file = __FILE__, in size_t line = __LINE__)
+void shouldBeEmpty(T)(in auto ref T aa, in string file = __FILE__, in size_t line = __LINE__)
 if (isAssociativeArray!T)
 {
     //keys is @system
@@ -807,7 +821,7 @@ if (isInputRange!R)
  * Verify that aa is not empty.
  * Throws: UnitTestException on failure.
  */
-void shouldNotBeEmpty(T)(in T aa, in string file = __FILE__, in size_t line = __LINE__)
+void shouldNotBeEmpty(T)(in auto ref T aa, in string file = __FILE__, in size_t line = __LINE__)
 if (isAssociativeArray!T)
 {
     //keys is @system
@@ -839,7 +853,7 @@ if (isAssociativeArray!T)
  * Verify that t is greater than u.
  * Throws: UnitTestException on failure.
  */
-void shouldBeGreaterThan(T, U)(in T t, in U u,
+void shouldBeGreaterThan(T, U)(in auto ref T t, in auto ref U u,
                                in string file = __FILE__, in size_t line = __LINE__)
 {
     if (t <= u)
@@ -859,7 +873,7 @@ void shouldBeGreaterThan(T, U)(in T t, in U u,
  * Verify that t is smaller than u.
  * Throws: UnitTestException on failure.
  */
-void shouldBeSmallerThan(T, U)(in T t, in U u,
+void shouldBeSmallerThan(T, U)(in auto ref T t, in auto ref U u,
                                in string file = __FILE__, in size_t line = __LINE__)
 {
     if (t >= u)
@@ -981,8 +995,19 @@ void shouldBeSameJsonAs(in string actual,
 }
 
 ///
-@safe unittest {
+@safe unittest { // not pure because parseJSON isn't pure
     `{"foo": "bar"}`.shouldBeSameJsonAs(`{"foo": "bar"}`);
     `{"foo":    "bar"}`.shouldBeSameJsonAs(`{"foo":"bar"}`);
     `{"foo":"bar"}`.shouldBeSameJsonAs(`{"foo": "baz"}`).shouldThrow!UnitTestException;
+}
+
+@("Non-copyable types can be asserted on")
+@safe pure unittest {
+
+    struct Move {
+        int i;
+        @disable this(this);
+    }
+
+    Move(5).shouldEqual(Move(5));
 }
