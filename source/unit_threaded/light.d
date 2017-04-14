@@ -40,6 +40,15 @@ int runTests(T...)(in string[] args) {
         return 1;
 }
 
+void writelnUt(T...)(auto ref T args) {
+
+}
+
+void check(alias F)(int numFuncCalls = 100,
+                    in string file = __FILE__, in size_t line = __LINE__) @trusted {
+}
+
+
 void shouldBeTrue(E)(lazy E condition, in string file = __FILE__, in size_t line = __LINE__) {
     assert_(condition(), file, line);
 }
@@ -48,11 +57,11 @@ void shouldBeFalse(E)(lazy E condition, in string file = __FILE__, in size_t lin
     assert_(!condition(), file, line);
 }
 
-void shouldEqual(V, E)(auto ref V value, auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
+void shouldEqual(V, E)(in auto ref V value, in auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
     assert_(value == expected, file, line);
 }
 
-void shouldNotEqual(V, E)(auto ref V value, auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
+void shouldNotEqual(V, E)(in auto ref V value, in auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
     assert_(value != expected, file, line);
 }
 
@@ -154,7 +163,7 @@ void shouldApproxEqual(V, E)(in V value, in E expected, string file = __FILE__, 
     assert_(approxEqual(value, expected), file, line);
 }
 
-void shouldBeEmpty(R)(auto ref R rng, in string file = __FILE__, in size_t line = __LINE__) {
+void shouldBeEmpty(R)(in auto ref R rng, in string file = __FILE__, in size_t line = __LINE__) {
     import std.range: isInputRange;
     import std.traits: isAssociativeArray;
     import std.array;
@@ -167,7 +176,7 @@ void shouldBeEmpty(R)(auto ref R rng, in string file = __FILE__, in size_t line 
         static assert(false, "Cannot call shouldBeEmpty on " ~ R.stringof);
 }
 
-void shouldNotBeEmpty(R)(auto ref R rng, in string file = __FILE__, in size_t line = __LINE__) {
+void shouldNotBeEmpty(R)(in auto ref R rng, in string file = __FILE__, in size_t line = __LINE__) {
     import std.range: isInputRange;
     import std.traits: isAssociativeArray;
     import std.array;
@@ -192,15 +201,15 @@ void shouldBeSmallerThan(T, U)(in auto ref T t, in auto ref U u,
     assert_(t < u, file, line);
 }
 
-void shouldBeSameSetAs(V, E)(auto ref V value, auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
+void shouldBeSameSetAs(V, E)(in auto ref V value, in auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
     assert_(isSameSet(value, expected), file, line);
 }
 
-void shouldNotBeSameSetAs(V, E)(auto ref V value, auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
+void shouldNotBeSameSetAs(V, E)(in auto ref V value, in auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
     assert_(!isSameSet(value, expected), file, line);
 }
 
-private bool isSameSet(T, U)(auto ref T t, auto ref U u) {
+private bool isSameSet(T, U)(in auto ref T t, in auto ref U u) {
     import std.array: array;
 
     //sort makes the element types have to implement opCmp
