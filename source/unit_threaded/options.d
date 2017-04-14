@@ -1,10 +1,5 @@
 module unit_threaded.options;
 
-import std.getopt;
-import std.stdio;
-import std.random;
-import std.exception;
-
 
 struct Options {
     bool multiThreaded;
@@ -23,6 +18,11 @@ struct Options {
  * Parses the command-line args and returns Options
  */
 auto getOptions(string[] args) {
+
+    import std.stdio: writeln;
+    import std.random: unpredictableSeed;
+    import std.getopt: getopt;
+
     bool single;
     bool debugOutput;
     bool help;

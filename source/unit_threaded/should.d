@@ -6,10 +6,7 @@
 
 module unit_threaded.should;
 
-import std.exception;
-import std.conv;
-import std.algorithm;
-import std.traits;
+import std.traits; // too many to list
 import std.range;
 
 
@@ -27,12 +24,14 @@ class UnitTestException : Exception
     this(in string[] msgLines, string file = __FILE__,
          size_t line = __LINE__, Throwable next = null) @safe pure nothrow
     {
+        import std.string: join;
         super(msgLines.join("\n"), next, file, line);
         this.msgLines = msgLines;
     }
 
     override string toString() @safe const pure
     {
+        import std.algorithm: map;
         return () @trusted { return msgLines.map!(a => getOutputPrefix(file, line) ~ a).join("\n"); }();
     }
 
@@ -42,6 +41,7 @@ private:
 
     string getOutputPrefix(in string file, in size_t line) @safe const pure
     {
+        import std.conv: to;
         return "    " ~ file ~ ":" ~ line.to!string ~ " - ";
     }
 }
@@ -295,6 +295,8 @@ static assert(!isLikeAssociativeArray!(string[string], int));
 void shouldBeIn(T, U)(in auto ref T value, in auto ref U container, in string file = __FILE__, in size_t line = __LINE__)
     if (isLikeAssociativeArray!(U, T))
 {
+    import std.conv: to;
+
     if (value !in container)
     {
         fail("Value " ~ to!string(value) ~ " not in " ~ to!string(container), file,
@@ -324,6 +326,9 @@ void shouldBeIn(T, U)(in auto ref T value, in auto ref U container, in string fi
 void shouldBeIn(T, U)(in auto ref T value, U container, in string file = __FILE__, in size_t line = __LINE__)
     if (!isLikeAssociativeArray!(U, T) && isInputRange!U)
 {
+    import std.algorithm: find;
+    import std.conv: to;
+
     if (find(container, value).empty)
     {
         fail("Value " ~ to!string(value) ~ " not in " ~ to!string(container), file,
@@ -347,6 +352,8 @@ void shouldNotBeIn(T, U)(in auto ref T value, in auto ref U container,
                          in string file = __FILE__, in size_t line = __LINE__)
     if (isLikeAssociativeArray!(U, T))
 {
+    import std.conv: to;
+
     if (value in container)
     {
         fail("Value " ~ to!string(value) ~ " is in " ~ to!string(container), file,
@@ -378,6 +385,9 @@ void shouldNotBeIn(T, U)(in auto ref T value, U container,
                          in string file = __FILE__, in size_t line = __LINE__)
     if (!isLikeAssociativeArray!(U, T) && isInputRange!U)
 {
+    import std.algorithm: find;
+    import std.conv: to;
+
     if (find(container, value).length > 0)
     {
         fail("Value " ~ to!string(value) ~ " is in " ~ to!string(container), file,
@@ -424,6 +434,7 @@ void shouldThrow(T : Throwable = Exception, E)
 void shouldThrowExactly(T : Throwable = Exception, E)(lazy E expr,
     in string file = __FILE__, in size_t line = __LINE__)
 {
+    import std.conv: text;
 
     const threw = threw!T(expr);
     if (!threw)
@@ -583,6 +594,9 @@ void fail(in string output, in string file, in size_t line) @safe pure
 
 
 private string[] formatValue(T)(in string prefix, auto ref T value) {
+
+    import std.conv: to;
+
     static if(isSomeString!T) {
         // isSomeString is true for wstring and dstring,
         // so call .to!string anyway
@@ -609,6 +623,10 @@ private string convertToString(T)(in auto ref T value) { // std.conv.to sometime
 }
 
 private string[] formatRange(T)(in string prefix, T value) {
+    import std.conv: to;
+    import std.range: ElementType;
+    import std.algorithm: map, reduce, max;
+
     //some versions of `to` are @system
     auto defaultLines = () @trusted { return [prefix ~ value.to!string]; }();
 
@@ -682,6 +700,7 @@ void shouldApproxEqual(V, E)(in V value, in E expected, string file = __FILE__, 
 private bool isEqual(V, E)(V value, E expected)
 if (!isObject!V && isInputRange!V && isInputRange!E && is(typeof(value.front == expected.front) == bool))
 {
+    import std.algorithm: equal;
     return equal(value, expected);
 }
 
@@ -690,6 +709,8 @@ if (!isObject!V &&
     isInputRange!V && isInputRange!E && !is(typeof(value.front == expected.front) == bool) &&
     isInputRange!(ElementType!V) && isInputRange!(ElementType!E))
 {
+    import std.algorithm: equal;
+
     while (!value.empty && !expected.empty)
     {
         if (!equal(value.front, expected.front))
@@ -714,6 +735,8 @@ if (isObject!V && isObject!E)
 
 
 @safe pure unittest {
+    import std.conv: to;
+
     assert(isEqual(2, 2));
     assert(!isEqual(2, 3));
 
@@ -759,6 +782,7 @@ if (isObject!V && isObject!E)
 
 private void assertFail(E)(lazy E expression, in string file = __FILE__, in size_t line = __LINE__)
 {
+    import std.exception: assertThrown;
     assertThrown!UnitTestException(expression, null, file, line);
 }
 
@@ -869,6 +893,7 @@ if (isAssociativeArray!T)
 void shouldBeGreaterThan(T, U)(in auto ref T t, in auto ref U u,
                                in string file = __FILE__, in size_t line = __LINE__)
 {
+    import std.conv: text;
     if (t <= u)
         fail(text(t, " is not > ", u), file, line);
 }
@@ -889,6 +914,7 @@ void shouldBeGreaterThan(T, U)(in auto ref T t, in auto ref U u,
 void shouldBeSmallerThan(T, U)(in auto ref T t, in auto ref U u,
                                in string file = __FILE__, in size_t line = __LINE__)
 {
+    import std.conv: text;
     if (t >= u)
         fail(text(t, " is not < ", u), file, line);
 }
@@ -937,6 +963,8 @@ if (isInputRange!V && isInputRange!E && is(typeof(value.front != expected.front)
 }
 
 private bool isSameSet(T, U)(auto ref T t, auto ref U u) {
+    import std.algorithm: canFind;
+
     //sort makes the element types have to implement opCmp
     //instead, try one by one
     auto ta = t.array;

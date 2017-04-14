@@ -1,13 +1,12 @@
 module unit_threaded.asserts;
 
-import std.conv;
-
 @safe:
 
 /**
  * Helper to call the standard assert
  */
 void assertEqual(T, U)(T t, U u, string file = __FILE__, size_t line = __LINE__) @trusted /* std.conv.to */ {
+    import std.conv: to;
     assert(t == u, "\n" ~ file ~ ":" ~ line.to!string ~ "\nExp: " ~ u.to!string ~ "\nGot: " ~ t.to!string);
 }
 
@@ -16,13 +15,13 @@ void assertExceptionMsg(E)(lazy E expr, string expected,
                            in string file = __FILE__,
                            in size_t line = __LINE__)
 {
-    import unit_threaded.should;
+    import unit_threaded.should: UnitTestException;
     import std.string: stripLeft, replace, split;
     import std.path: dirSeparator;
     import std.algorithm: map, all, endsWith;
     import std.range: zip;
-    import std.conv: to;
-    import core.exception;
+    import std.conv: to, text;
+    import core.exception: AssertError;
 
     string getExceptionMsg(E)(lazy E expr) {
         try

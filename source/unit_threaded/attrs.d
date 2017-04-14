@@ -77,7 +77,7 @@ auto Values(T)(T[] values...) {
 }
 
 auto Values(R)(R values) if(isInputRange!R) {
-    import std.array;
+    import std.array: array;
     return ValuesImpl!(ElementType!R)(values.array);
 }
 

@@ -5,14 +5,16 @@
 
 module unit_threaded.runner;
 
-import unit_threaded.testsuite;
-import unit_threaded.options;
-import unit_threaded.io : enableDebugOutput, forceEscCodes;
-import unit_threaded.testcase : enableStackTrace, TestData;
-import unit_threaded.reflection : allTestData;
+import unit_threaded.reflection: TestData;
+import unit_threaded.options: Options;
+// import unit_threaded.testsuite;
+// import unit_threaded.options;
+// import unit_threaded.io : enableDebugOutput, forceEscCodes;
+// import unit_threaded.testcase : enableStackTrace, TestData;
+// import unit_threaded.reflection : allTestData;
 
-import std.conv : text;
-import std.algorithm : map, filter, count;
+// import std.conv : text;
+// import std.algorithm : map, filter, count;
 
 /**
  * Runs all tests in passed-in modules. Modules can be symbols or
@@ -43,6 +45,7 @@ mixin template runTestsMixin(Modules...) if(Modules.length > 0) {
  * Returns: An integer suitable for the program's return code.
  */
 int runTests(Modules...)(string[] args) if(Modules.length > 0) {
+    import unit_threaded.reflection: allTestData;
     return runTests(args, allTestData!Modules);
 }
 
@@ -56,6 +59,9 @@ int runTests(Modules...)(string[] args) if(Modules.length > 0) {
  * Returns: An integer suitable for the program's return code.
  */
 int runTests(string[] args, in TestData[] testData) {
+    import unit_threaded.options: getOptions;
+    import unit_threaded.testsuite: TestSuite;
+
     const options = getOptions(args);
     handleCmdLineOptions(options, testData);
     if (options.exit)
@@ -66,8 +72,13 @@ int runTests(string[] args, in TestData[] testData) {
 }
 
 private void handleCmdLineOptions(in Options options, in TestData[] testData) {
+
+    import unit_threaded.io: enableDebugOutput, forceEscCodes;
+    import unit_threaded.testcase: enableStackTrace;
+    import std.algorithm: map;
+
     if (options.list) {
-        import std.stdio;
+        import std.stdio: writeln;
 
         writeln("Listing tests:");
         foreach (test; testData.map!(a => a.name)) {

@@ -1,16 +1,7 @@
 module unit_threaded.factory;
 
-import unit_threaded.testcase;
-import unit_threaded.reflection;
-import unit_threaded.asserts;
-import unit_threaded.should;
-
-import std.stdio;
-import std.traits;
-import std.algorithm;
-import std.array;
-import std.string;
-import core.runtime;
+import unit_threaded.testcase: TestCase, CompositeTestCase;
+import unit_threaded.reflection: TestData;
 
 
 private CompositeTestCase[string] serialComposites;
@@ -20,6 +11,9 @@ private CompositeTestCase[string] serialComposites;
  * If testsToRun is empty, it means run all tests.
  */
 TestCase[] createTestCases(in TestData[] testData, in string[] testsToRun = []) {
+    import std.algorithm: sort;
+    import std.array: array;
+
     serialComposites = null;
     bool[TestCase] tests;
     foreach(const data; testData) {
@@ -33,7 +27,12 @@ TestCase[] createTestCases(in TestData[] testData, in string[] testsToRun = []) 
 
 
 package TestCase createTestCase(in TestData testData) {
+
+    import std.algorithm: splitter, reduce;
+    import std.array: array;
+
     TestCase createImpl() {
+        import unit_threaded.testcase: BuiltinTestCase, FunctionTestCase, ShouldFailTestCase;
         import std.conv: text;
 
         TestCase testCase;
@@ -63,8 +62,9 @@ package TestCase createTestCase(in TestData testData) {
         // A CompositeTestCase is created for each module with at least
         // one @Serial test and subsequent @Serial tests
         // appended to it
-        const moduleName = testData.name.splitter(".").
-            array[0 .. $ - 1].
+        //const moduleName = testData.name.dup.splitter(".")
+        const moduleName = testData.name.splitter(".")
+            .array[0 .. $ - 1].
             reduce!((a, b) => a ~ "." ~ b);
 
         // create one if not already there
@@ -86,6 +86,10 @@ package TestCase createTestCase(in TestData testData) {
 
 
 private bool isWantedTest(in TestData testData, in string[] testsToRun) {
+
+    import std.algorithm: filter, all, startsWith, canFind;
+    import std.array: array;
+
     bool isTag(in string t) { return t.startsWith("@") || t.startsWith("~@"); }
 
     auto normalToRun = testsToRun.filter!(a => !isTag(a)).array;
@@ -102,6 +106,9 @@ private bool isWantedTest(in TestData testData, in string[] testsToRun) {
 }
 
 private bool isWantedNonTagTest(in TestData testData, in string[] testsToRun) {
+
+    import std.algorithm: any, startsWith, canFind;
+
     if(!testsToRun.length) return !testData.hidden; //all tests except the hidden ones
 
     bool matchesExactly(in string t) {

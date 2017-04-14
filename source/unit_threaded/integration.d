@@ -8,8 +8,6 @@
 
 module unit_threaded.integration;
 
-import unit_threaded.should;
-
 version(Windows) {
     extern(C) int mkdir(char*);
     extern(C) char* mktemp(char* template_);
@@ -72,6 +70,7 @@ struct Sandbox {
     @safe unittest {
         import std.file;
         import std.path;
+        import unit_threaded.should;
 
         Sandbox.sandboxPath.shouldEqual(defaultSandboxPath);
 
@@ -124,6 +123,8 @@ struct Sandbox {
     void shouldExist(string fileName, in string file = __FILE__, in size_t line = __LINE__) const {
         import std.file;
         import std.path;
+        import unit_threaded.should: fail;
+
         fileName = buildPath(testPath, fileName);
         if(!fileName.exists)
             fail("Expected " ~ fileName ~ " to exist but it didn't", file, line);
@@ -132,6 +133,8 @@ struct Sandbox {
     ///
     @safe unittest {
         with(immutable Sandbox()) {
+            import unit_threaded.should;
+
             shouldExist("bar.txt").shouldThrow;
             writeFile("bar.txt");
             shouldExist("bar.txt");
@@ -142,6 +145,8 @@ struct Sandbox {
     void shouldNotExist(string fileName, in string file = __FILE__, in size_t line = __LINE__) const {
         import std.file;
         import std.path;
+        import unit_threaded.should;
+
         fileName = buildPath(testPath, fileName);
         if(fileName.exists)
             fail("Expected " ~ fileName ~ " to not exist but it did", file, line);
@@ -150,6 +155,8 @@ struct Sandbox {
     ///
     @safe unittest {
         with(immutable Sandbox()) {
+            import unit_threaded.should;
+
             shouldNotExist("baz.txt");
             writeFile("baz.txt");
             shouldNotExist("baz.txt").shouldThrow;
@@ -161,6 +168,7 @@ struct Sandbox {
                           string file = __FILE__, size_t line = __LINE__) const @trusted {
         import std.file;
         import std.string;
+        import unit_threaded.should;
 
         readText(buildPath(testPath, fileName)).chomp.splitLines
             .shouldEqual(lines, file, line);
@@ -169,6 +177,8 @@ struct Sandbox {
     ///
     @safe unittest {
         with(immutable Sandbox()) {
+            import unit_threaded.should;
+
             writeFile("lines.txt", ["foo", "toto"]);
             shouldEqualLines("lines.txt", ["foo", "bar"]).shouldThrow;
             shouldEqualLines("lines.txt", ["foo", "toto"]);
