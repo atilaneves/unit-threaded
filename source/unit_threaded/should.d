@@ -238,7 +238,7 @@ void shouldNotEqual(V, E)(V value, E expected, in string file = __FILE__, in siz
 void shouldBeNull(T)(in auto ref T value, in string file = __FILE__, in size_t line = __LINE__)
 {
     if (value !is null)
-        fail("Value is null", file, line);
+        fail("Value is not null", file, line);
 }
 
 ///
