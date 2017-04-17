@@ -375,7 +375,7 @@ private class Class {
 }
 
 
-auto mockStruct(T...)(T returns) {
+auto mockStruct(T...)(auto ref T returns) {
 
     struct Mock {
 

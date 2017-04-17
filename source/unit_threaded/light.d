@@ -76,17 +76,17 @@ auto mock(T)() {
     return utMock!T;
 }
 
-auto mockStruct()() {
+auto mockStruct(T...)(auto ref T returns) {
     import unit_threaded.mock: utMockStruct = mockStruct;
-    return utMockStruct;
+    return utMockStruct(returns);
 }
 
 void shouldBeTrue(E)(lazy E condition, in string file = __FILE__, in size_t line = __LINE__) {
-    assert_(condition(), file, line);
+    assert_(cast(bool)condition(), file, line);
 }
 
 void shouldBeFalse(E)(lazy E condition, in string file = __FILE__, in size_t line = __LINE__) {
-    assert_(!condition(), file, line);
+    assert_(!cast(bool)condition(), file, line);
 }
 
 void shouldEqual(V, E)(auto ref V value, auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
@@ -209,7 +209,7 @@ void shouldBeEmpty(R)(in auto ref R rng, in string file = __FILE__, in size_t li
     import std.array;
 
     static if(isInputRange!R)
-        assert_(rnd.empty, file, line);
+        assert_(rng.empty, file, line);
     else static if(isAssociativeArray!R)
         () @trusted { assert_(rng.keys.empty, file, line); }();
     else
@@ -251,6 +251,7 @@ void shouldNotBeSameSetAs(V, E)(in auto ref V value, in auto ref E expected, in 
 
 private bool isSameSet(T, U)(in auto ref T t, in auto ref U u) {
     import std.array: array;
+    import std.algorithm: canFind;
 
     //sort makes the element types have to implement opCmp
     //instead, try one by one
@@ -286,11 +287,15 @@ void shouldBeSameJsonAs(in string actual,
 }
 
 
-private void assert_(bool value, in string file, in size_t line) @safe pure {
+private void assert_(in bool value, in string file, in size_t line) @safe pure {
     assert_(value, "Assertion failure", file, line);
 }
 
 private void assert_(bool value, in string message, in string file, in size_t line) @trusted pure {
     if(!value)
         throw new Exception(message, file, line);
+}
+
+void fail(in string output, in string file, in size_t line) @safe pure {
+    assert_(false, output, file, line);
 }
