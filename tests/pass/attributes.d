@@ -109,3 +109,11 @@ void testTemplateWithTypeFromAnotherModule(T)() {
 unittest {
     getValue!string.length.shouldEqual(3);
 }
+
+struct UnittestInside{
+    @ShouldFail
+    @("TODO(tandrii): fix this to make it work.")
+    unittest{
+        assert(1 == 2, "this should fail");
+    }
+}
