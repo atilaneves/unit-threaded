@@ -1,6 +1,7 @@
 module unit_threaded.mock;
 
 import std.traits;
+import std.traits: allSameType;
 import unit_threaded.should: UnitTestException;
 
 alias Identity(alias T) = T;
@@ -101,7 +102,7 @@ private string typeAndArgsParens(T...)(string prefix) {
 }
 
 mixin template MockImplCommon() {
-    bool verified;
+    bool _verified;
     string[] expectedFuncs;
     string[] calledFuncs;
     string[] expectedValues;
@@ -121,6 +122,7 @@ mixin template MockImplCommon() {
     void expectCalled(string func, string file = __FILE__, size_t line = __LINE__, V...)(auto ref V values) {
         expect!func(values);
         verify(file, line);
+        _verified = false;
     }
 
     void verify(string file = __FILE__, size_t line = __LINE__) @safe pure {
@@ -128,11 +130,10 @@ mixin template MockImplCommon() {
         import std.conv: to;
         import unit_threaded.should: fail, UnitTestException;
 
+        if(_verified)
+            fail("Mock already _verified", file, line);
 
-        if(verified)
-            fail("Mock already verified", file, line);
-
-        verified = true;
+        _verified = true;
 
         for(int i = 0; i < expectedFuncs.length; ++i) {
 
@@ -174,7 +175,7 @@ struct Mock(T) {
     }
 
     ~this() pure @safe {
-        if(!verified) verify;
+        if(!_verified) verify;
     }
 
     void returnValue(string funcName, V...)(V values) {
@@ -376,7 +377,13 @@ private class Class {
 }
 
 
-auto mockStruct(T...)(auto ref T returns) {
+/**
+   Version of mockStruct that accepts 0 or more values of the same
+   type. Whatever function is called on it, these values will
+   be returned one by one. The limitation is that if more than one
+   function is called on the mock, they all return the same type
+ */
+auto mockStruct(T...)(auto ref T returns) if(allSameType!T) {
 
     struct Mock {
 
@@ -393,14 +400,18 @@ auto mockStruct(T...)(auto ref T returns) {
             mixin MockImplCommon;
 
             auto opDispatch(string funcName, V...)(auto ref V values) {
+
                 import std.conv: to;
                 import std.typecons: tuple;
+
                 calledFuncs ~= funcName;
                 calledValues ~= tuple(values).to!string;
+
                 static if(T.length > 0) {
+
                     if(_returnValues.length == 0) return typeof(_returnValues[0]).init;
                     auto ret = _returnValues[0];
-                     _returnValues = _returnValues[1..$];
+                    _returnValues = _returnValues[1..$];
                     return ret;
                 }
             }
@@ -409,10 +420,50 @@ auto mockStruct(T...)(auto ref T returns) {
 
     Mock m;
     m._impl = new Mock.MockImpl;
-    static if(T.length > 0)
+    static if(T.length > 0) {
         foreach(r; returns)
             m._impl._returnValues ~= r;
+    }
+
     return m;
+}
+
+/**
+   Version of mockStruct that accepts a compile-time mapping
+   of function name to return value. The number of compiie-time
+   parameters must be even, and each even index must be a string
+   representing a function name. When that function is called, the
+   value next to it is returned.
+ */
+
+auto mockStruct(T...)() if(T.length >= 2 && !allSameType!T) {
+
+    foreach(i, alias_; T) {
+        static assert(i % 2 == 1 || (is(typeof(alias_)) && is(typeof(alias_) == string)),
+                      "Even template arguments must be strings, not " ~ alias_.stringof);
+    }
+
+    struct Mock {
+        mixin MockImplCommon;
+
+        auto opDispatch(string funcName, V...)(auto ref V values) {
+
+            import std.conv: to;
+            import std.typecons: tuple;
+            import std.meta: staticIndexOf;
+
+            calledFuncs ~= funcName;
+            calledValues ~= tuple(values).to!string;
+
+            enum indexOfFunc = staticIndexOf!(funcName, T);
+            static assert(indexOfFunc >= 0 && indexOfFunc < T.length - 1,
+                          "Don't know what to return for " ~ funcName);
+            return T[indexOfFunc + 1];
+        }
+
+    }
+
+    return Mock();
 }
 
 
@@ -492,6 +543,16 @@ auto mockStruct(T...)(auto ref T returns) {
     auto m = mockStruct;
     fun(m);
     m.expectCalled!"foobar"(2, "quux");
+}
+
+@("mockStruct different return types for different functions")
+@safe pure unittest {
+    import unit_threaded.should: shouldEqual;
+    auto m = mockStruct!("length", 5, "greet", "hello");
+    m.length.shouldEqual(5);
+    m.greet("bar").shouldEqual("hello");
+    m.expectCalled!"length";
+    m.expectCalled!"greet"("bar");
 }
 
 
