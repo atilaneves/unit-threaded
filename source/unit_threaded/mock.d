@@ -530,10 +530,13 @@ auto mockStruct(T...)(auto ref T returns) {
 }
 
 
-auto throwStruct(T = UnitTestException)() {
+auto throwStruct(E = UnitTestException, R = void)() {
+
     struct Mock {
-        auto opDispatch(string funcName, V...)(auto ref V values) {
-            throw new T(funcName ~ " was called");
+
+        R opDispatch(string funcName, string file = __FILE__, size_t line = __LINE__, V...)
+                    (auto ref V values) {
+            throw new E(funcName ~ " was called", file, line);
         }
     }
 
@@ -562,4 +565,16 @@ version(testing_unit_threaded) {
     auto m = throwStruct!FooException;
     m.foo.shouldThrow!FooException;
     m.bar(1, "foo").shouldThrow!FooException;
+}
+
+
+@("throwStruct return value type")
+@safe pure unittest {
+    import unit_threaded.asserts;
+    auto m = throwStruct!(UnitTestException, int);
+    int i;
+    assertExceptionMsg(i = m.foo,
+                       "    source/unit_threaded/mock.d:123 - foo was called");
+    assertExceptionMsg(i = m.bar,
+                       "    source/unit_threaded/mock.d:123 - bar was called");
 }
