@@ -1,7 +1,7 @@
 module unit_threaded.mock;
 
 import std.traits;
-import std.traits: allSameType;
+import std.traits: allSameType, allSatisfy;
 import unit_threaded.should: UnitTestException;
 
 alias Identity(alias T) = T;
@@ -253,8 +253,8 @@ auto mock(T)() {
         m.expect!"foo"(6, "foobar");
         fun(m);
         assertExceptionMsg(m.verify,
-                           "    source/unit_threaded/mock.d:123 - foo was called with unexpected Tuple!(int, string)(5, \"foobar\")\n" ~
-                           "    source/unit_threaded/mock.d:123 -        instead of the expected Tuple!(int, string)(6, \"foobar\")");
+                           `    source/unit_threaded/mock.d:123 - foo was called with unexpected Tuple!(int, string)(5, "foobar")` ~ "\n" ~
+                           `    source/unit_threaded/mock.d:123 -        instead of the expected Tuple!(int, string)(6, "foobar")`);
     }
 
     {
@@ -262,8 +262,8 @@ auto mock(T)() {
         m.expect!"foo"(5, "quux");
         fun(m);
         assertExceptionMsg(m.verify,
-                           "    source/unit_threaded/mock.d:123 - foo was called with unexpected Tuple!(int, string)(5, \"foobar\")\n" ~
-                           "    source/unit_threaded/mock.d:123 -        instead of the expected Tuple!(int, string)(5, \"quux\")");
+                           `    source/unit_threaded/mock.d:123 - foo was called with unexpected Tuple!(int, string)(5, "foobar")` ~ "\n" ~
+                           `    source/unit_threaded/mock.d:123 -        instead of the expected Tuple!(int, string)(5, "quux")`);
     }
 }
 
@@ -376,6 +376,22 @@ private class Class {
     fun(m).shouldEqual(0);
 }
 
+struct ReturnValues(string function_, T...) if(allSatisfy!(isValue, T)) {
+    alias funcName = function_;
+    alias Values = T;
+
+    static auto values() {
+        typeof(T[0])[] ret;
+        foreach(val; T) {
+            ret ~= val;
+        }
+        return ret;
+    }
+}
+
+enum isReturnValue(alias T) = is(T: ReturnValues!U, U...);
+enum isValue(alias T) = is(typeof(T));
+
 
 /**
    Version of mockStruct that accepts 0 or more values of the same
@@ -383,7 +399,7 @@ private class Class {
    be returned one by one. The limitation is that if more than one
    function is called on the mock, they all return the same type
  */
-auto mockStruct(T...)(auto ref T returns) if(allSameType!T) {
+auto mockStruct(T...)(auto ref T returns) {
 
     struct Mock {
 
@@ -430,40 +446,45 @@ auto mockStruct(T...)(auto ref T returns) if(allSameType!T) {
 
 /**
    Version of mockStruct that accepts a compile-time mapping
-   of function name to return value. The number of compiie-time
-   parameters must be even, and each even index must be a string
-   representing a function name. When that function is called, the
-   value next to it is returned.
+   of function name to return values. Each template parameter
+   must be a value of type `ReturnValues`
  */
 
-auto mockStruct(T...)() if(T.length >= 2 && !allSameType!T) {
-
-    foreach(i, alias_; T) {
-        static assert(i % 2 == 1 || (is(typeof(alias_)) && is(typeof(alias_) == string)),
-                      "Even template arguments must be strings, not " ~ alias_.stringof);
-    }
+auto mockStruct(T...)() if(T.length > 0 && allSatisfy!(isReturnValue, T)) {
 
     struct Mock {
         mixin MockImplCommon;
+
+        int[string] _retIndices;
 
         auto opDispatch(string funcName, V...)(auto ref V values) {
 
             import std.conv: to;
             import std.typecons: tuple;
-            import std.meta: staticIndexOf;
 
             calledFuncs ~= funcName;
             calledValues ~= tuple(values).to!string;
 
-            enum indexOfFunc = staticIndexOf!(funcName, T);
-            static assert(indexOfFunc >= 0 && indexOfFunc < T.length - 1,
-                          "Don't know what to return for " ~ funcName);
-            return T[indexOfFunc + 1];
+            foreach(retVal; T) {
+                static if(retVal.funcName == funcName) {
+                    return retVal.values[_retIndices[funcName]++];
+                }
+            }
+        }
+
+        auto lefoofoo() {
+            return T[0].values[_retIndices["greet"]++];
         }
 
     }
 
-    return Mock();
+    Mock mock;
+
+    foreach(retVal; T) {
+        mock._retIndices[retVal.funcName] = 0;
+    }
+
+    return mock;
 }
 
 
@@ -548,11 +569,28 @@ auto mockStruct(T...)() if(T.length >= 2 && !allSameType!T) {
 @("mockStruct different return types for different functions")
 @safe pure unittest {
     import unit_threaded.should: shouldEqual;
-    auto m = mockStruct!("length", 5, "greet", "hello");
+    auto m = mockStruct!(ReturnValues!("length", 5),
+                         ReturnValues!("greet", "hello"));
     m.length.shouldEqual(5);
     m.greet("bar").shouldEqual("hello");
     m.expectCalled!"length";
     m.expectCalled!"greet"("bar");
+}
+
+@("mockStruct different return types for different functions and multiple return values")
+@safe pure unittest {
+    import unit_threaded.should: shouldEqual;
+    auto m = mockStruct!(ReturnValues!("length", 5, 3),
+                         ReturnValues!("greet", "hello", "g'day"));
+    m.length.shouldEqual(5);
+    m.expectCalled!"length";
+    m.length.shouldEqual(3);
+    m.expectCalled!"length";
+
+    m.greet("bar").shouldEqual("hello");
+    m.expectCalled!"greet"("bar");
+    m.greet("quux").shouldEqual("g'day");
+    m.expectCalled!"greet"("quux");
 }
 
 
