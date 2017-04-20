@@ -1,6 +1,7 @@
 module unit_threaded.mock;
 
 import std.traits;
+import unit_threaded.should: UnitTestException;
 
 alias Identity(alias T) = T;
 private enum isPrivate(T, string member) = !__traits(compiles, __traits(getMember, T, member));
@@ -391,7 +392,7 @@ auto mockStruct(T...)(auto ref T returns) {
 
             mixin MockImplCommon;
 
-            auto opDispatch(string funcName, V...)(V values) {
+            auto opDispatch(string funcName, V...)(auto ref V values) {
                 import std.conv: to;
                 import std.typecons: tuple;
                 calledFuncs ~= funcName;
@@ -526,4 +527,39 @@ auto mockStruct(T...)(auto ref T returns) {
     m.expect!"func"("foo");
     m.func("foo").shouldEqual(7);
     m.verify;
+}
+
+
+auto throwStruct(T = UnitTestException)() {
+    struct Mock {
+        auto opDispatch(string funcName, V...)(auto ref V values) {
+            throw new T(funcName ~ " was called");
+        }
+    }
+
+    return Mock();
+}
+
+@("throwStruct default")
+@safe pure unittest {
+    import unit_threaded.should: shouldThrow;
+    auto m = throwStruct;
+    m.foo.shouldThrow!UnitTestException;
+    m.bar(1, "foo").shouldThrow!UnitTestException;
+}
+
+version(testing_unit_threaded) {
+    class FooException: Exception {
+        import std.exception: basicExceptionCtors;
+        mixin basicExceptionCtors;
+    }
+}
+
+@("throwStruct custom")
+@safe pure unittest {
+    import unit_threaded.should: shouldThrow;
+
+    auto m = throwStruct!FooException;
+    m.foo.shouldThrow!FooException;
+    m.bar(1, "foo").shouldThrow!FooException;
 }

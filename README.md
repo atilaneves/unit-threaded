@@ -322,6 +322,22 @@ assert(fun(m, 3, "bar") == 2);
 m.expectCalled!"foo"(6, "barstuff");
 ```
 
+Structs that always throw:
+
+```d
+{
+    auto m = throwStruct;
+    m.foo.shouldThrow!UnitTestException;
+}
+
+{
+    auto m = throwStruct!MyException;
+    m.foo.shouldThrow!MyException;
+}
+
+
+```
+
 Command-line Parameters
 -----------------------
 
