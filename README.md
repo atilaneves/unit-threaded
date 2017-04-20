@@ -317,9 +317,37 @@ Structs can also be mocked:
 
 ```d
 int fun(T)(T f, int i, string s) { return f.foo(i * 2, s ~ "stuff"); }
-auto m = mockStruct(2, 3, 4); // the ints are return values
+auto m = mockStruct(2, 3, 4); // the ints are return values (none need be passed)
 assert(fun(m, 3, "bar") == 2);
 m.expectCalled!"foo"(6, "barstuff");
+```
+
+If a struct is needed that returns different types for different functions:
+
+```d
+    auto m = mockStruct!(ReturnValues!("length", 5, 3),
+                         ReturnValues!("greet", "hello", "g'day"));
+    m.length.shouldEqual(5);
+    m.length.shouldEqual(3);
+    m.greet.shouldEqual("hello");
+    m.grett.shouldEqual("g'day");
+```
+
+
+Structs that always throw:
+
+```d
+{
+    auto m = throwStruct;
+    m.foo.shouldThrow!UnitTestException;
+}
+
+{
+    auto m = throwStruct!MyException;
+    m.foo.shouldThrow!MyException;
+}
+
+
 ```
 
 Command-line Parameters
