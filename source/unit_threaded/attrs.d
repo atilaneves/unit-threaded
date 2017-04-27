@@ -76,6 +76,7 @@ auto Values(T)(T[] values...) {
     return ValuesImpl!T(values.dup);
 }
 
+import std.range.primitives : isInputRange;
 auto Values(R)(R values) if(isInputRange!R) {
     import std.array: array;
     return ValuesImpl!(ElementType!R)(values.array);
