@@ -28,7 +28,6 @@
             "sourceFiles": ["example/example_pass.d"],
             "mainSourceFile": "example/example_pass.d",
             "versions": ["testing_unit_threaded", "unitUnthreaded"],
-            "dflags": ["-unittest"]
         },
 
         {
@@ -39,7 +38,6 @@
             "sourceFiles": ["example/example_pass.d"],
             "mainSourceFile": "example/example_pass.d",
             "versions": ["testing_unit_threaded", "unitThreadedLight"],
-            "dflags": ["-unittest"]
         },
 
         {
