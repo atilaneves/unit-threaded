@@ -953,9 +953,8 @@ unittest {
 @("issue 33") unittest {
     import unit_threaded.factory;
     import unit_threaded.testcase;
-    import test.issue33;
 
-    const testData = allTestData!"test.issue33";
+    const testData = allTestData!"unit_threaded.tests.issue33";
     assertEqual(testData.length, 1);
 }
 
