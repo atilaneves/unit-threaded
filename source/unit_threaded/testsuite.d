@@ -204,8 +204,10 @@ void replaceModuleUnitTester() {
     Runtime.moduleUnitTester = &moduleUnitTester;
 }
 
-shared static this() {
-    replaceModuleUnitTester();
+version(testing_unit_threaded) {
+    shared static this() {
+        replaceModuleUnitTester();
+    }
 }
 
 /**

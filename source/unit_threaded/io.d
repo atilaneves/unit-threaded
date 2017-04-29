@@ -400,73 +400,71 @@ version(testing_unit_threaded) {
         gOut = FakeFile("out", "mode");
         gErr = FakeFile("err", "mode");
     }
-}
-
-unittest {
-    import std.concurrency: spawn, thisTid, send, receiveOnly;
-    import unit_threaded.should;
-
-    enableDebugOutput(false);
-    resetFakeFiles;
-
-    auto tid = spawn(&threadWriter!(gOut, gErr), thisTid);
-    tid.send(ThreadWait());
-    receiveOnly!ThreadStarted;
-
-    gOut.shouldEqual(shared FakeFile(nullFileName, "w"));
-    gErr.shouldEqual(shared FakeFile(nullFileName, "w"));
-
-    tid.send(ThreadFinish());
-    receiveOnly!ThreadEnded;
-}
-
-unittest {
-    import std.concurrency: spawn, send, thisTid, receiveOnly;
-    import unit_threaded.should;
-
-    enableDebugOutput(true);
-    scope(exit) enableDebugOutput(false);
-    resetFakeFiles;
-
-    auto tid = spawn(&threadWriter!(gOut, gErr), thisTid);
-    tid.send(ThreadWait());
-    receiveOnly!ThreadStarted;
-
-    gOut.shouldEqual(shared FakeFile("out", "mode"));
-    gErr.shouldEqual(shared FakeFile("err", "mode"));
-
-    tid.send(ThreadFinish());
-    receiveOnly!ThreadEnded;
-}
-
-unittest {
-    import std.concurrency: spawn, thisTid, send, receiveOnly;
-    import unit_threaded.should;
-
-    resetFakeFiles;
-
-    auto tid = spawn(&threadWriter!(gOut, gErr), thisTid);
-    tid.send(ThreadWait());
-    receiveOnly!ThreadStarted;
-
-    tid.send("foobar\n", thisTid);
-    tid.send("toto\n", thisTid);
-    gOut.output.shouldBeEmpty; // since it writes to the old gOut
-
-    tid.send(ThreadFinish());
-    receiveOnly!ThreadEnded;
-
-    // gOut is restored so the output should be here
-    gOut.lines.shouldEqual(
-        [
-            "foobar",
-            "toto",
-        ]
-    );
-}
 
 
-version(testing_unit_threaded) {
+    unittest {
+        import std.concurrency: spawn, thisTid, send, receiveOnly;
+        import unit_threaded.should;
+
+        enableDebugOutput(false);
+        resetFakeFiles;
+
+        auto tid = spawn(&threadWriter!(gOut, gErr), thisTid);
+        tid.send(ThreadWait());
+        receiveOnly!ThreadStarted;
+
+        gOut.shouldEqual(shared FakeFile(nullFileName, "w"));
+        gErr.shouldEqual(shared FakeFile(nullFileName, "w"));
+
+        tid.send(ThreadFinish());
+        receiveOnly!ThreadEnded;
+    }
+
+    unittest {
+        import std.concurrency: spawn, send, thisTid, receiveOnly;
+        import unit_threaded.should;
+
+        enableDebugOutput(true);
+        scope(exit) enableDebugOutput(false);
+        resetFakeFiles;
+
+        auto tid = spawn(&threadWriter!(gOut, gErr), thisTid);
+        tid.send(ThreadWait());
+        receiveOnly!ThreadStarted;
+
+        gOut.shouldEqual(shared FakeFile("out", "mode"));
+        gErr.shouldEqual(shared FakeFile("err", "mode"));
+
+        tid.send(ThreadFinish());
+        receiveOnly!ThreadEnded;
+    }
+
+    unittest {
+        import std.concurrency: spawn, thisTid, send, receiveOnly;
+        import unit_threaded.should;
+
+        resetFakeFiles;
+
+        auto tid = spawn(&threadWriter!(gOut, gErr), thisTid);
+        tid.send(ThreadWait());
+        receiveOnly!ThreadStarted;
+
+        tid.send("foobar\n", thisTid);
+        tid.send("toto\n", thisTid);
+        gOut.output.shouldBeEmpty; // since it writes to the old gOut
+
+        tid.send(ThreadFinish());
+        receiveOnly!ThreadEnded;
+
+        // gOut is restored so the output should be here
+        gOut.lines.shouldEqual(
+            [
+                "foobar",
+                "toto",
+                ]
+            );
+    }
+
     void otherThread(Tid writerTid, Tid testTid) {
         import std.concurrency: send, receiveOnly, OwnerTerminated, thisTid;
         try {
@@ -481,43 +479,44 @@ version(testing_unit_threaded) {
             receiveOnly!bool;
         } catch(OwnerTerminated ex) {}
     }
-}
 
-unittest {
-    import std.concurrency: spawn, thisTid, send, receiveOnly;
-    import unit_threaded.should;
 
-    resetFakeFiles;
+    unittest {
+        import std.concurrency: spawn, thisTid, send, receiveOnly;
+        import unit_threaded.should;
 
-    auto writerTid = spawn(&threadWriter!(gOut, gErr), thisTid);
-    writerTid.send(ThreadWait());
-    receiveOnly!ThreadStarted;
+        resetFakeFiles;
 
-    writerTid.send("foobar\n", thisTid);
-    auto otherTid = spawn(&otherThread, writerTid, thisTid);
-    receiveOnly!bool; //wait for otherThread 1st message
-    writerTid.send("toto\n", thisTid);
-    otherTid.send(true); //tell otherThread to continue
-    receiveOnly!bool; //wait for otherThread 2nd message
-    writerTid.send("last one from me\n", thisTid);
-    writerTid.send(Flush()); //finish with our output
-    otherTid.send(true); //finish
-    receiveOnly!bool;
+        auto writerTid = spawn(&threadWriter!(gOut, gErr), thisTid);
+        writerTid.send(ThreadWait());
+        receiveOnly!ThreadStarted;
 
-    writerTid.send(ThreadFinish());
-    receiveOnly!ThreadEnded;
+        writerTid.send("foobar\n", thisTid);
+        auto otherTid = spawn(&otherThread, writerTid, thisTid);
+        receiveOnly!bool; //wait for otherThread 1st message
+        writerTid.send("toto\n", thisTid);
+        otherTid.send(true); //tell otherThread to continue
+        receiveOnly!bool; //wait for otherThread 2nd message
+        writerTid.send("last one from me\n", thisTid);
+        writerTid.send(Flush()); //finish with our output
+        otherTid.send(true); //finish
+        receiveOnly!bool;
 
-    // gOut is restored so the output should be here
-    // the output should also be serialised despite
-    // sending messages from two threads
-    gOut.lines.shouldEqual(
-        [
-            "foobar",
-            "toto",
-            "last one from me",
-            "what about me?",
-            "seriously, what about me?",
-            "final attempt",
-        ]
-    );
+        writerTid.send(ThreadFinish());
+        receiveOnly!ThreadEnded;
+
+        // gOut is restored so the output should be here
+        // the output should also be serialised despite
+        // sending messages from two threads
+        gOut.lines.shouldEqual(
+            [
+                "foobar",
+                "toto",
+                "last one from me",
+                "what about me?",
+                "seriously, what about me?",
+                "final attempt",
+                ]
+            );
+    }
 }

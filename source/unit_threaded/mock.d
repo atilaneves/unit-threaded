@@ -655,15 +655,16 @@ version(testing_unit_threaded) {
         import std.exception: basicExceptionCtors;
         mixin basicExceptionCtors;
     }
-}
 
-@("throwStruct custom")
-@safe pure unittest {
-    import unit_threaded.should: shouldThrow;
 
-    auto m = throwStruct!FooException;
-    m.foo.shouldThrow!FooException;
-    m.bar(1, "foo").shouldThrow!FooException;
+    @("throwStruct custom")
+        @safe pure unittest {
+        import unit_threaded.should: shouldThrow;
+
+        auto m = throwStruct!FooException;
+        m.foo.shouldThrow!FooException;
+        m.bar(1, "foo").shouldThrow!FooException;
+    }
 }
 
 
