@@ -9,6 +9,4 @@ matrix:
         - d: ldc
 
 script:
-  - dub test
-  - dub run -c unittest-unthreaded --build=unittest
-  - dub run -c unittest-light --build=unittest
+  - ./test.sh

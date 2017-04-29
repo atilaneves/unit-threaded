@@ -91,11 +91,22 @@ void shouldBeFalse(E)(lazy E condition, in string file = __FILE__, in size_t lin
 
 void shouldEqual(V, E)(auto ref V value, auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
 
+    void checkInputRange(T)(auto ref const(T) _) @trusted {
+        auto obj = cast(T)_;
+        bool e = obj.empty;
+        auto f = obj.front;
+        obj.popFront;
+    }
+    enum isInputRange(T) = is(T: Elt[], Elt) || is(typeof(checkInputRange(T.init)));
+
     static if(is(V == class)) {
         assert_(value.tupleof == expected.tupleof, file, line);
-    } else static if(!__traits(compiles, value == expected) && __traits(compiles, value.front == expected.front)) {
+    } else static if(isInputRange!V && isInputRange!E) {
+        auto ref unqual(T)(auto ref const(T) obj) @trusted {
+            return cast(T)obj;
+        }
         import std.algorithm: equal;
-        assert_(equal(value, expected), file, line);
+        assert_(equal(unqual(value), unqual(expected)), file, line);
     } else {
         assert_(cast(const)value == cast(const)expected, file, line);
     }
