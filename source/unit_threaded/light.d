@@ -103,7 +103,10 @@ void shouldEqual(V, E)(auto ref V value, auto ref E expected, in string file = _
         assert_(value.tupleof == expected.tupleof, file, line);
     } else static if(isInputRange!V && isInputRange!E) {
         auto ref unqual(T)(auto ref const(T) obj) @trusted {
-            return cast(T)obj;
+            static if(is(T == void[]))
+                return cast(ubyte[])obj;
+            else
+                return cast(T)obj;
         }
         import std.algorithm: equal;
         assert_(equal(unqual(value), unqual(expected)), file, line);
