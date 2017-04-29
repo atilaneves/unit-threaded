@@ -93,11 +93,11 @@ void shouldEqual(V, E)(auto ref V value, auto ref E expected, in string file = _
 
     static if(is(V == class)) {
         assert_(value.tupleof == expected.tupleof, file, line);
-    } else static if(!__traits(compiles, value == expected)) {
+    } else static if(!__traits(compiles, value == expected) && __traits(compiles, value.front == expected.front)) {
         import std.algorithm: equal;
         assert_(equal(value, expected), file, line);
     } else {
-        assert_(value == expected, file, line);
+        assert_(cast(const)value == cast(const)expected, file, line);
     }
 }
 
