@@ -109,3 +109,9 @@ void testTemplateWithTypeFromAnotherModule(T)() {
 unittest {
     getValue!string.length.shouldEqual(3);
 }
+
+@("Built-in with values range")
+@Values(["red", "goo"])
+unittest {
+    getValue!string.length.shouldEqual(3);
+}
