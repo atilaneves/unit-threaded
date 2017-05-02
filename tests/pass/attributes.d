@@ -115,3 +115,11 @@ unittest {
 unittest {
     getValue!string.length.shouldEqual(3);
 }
+
+@("Test_parse_hostgroup")
+@Values("abc", "abc1", "abc.xyz", "abc1.xyz", "abc12345.xyz.asd")
+unittest {
+    import std.algorithm: startsWith;
+    string val = getValue!(string);
+    val.startsWith("abc").shouldBeTrue;
+}

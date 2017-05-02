@@ -1,5 +1,8 @@
 module unit_threaded.attrs;
 
+import std.range.primitives : isInputRange, ElementType;
+
+
 enum UnitTest; //opt-in to registration
 enum DontTest; //opt-out of registration
 enum Serial; //run tests in the module in one thread / serially
@@ -76,7 +79,6 @@ auto Values(T)(T[] values...) {
     return ValuesImpl!T(values.dup);
 }
 
-import std.range.primitives : isInputRange;
 auto Values(R)(R values) if(isInputRange!R) {
     import std.array: array;
     return ValuesImpl!(ElementType!R)(values.array);
