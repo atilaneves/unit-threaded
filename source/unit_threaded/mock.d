@@ -30,50 +30,56 @@ string implMixinStr(T)() {
 
             alias member = Identity!(__traits(getMember, T, memberName));
 
-            static if(__traits(isAbstractFunction, member)) {
+            static if(__traits(isVirtualMethod, member)) {
                 foreach(i, overload; __traits(getOverloads, T, memberName)) {
 
-                    enum overloadName = text(memberName, "_", i);
+                    static if(!(functionAttributes!member & FunctionAttribute.const_) &&
+                              !(functionAttributes!member & FunctionAttribute.const_)) {
 
-                    enum overloadString = getOverload(memberName, i);
-                    lines ~= "private alias %s_parameters = Parameters!(%s);".format(overloadName, overloadString);
-                    lines ~= "private alias %s_returnType = ReturnType!(%s);".format(overloadName, overloadString);
 
-                    static if(functionAttributes!member & FunctionAttribute.nothrow_)
-                        enum tryIndent = "    ";
-                    else
-                        enum tryIndent = "";
+                        enum overloadName = text(memberName, "_", i);
 
-                    static if(is(ReturnType!member == void))
-                        enum returnDefault = "";
-                    else {
-                        enum varName = overloadName ~ `_returnValues`;
-                        lines ~= `%s_returnType[] %s;`.format(overloadName, varName);
+                        enum overloadString = getOverload(memberName, i);
+                        lines ~= "private alias %s_parameters = Parameters!(%s);".format(overloadName, overloadString);
+                        lines ~= "private alias %s_returnType = ReturnType!(%s);".format(overloadName, overloadString);
+
+                        static if(functionAttributes!member & FunctionAttribute.nothrow_)
+                            enum tryIndent = "    ";
+                        else
+                            enum tryIndent = "";
+
+                        static if(is(ReturnType!member == void))
+                            enum returnDefault = "";
+                        else {
+                            enum varName = overloadName ~ `_returnValues`;
+                            lines ~= `%s_returnType[] %s;`.format(overloadName, varName);
+                            lines ~= "";
+                            enum returnDefault = [`    if(` ~ varName ~ `.length > 0) {`,
+                                                  `        auto ret = ` ~ varName ~ `[0];`,
+                                                  `        ` ~ varName ~ ` = ` ~ varName ~ `[1..$];`,
+                                                  `        return ret;`,
+                                                  `    } else`,
+                                                  `        return %s_returnType.init;`.format(overloadName)];
+                        }
+
+                        lines ~= `override ` ~ overloadName ~ "_returnType " ~ memberName ~
+                            typeAndArgsParens!(Parameters!member)(overloadName) ~ " " ~
+                            functionAttributesString!member ~ ` {`;
+
+                        static if(functionAttributes!member & FunctionAttribute.nothrow_)
+                            lines ~= "try {";
+
+                        lines ~= tryIndent ~ `    calledFuncs ~= "` ~ memberName ~ `";`;
+                        lines ~= tryIndent ~ `    calledValues ~= tuple` ~ argNamesParens(arity!member) ~ `.to!string;`;
+
+                        static if(functionAttributes!member & FunctionAttribute.nothrow_)
+                            lines ~= "    } catch(Exception) {}";
+
+                        lines ~= returnDefault;
+
+                        lines ~= `}`;
                         lines ~= "";
-                        enum returnDefault = [`    if(` ~ varName ~ `.length > 0) {`,
-                                              `        auto ret = ` ~ varName ~ `[0];`,
-                                              `        ` ~ varName ~ ` = ` ~ varName ~ `[1..$];`,
-                                              `        return ret;`,
-                                              `    } else`,
-                                              `        return %s_returnType.init;`.format(overloadName)];
                     }
-
-                    lines ~= `override ` ~ overloadName ~ "_returnType " ~ memberName ~
-                        typeAndArgsParens!(Parameters!member)(overloadName) ~ ` {`;
-
-                    static if(functionAttributes!member & FunctionAttribute.nothrow_)
-                        lines ~= "try {";
-
-                    lines ~= tryIndent ~ `    calledFuncs ~= "` ~ memberName ~ `";`;
-                    lines ~= tryIndent ~ `    calledValues ~= tuple` ~ argNamesParens(arity!member) ~ `.to!string;`;
-
-                    static if(functionAttributes!member & FunctionAttribute.nothrow_)
-                        lines ~= "    } catch(Exception) {}";
-
-                    lines ~= returnDefault;
-
-                    lines ~= `}`;
-                    lines ~= "";
                 }
             }
         }
@@ -108,6 +114,31 @@ private string typeAndArgsParens(T...)(string prefix) {
     foreach(i, t; T)
         parts ~= "%s_parameters[%s] arg%s".format(prefix, i, i);
     return "(" ~ parts.join(", ") ~ ")";
+}
+
+private string functionAttributesString(alias F)() {
+    import std.traits: functionAttributes, FunctionAttribute;
+    import std.array: join;
+
+    if(!__ctfe) return null;
+
+    string[] parts;
+
+    const attrs = functionAttributes!F;
+
+    if(attrs & FunctionAttribute.pure_) parts ~= "pure";
+    if(attrs & FunctionAttribute.nothrow_) parts ~= "nothrow";
+    if(attrs & FunctionAttribute.trusted) parts ~= "@trusted";
+    if(attrs & FunctionAttribute.safe) parts ~= "@safe";
+    if(attrs & FunctionAttribute.nogc) parts ~= "@nogc";
+    if(attrs & FunctionAttribute.system) parts ~= "@system";
+    // const and immutable can't be done since the mock needs
+    // to alter state
+    // if(attrs & FunctionAttribute.const_) parts ~= "const";
+    // if(attrs & FunctionAttribute.immutable_) parts ~= "immutable";
+    if(attrs & FunctionAttribute.shared_) parts ~= "shared";
+
+    return parts.join(" ");
 }
 
 mixin template MockImplCommon() {
@@ -188,7 +219,7 @@ struct Mock(T) {
     }
 
     void returnValue(string funcName, V...)(V values) {
-        assertFunctionIsAbstract!funcName;
+        assertFunctionIsVirtual!funcName;
         return returnValue!(0, funcName)(values);
     }
 
@@ -203,18 +234,18 @@ struct Mock(T) {
        ---------
      */
     void returnValue(int i, string funcName, V...)(V values) {
-        assertFunctionIsAbstract!funcName;
+        assertFunctionIsVirtual!funcName;
         import std.conv: text;
         enum varName = funcName ~ text(`_`, i, `_returnValues`);
         foreach(v; values)
             mixin(varName ~ ` ~=  v;`);
     }
 
-    private static void assertFunctionIsAbstract(string funcName)() {
+    private static void assertFunctionIsVirtual(string funcName)() {
         alias member = Identity!(__traits(getMember, T, funcName));
 
-        static assert(__traits(isAbstractFunction, member),
-                      "Cannot use returnValue on '" ~ funcName ~ "' since it's not abstract");
+        static assert(__traits(isVirtualMethod, member),
+                      "Cannot use returnValue on '" ~ funcName ~ "'");
     }
 }
 
@@ -307,6 +338,7 @@ private class Class {
     abstract int foo(int, string) @safe pure;
     final int timesTwo(int i) @safe pure nothrow const { return i * 2; }
     int timesThree(int i) @safe pure nothrow const { return i * 3; }
+    int timesThreeMutable(int i) @safe pure nothrow { return i * 3; }
 }
 
 @("mock class positive test")
@@ -464,11 +496,11 @@ auto mockStruct(T...)(auto ref T returns) {
     return m;
 }
 
-/**
-   Version of mockStruct that accepts a compile-time mapping
-   of function name to return values. Each template parameter
-   must be a value of type `ReturnValues`
- */
+// /**
+//    Version of mockStruct that accepts a compile-time mapping
+//    of function name to return values. Each template parameter
+//    must be a value of type `ReturnValues`
+//  */
 
 auto mockStruct(T...)() if(T.length > 0 && allSatisfy!(isReturnValue, T)) {
 
@@ -699,16 +731,17 @@ version(testing_unit_threaded) {
                        "    source/unit_threaded/mock.d:123 - bar was called");
 }
 
-// won't compile
-// @("issue 68")
-// @safe pure unittest {
-//     int fun(Class f) {
-//         // f.timesTwo is mocked to return 2, no matter what's passed in
-//         return 2 * f.timesTwo(int.max);
-//     }
+@("issue 68")
+@safe pure unittest {
+    import unit_threaded.should;
 
-//     auto m = mock!Class;
-//     m.expect!"timesTwo";
-//     m.returnValue!("timesTwo")(2);
-//     assert(fun(m) == 4);
-// }
+    int fun(Class f) {
+        // f.timesTwo is mocked to return 2, no matter what's passed in
+        return f.timesThreeMutable(2);
+    }
+
+    auto m = mock!Class;
+    m.expect!"timesThreeMutable"(2);
+    m.returnValue!("timesThreeMutable")(42);
+    fun(m).shouldEqual(42);
+}
