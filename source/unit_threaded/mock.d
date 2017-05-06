@@ -678,3 +678,16 @@ version(testing_unit_threaded) {
     assertExceptionMsg(i = m.bar,
                        "    source/unit_threaded/mock.d:123 - bar was called");
 }
+
+@("issue 68")
+@safe pure unittest {
+    int fun(Class f) {
+        // f.timesTwo is mocked to return 2, no matter what's passed in
+        return 2 * f.timesTwo(int.max);
+    }
+
+    auto m = mock!Class;
+    m.expect!"timesTwo";
+    m.returnValue!("timesTwo")(2);
+    assert(fun(m) == 4);
+}
