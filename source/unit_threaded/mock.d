@@ -15,6 +15,8 @@ string implMixinStr(T)() {
     import std.traits: functionAttributes, FunctionAttribute, Parameters, arity;
     import std.conv: text;
 
+    if(!__ctfe) return null;
+
     string[] lines;
 
     string getOverload(in string memberName, in int i) {
@@ -81,6 +83,7 @@ string implMixinStr(T)() {
 }
 
 private string argNamesParens(int N) @safe pure {
+    if(!__ctfe) return null;
     return "(" ~ argNames(N) ~ ")";
 }
 
@@ -88,6 +91,8 @@ private string argNames(int N) @safe pure {
     import std.range;
     import std.algorithm;
     import std.conv;
+
+    if(!__ctfe) return null;
     return iota(N).map!(a => "arg" ~ a.to!string).join(", ");
 }
 
@@ -95,7 +100,11 @@ private string typeAndArgsParens(T...)(string prefix) {
     import std.array;
     import std.conv;
     import std.format : format;
+
+    if(!__ctfe) return null;
+
     string[] parts;
+
     foreach(i, t; T)
         parts ~= "%s_parameters[%s] arg%s".format(prefix, i, i);
     return "(" ~ parts.join(", ") ~ ")";
@@ -179,6 +188,7 @@ struct Mock(T) {
     }
 
     void returnValue(string funcName, V...)(V values) {
+        assertFunctionIsAbstract!funcName;
         return returnValue!(0, funcName)(values);
     }
 
@@ -193,14 +203,24 @@ struct Mock(T) {
        ---------
      */
     void returnValue(int i, string funcName, V...)(V values) {
+        assertFunctionIsAbstract!funcName;
         import std.conv: text;
         enum varName = funcName ~ text(`_`, i, `_returnValues`);
         foreach(v; values)
             mixin(varName ~ ` ~=  v;`);
     }
+
+    private static void assertFunctionIsAbstract(string funcName)() {
+        alias member = Identity!(__traits(getMember, T, funcName));
+
+        static assert(__traits(isAbstractFunction, member),
+                      "Cannot use returnValue on '" ~ funcName ~ "' since it's not abstract");
+    }
 }
 
 private string importsString(string module_, string[] Modules...) {
+    if(!__ctfe) return null;
+
     auto ret = `import ` ~ module_ ~ ";\n";
     foreach(extraModule; Modules) {
         ret ~= `import ` ~ extraModule ~ ";\n";
@@ -679,15 +699,16 @@ version(testing_unit_threaded) {
                        "    source/unit_threaded/mock.d:123 - bar was called");
 }
 
-@("issue 68")
-@safe pure unittest {
-    int fun(Class f) {
-        // f.timesTwo is mocked to return 2, no matter what's passed in
-        return 2 * f.timesTwo(int.max);
-    }
+// won't compile
+// @("issue 68")
+// @safe pure unittest {
+//     int fun(Class f) {
+//         // f.timesTwo is mocked to return 2, no matter what's passed in
+//         return 2 * f.timesTwo(int.max);
+//     }
 
-    auto m = mock!Class;
-    m.expect!"timesTwo";
-    m.returnValue!("timesTwo")(2);
-    assert(fun(m) == 4);
-}
+//     auto m = mock!Class;
+//     m.expect!"timesTwo";
+//     m.returnValue!("timesTwo")(2);
+//     assert(fun(m) == 4);
+// }
