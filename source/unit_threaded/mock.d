@@ -36,7 +36,6 @@ string implMixinStr(T)() {
                     static if(!(functionAttributes!member & FunctionAttribute.const_) &&
                               !(functionAttributes!member & FunctionAttribute.const_)) {
 
-
                         enum overloadName = text(memberName, "_", i);
 
                         enum overloadString = getOverload(memberName, i);
@@ -62,6 +61,7 @@ string implMixinStr(T)() {
                                                   `        return %s_returnType.init;`.format(overloadName)];
                         }
 
+                        pragma(msg, "Parameters for member: ", memberName, " - ", Parameters!member);
                         lines ~= `override ` ~ overloadName ~ "_returnType " ~ memberName ~
                             typeAndArgsParens!(Parameters!member)(overloadName) ~ " " ~
                             functionAttributesString!member ~ ` {`;
@@ -205,7 +205,7 @@ struct Mock(T) {
         import std.conv: to;
         import std.traits: Parameters, ReturnType;
         import std.typecons: tuple;
-        //pragma(msg, "\nimplMixinStr for ", T, "\n\n", implMixinStr!T, "\n\n");
+        pragma(msg, "\nimplMixinStr for ", T, "\n\n", implMixinStr!T, "\n\n");
         mixin(implMixinStr!T);
         mixin MockImplCommon;
     }
@@ -744,4 +744,29 @@ version(testing_unit_threaded) {
     m.expect!"timesThreeMutable"(2);
     m.returnValue!("timesThreeMutable")(42);
     fun(m).shouldEqual(42);
+}
+
+@("mock test overloaded class methods")
+unittest {
+    import unit_threaded.should;
+    interface InterfaceWithOverloadedFuncs {
+        string foo();
+        string foo(int str);
+    }
+
+    class ClassWithOverloadedFuncs {
+        string foo();
+        string foo(int str);
+    }
+    auto iMock = mock!InterfaceWithOverloadedFuncs;
+    iMock.returnValue!(0, "foo")("bar");
+    iMock.returnValue!(1, "foo")("baz");
+    iMock.foo.shouldEqual("bar");
+    iMock.foo("zing").shouldEqual("baz");
+
+    auto cMock = mock!ClassWithOverloadedFuncs;
+    cMock.returnValue!(0, "foo")("bar");
+    cMock.returnValue!(1, "foo")("baz");
+    cMock.foo.shouldEqual("bar");
+    cMock.foo("zing").shouldEqual("baz");
 }
