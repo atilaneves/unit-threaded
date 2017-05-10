@@ -108,10 +108,8 @@ struct Sandbox {
     }
 
     /// Returns a File in the tests sandbox path
-    /// You must ensure you flush to or close the file
-    /// when finished.
     /// Returns: A temporary File in this testcases tmp directory
-    auto getFile(in string fileName) const {
+    auto tmpFile(in string fileName) const {
         import std.path : buildPath;
         import std.stdio: File;
         return File(buildPath(testPath, fileName), "w");
@@ -136,7 +134,7 @@ struct Sandbox {
 
         with(immutable Sandbox()) {
             assert(!buildPath(testPath, "foo.txt").exists);
-            File testFile = getFile("foo.txt");
+            File testFile = tmpFile("foo.txt");
             assert(buildPath(testPath, "foo.txt").exists);
 
             testFile.writef("Test %s", 1);
