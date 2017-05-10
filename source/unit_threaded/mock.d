@@ -62,7 +62,7 @@ string implMixinStr(T)() {
                         }
 
                         lines ~= `override ` ~ overloadName ~ "_returnType " ~ memberName ~
-                            typeAndArgsParens!(Parameters!member)(overloadName) ~ " " ~
+                            typeAndArgsParens!(Parameters!overload)(overloadName) ~ " " ~
                             functionAttributesString!member ~ ` {`;
 
                         static if(functionAttributes!member & FunctionAttribute.nothrow_)
@@ -204,6 +204,7 @@ struct Mock(T) {
         import std.conv: to;
         import std.traits: Parameters, ReturnType;
         import std.typecons: tuple;
+
         //pragma(msg, "\nimplMixinStr for ", T, "\n\n", implMixinStr!T, "\n\n");
         mixin(implMixinStr!T);
         mixin MockImplCommon;
@@ -748,24 +749,26 @@ version(testing_unit_threaded) {
 @("issue69")
 unittest {
     import unit_threaded.should;
-    interface InterfaceWithOverloadedFuncs {
-        string foo();
-        string foo(int str);
+
+    static interface InterfaceWithOverloadedFuncs {
+        string over();
+        string over(string str);
     }
 
-    class ClassWithOverloadedFuncs {
-        string foo();
-        string foo(int str);
+    static class ClassWithOverloadedFuncs {
+        string over() { return "oops"; }
+        string over(string str) { return "oopsie"; }
     }
+
     auto iMock = mock!InterfaceWithOverloadedFuncs;
-    iMock.returnValue!(0, "foo")("bar");
-    iMock.returnValue!(1, "foo")("baz");
-    iMock.foo.shouldEqual("bar");
-    iMock.foo("zing").shouldEqual("baz");
+    iMock.returnValue!(0, "over")("bar");
+    iMock.returnValue!(1, "over")("baz");
+    iMock.over.shouldEqual("bar");
+    iMock.over("zing").shouldEqual("baz");
 
     auto cMock = mock!ClassWithOverloadedFuncs;
-    cMock.returnValue!(0, "foo")("bar");
-    cMock.returnValue!(1, "foo")("baz");
-    cMock.foo.shouldEqual("bar");
-    cMock.foo("zing").shouldEqual("baz");
+    cMock.returnValue!(0, "over")("bar");
+    cMock.returnValue!(1, "over")("baz");
+    cMock.over.shouldEqual("bar");
+    cMock.over("zing").shouldEqual("baz");
 }
