@@ -61,7 +61,6 @@ string implMixinStr(T)() {
                                                   `        return %s_returnType.init;`.format(overloadName)];
                         }
 
-                        pragma(msg, "Parameters for member: ", memberName, " - ", Parameters!member);
                         lines ~= `override ` ~ overloadName ~ "_returnType " ~ memberName ~
                             typeAndArgsParens!(Parameters!member)(overloadName) ~ " " ~
                             functionAttributesString!member ~ ` {`;
@@ -205,7 +204,7 @@ struct Mock(T) {
         import std.conv: to;
         import std.traits: Parameters, ReturnType;
         import std.typecons: tuple;
-        pragma(msg, "\nimplMixinStr for ", T, "\n\n", implMixinStr!T, "\n\n");
+        //pragma(msg, "\nimplMixinStr for ", T, "\n\n", implMixinStr!T, "\n\n");
         mixin(implMixinStr!T);
         mixin MockImplCommon;
     }
@@ -746,7 +745,7 @@ version(testing_unit_threaded) {
     fun(m).shouldEqual(42);
 }
 
-@("mock test overloaded class methods")
+@("issue69")
 unittest {
     import unit_threaded.should;
     interface InterfaceWithOverloadedFuncs {
