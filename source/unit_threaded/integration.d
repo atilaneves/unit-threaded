@@ -107,6 +107,14 @@ struct Sandbox {
         writeFile(fileName, lines.join("\n"));
     }
 
+    /// Returns a File in the tests sandbox path
+    /// Returns: A temporary File in this testcases tmp directory
+    auto tmpFile(in string fileName) const {
+        import std.path : buildPath;
+        import std.stdio: File;
+        return File(buildPath(testPath, fileName), "w");
+    }
+
     ///
     @safe unittest {
         import std.file;
@@ -116,6 +124,23 @@ struct Sandbox {
             assert(!buildPath(testPath, "foo.txt").exists);
             writeFile("foo.txt");
             assert(buildPath(testPath, "foo.txt").exists);
+        }
+    }
+
+    @safe unittest {
+        import std.stdio : File, writef, writeln;
+        import std.path : buildPath;
+        import std.file : exists;
+
+        with(immutable Sandbox()) {
+            assert(!buildPath(testPath, "foo.txt").exists);
+            File testFile = tmpFile("foo.txt");
+            assert(buildPath(testPath, "foo.txt").exists);
+
+            testFile.writef("Test %s", 1);
+            testFile.writeln("23");
+            testFile.close;
+            shouldEqualLines("foo.txt", ["Test 123"]);
         }
     }
 
