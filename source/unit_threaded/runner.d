@@ -7,14 +7,6 @@ module unit_threaded.runner;
 
 import unit_threaded.reflection: TestData;
 import unit_threaded.options: Options;
-// import unit_threaded.testsuite;
-// import unit_threaded.options;
-// import unit_threaded.io : enableDebugOutput, forceEscCodes;
-// import unit_threaded.testcase : enableStackTrace, TestData;
-// import unit_threaded.reflection : allTestData;
-
-// import std.conv : text;
-// import std.algorithm : map, filter, count;
 
 /**
  * Runs all tests in passed-in modules. Modules can be symbols or
