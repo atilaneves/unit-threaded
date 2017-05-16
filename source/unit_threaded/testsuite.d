@@ -46,6 +46,11 @@ struct TestSuite
         _testCases = createTestCases(testData, options.testsToRun);
     }
 
+    ~this() {
+        import unit_threaded.io: WriterThread;
+        WriterThread.stop;
+    }
+
     /**
      * Runs all test cases.
      * Returns: true if no test failed, false otherwise.

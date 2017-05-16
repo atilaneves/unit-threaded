@@ -261,6 +261,26 @@ class WriterThread: Output {
         }
     }
 
+
+    static void stop() {
+
+        void impl() {
+            WriterThread.get.flush;
+            WriterThread.get.join;
+        }
+
+        if (_instantiated) {
+            impl;
+            return;
+        }
+
+        synchronized {
+            if (_instance !is null) {
+                impl;
+            }
+        }
+    }
+
     /**
      * Waits for the writer thread to terminate.
      */
