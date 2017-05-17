@@ -96,8 +96,11 @@ struct Sandbox {
 
     /// Write a file to the sandbox
     void writeFile(in string fileName, in string output = "") const {
-        import std.stdio;
-        import std.path;
+        import std.stdio: File;
+        import std.path: buildPath, dirName;
+        import std.file: mkdirRecurse;
+
+        () @trusted { mkdirRecurse(buildPath(testPath, fileName.dirName)); }();
         File(buildPath(testPath, fileName), "w").writeln(output);
     }
 
@@ -116,6 +119,16 @@ struct Sandbox {
             assert(!buildPath(testPath, "foo.txt").exists);
             writeFile("foo.txt");
             assert(buildPath(testPath, "foo.txt").exists);
+        }
+    }
+
+    @safe unittest {
+        import std.file: exists;
+        import std.path: buildPath;
+
+        with(immutable Sandbox()) {
+            writeFile("foo/bar.txt");
+            assert(buildPath(testPath, "foo", "bar.txt").exists);
         }
     }
 
