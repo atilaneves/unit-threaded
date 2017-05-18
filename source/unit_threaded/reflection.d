@@ -129,8 +129,21 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
     }
 
     void function() getUDAFunction(alias composite, alias uda)() pure nothrow {
-        import std.traits: moduleName, isSomeFunction, hasUDA;
-        mixin(`import ` ~ moduleName!composite ~ `;`);
+        import std.traits: fullyQualifiedName, isSomeFunction, hasUDA;
+
+        // Given a project with structure:
+        //    source/
+        //        sub/
+        //            folder/
+        //                package.d
+        //
+        // unit-threaded attempts to import sub.folder.folder,
+        // while it should only be importing sub.folder.
+
+        // this is only way I could think of to make it import correctly
+        // note that this DOES break unit-threaded's own tests, need
+        // a better solution
+        mixin(`import ` ~ fullyQualifiedName!composite ~ `;`);
         void function()[] ret;
         foreach(memberStr; __traits(allMembers, composite)) {
             static if(__traits(compiles, Identity!(__traits(getMember, composite, memberStr)))) {
