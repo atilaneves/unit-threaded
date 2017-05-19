@@ -326,15 +326,15 @@ unittest {
 private template isPrivate(alias module_, string moduleMember) {
     import std.traits: fullyQualifiedName;
 
-    mixin(`import ` ~ fullyQualifiedName!module_ ~ `: ` ~ moduleMember ~ `;`);
-    static if(__traits(compiles, isSomeFunction!(mixin(moduleMember)))) {
-        alias member = Identity!(mixin(moduleMember));
-        static if(__traits(compiles, &member))
+    // obfuscate the name (user code might just be defining their own isPrivate)
+    mixin(`import ` ~ fullyQualifiedName!module_ ~ `: ut_mmbr__ = ` ~ moduleMember ~ `;`);
+    static if(__traits(compiles, isSomeFunction!(ut_mmbr__))) {
+        static if(__traits(compiles, &ut_mmbr__))
             enum isPrivate = false;
-        else static if(__traits(compiles, new member))
+        else static if(__traits(compiles, new ut_mmbr__))
             enum isPrivate = false;
-        else static if(__traits(compiles, HasTypes!member))
-            enum isPrivate = !HasTypes!member;
+        else static if(__traits(compiles, HasTypes!ut_mmbr__))
+            enum isPrivate = !HasTypes!ut_mmbr__;
         else
             enum isPrivate = true;
     } else {
@@ -435,7 +435,7 @@ TestData[] moduleTestClasses(alias module_)() pure nothrow {
 
         alias member = Identity!(mixin(moduleMember));
 
-        static if(isPrivate!(module_, moduleMember)) {
+        static if(.isPrivate!(module_, moduleMember)) {
             enum isTestClass = false;
         } else static if(!__traits(compiles, isAggregateType!(member))) {
             enum isTestClass = false;
@@ -472,7 +472,7 @@ TestData[] moduleTestFunctions(alias module_)() pure {
 
         mixin(importMember!module_(moduleMember));
 
-        static if(isPrivate!(module_, moduleMember)) {
+        static if(.isPrivate!(module_, moduleMember)) {
             enum isTestFunction = false;
         } else static if(AliasSeq!(mixin(moduleMember)).length != 1) {
             enum isTestFunction = false;
