@@ -244,8 +244,8 @@ class WriterThread: Output {
     override void flush() @safe {
         version(unitUnthreaded) {}
         else {
-            import std.concurrency: send;
-            () @trusted { _tid.send(Flush()); }();
+            import std.concurrency: send, thisTid;
+            () @trusted { _tid.send(Flush(), thisTid); }();
         }
     }
 
@@ -382,7 +382,10 @@ private void threadWriter(alias OUT, alias ERR)(Tid tid)
             (ThreadFinish f) {
                 done = true;
             },
-            (Flush f) {
+            (Flush f, Tid originTid) {
+
+                if(currentTid != currentTid.init && currentTid != originTid)
+                    return;
 
                 foreach(t, output; outputs)
                     actuallyPrint(output);
@@ -518,7 +521,7 @@ version(testing_unit_threaded) {
         otherTid.send(true); //tell otherThread to continue
         receiveOnly!bool; //wait for otherThread 2nd message
         writerTid.send("last one from me\n", thisTid);
-        writerTid.send(Flush()); //finish with our output
+        writerTid.send(Flush(), thisTid); //finish with our output
         otherTid.send(true); //finish
         receiveOnly!bool;
 
