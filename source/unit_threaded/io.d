@@ -494,12 +494,18 @@ version(testing_unit_threaded) {
             writerTid.send("what about me?\n", thisTid);
             testTid.send(true);
             receiveOnly!bool;
+
             writerTid.send("seriously, what about me?\n", thisTid);
             testTid.send(true);
             receiveOnly!bool;
-            writerTid.send("final attempt\n", thisTid);
+
+            writerTid.send(Flush(), thisTid);
             testTid.send(true);
             receiveOnly!bool;
+
+            writerTid.send("final attempt\n", thisTid);
+            testTid.send(true);
+
         } catch(OwnerTerminated ex) {}
     }
 
@@ -517,13 +523,18 @@ version(testing_unit_threaded) {
         writerTid.send("foobar\n", thisTid);
         auto otherTid = spawn(&otherThread, writerTid, thisTid);
         receiveOnly!bool; //wait for otherThread 1st message
+
         writerTid.send("toto\n", thisTid);
         otherTid.send(true); //tell otherThread to continue
         receiveOnly!bool; //wait for otherThread 2nd message
+
         writerTid.send("last one from me\n", thisTid);
+        otherTid.send(true); // tell otherThread to continue
+        receiveOnly!bool; // wait for otherThread to try and flush (won't work)
+
         writerTid.send(Flush(), thisTid); //finish with our output
         otherTid.send(true); //finish
-        receiveOnly!bool;
+        receiveOnly!bool; // wait for otherThread to finish
 
         writerTid.send(ThreadFinish());
         receiveOnly!ThreadEnded;
