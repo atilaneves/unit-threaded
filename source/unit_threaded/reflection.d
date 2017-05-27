@@ -129,8 +129,20 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
     }
 
     void function() getUDAFunction(alias composite, alias uda)() pure nothrow {
-        import std.traits: moduleName, isSomeFunction, hasUDA;
-        mixin(`import ` ~ moduleName!composite ~ `;`);
+        import std.traits: fullyQualifiedName, moduleName, isSomeFunction, hasUDA;
+
+        // Due to:
+        // https://issues.dlang.org/show_bug.cgi?id=17441
+        // moduleName!composite might fail, so we try to import that only if
+        // if compiles, then try again with fullyQualifiedName
+        enum moduleNameStr = `import ` ~ moduleName!composite ~ `;`;
+        enum fullyQualifiedStr = `import ` ~ fullyQualifiedName!composite ~ `;`;
+
+        static if(__traits(compiles, mixin(moduleNameStr)))
+            mixin(moduleNameStr);
+        else static if(__traits(compiles, mixin(fullyQualifiedStr)))
+            mixin(fullyQualifiedStr);
+
         void function()[] ret;
         foreach(memberStr; __traits(allMembers, composite)) {
             static if(__traits(compiles, Identity!(__traits(getMember, composite, memberStr)))) {
