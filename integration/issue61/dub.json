@@ -1,0 +1,15 @@
+{
+    "name": "issue61",
+    "authors": [
+        "atila"
+    ],
+    "sourcePaths": ["."],
+    "importPaths": ["."],
+    "mainSourceFile": "main.d",
+    "dependencies": {
+        "unit-threaded": {"path": "../../"}
+    },
+    "description": "A minimal D application.",
+    "copyright": "Copyright © 2017, atila",
+    "license": "proprietary"
+}

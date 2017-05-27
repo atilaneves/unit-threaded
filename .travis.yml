@@ -10,3 +10,4 @@ matrix:
 
 script:
   - ./test.sh
+  - integration/run.sh
