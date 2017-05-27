@@ -60,7 +60,7 @@ const(TestData)[] allTestData(MOD_STRINGS...)() if(allSatisfy!(isSomeString, typ
  * Template parameters are module symbols
  */
 const(TestData)[] allTestData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
-    auto allTestsWithFunc(string expr, MOD_SYMBOLS...)() pure {
+    auto allTestsWithFunc(string expr)() pure {
         import std.traits: ReturnType;
         import std.meta: AliasSeq;
         //tests is whatever type expr returns
@@ -71,9 +71,9 @@ const(TestData)[] allTestData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString, ty
         return tests;
     }
 
-    return allTestsWithFunc!(q{moduleTestClasses}, MOD_SYMBOLS) ~
-           allTestsWithFunc!(q{moduleTestFunctions}, MOD_SYMBOLS) ~
-           allTestsWithFunc!(q{moduleUnitTests}, MOD_SYMBOLS);
+    return allTestsWithFunc!"moduleTestClasses" ~
+           allTestsWithFunc!"moduleTestFunctions" ~
+           allTestsWithFunc!"moduleUnitTests";
 }
 
 
