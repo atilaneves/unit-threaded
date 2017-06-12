@@ -65,6 +65,7 @@ configuration "executable" {
 configuration "unittest" {
     dependency "unit-threaded" version="~>0.7.11"
     mainSourceFile "bin/ut.d"
+    excludedSourceFiles "src/main.d"
     preBuildCommands "dub run unit-threaded -c gen_ut_main -- -f bin/ut.d"
 }
 
