@@ -450,8 +450,6 @@ TestData[] moduleTestClasses(alias module_)() pure nothrow {
         static if(.isPrivate!(module_, moduleMember)) {
             enum isTestClass = false;
         } else static if(!__traits(compiles, isAggregateType!(member))) {
-            static if(moduleMember .canFind("Issue83")) pragma(msg, "aggregate");
-
             enum isTestClass = false;
         } else static if(!isAggregateType!(member)) {
             enum isTestClass = false;
