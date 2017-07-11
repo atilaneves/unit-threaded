@@ -450,14 +450,17 @@ TestData[] moduleTestClasses(alias module_)() pure nothrow {
         static if(.isPrivate!(module_, moduleMember)) {
             enum isTestClass = false;
         } else static if(!__traits(compiles, isAggregateType!(member))) {
+            static if(moduleMember .canFind("Issue83")) pragma(msg, "aggregate");
+
             enum isTestClass = false;
         } else static if(!isAggregateType!(member)) {
             enum isTestClass = false;
-        } else static if(!__traits(compiles, mixin("new " ~ moduleMember))) {
+        } else static if(!__traits(compiles, { return new member; })) {
             enum isTestClass = false; //can't new it, can't use it
         } else {
             enum hasUnitTest = HasAttribute!(module_, moduleMember, UnitTest);
             enum hasTestMethod = __traits(hasMember, member, "test");
+
             enum isTestClass = is(member == class) && (hasTestMethod || hasUnitTest);
         }
     }
@@ -701,7 +704,7 @@ version(unittest) {
 }
 
 unittest {
-    const expected = addModPrefix([ "FooTest", "BarTest", "Blergh"]);
+    const expected = addModPrefix([ "FooTest", "BarTest", "Blergh", "Issue83"]);
     const actual = moduleTestClasses!(unit_threaded.tests.module_with_tests).
         map!(a => a.name).array;
     assertEqual(actual, expected);

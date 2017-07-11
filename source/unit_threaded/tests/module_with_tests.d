@@ -71,3 +71,11 @@ struct StructWithUnitTests{
 
 // github issue #26 - template instance GetTypes!uint does not match template declaration
 alias RGB = uint;
+
+
+import unit_threaded: TestCase;
+
+class Issue83: TestCase {
+    this() {}
+    override void test() {}
+}
