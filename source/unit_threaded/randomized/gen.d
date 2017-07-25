@@ -217,7 +217,7 @@ struct Gen(T, size_t low = 0, size_t high = 32) if (isSomeString!T)
         for (size_t i = 0; i < numElems; ++i)
         {
             size_t toSelect = uniform!("[)")(0, numCharsInCharSet, gen);
-            app.put(charSet.byDchar().drop(toSelect).front);
+            app.put(charSet.drop(toSelect).front);
         }
 
         this.value = app.data;

@@ -11,3 +11,5 @@ dub.selections.json
 ut_pass*
 ut_fail*
 gen_ut_main
+perf.data
+perf.data.old
