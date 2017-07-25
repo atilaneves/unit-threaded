@@ -175,9 +175,14 @@ unittest
 {
     import std.meta : AliasSeq, staticMap;
 
+    struct Foo {
+        int i;
+        double d;
+    }
+
     foreach (T; AliasSeq!(byte, ubyte, ushort, short, uint, int, ulong, long,
                           float, double, real,
-                          string, wstring, dstring))
+                          string, wstring, dstring, Foo))
     {
         alias TP = staticMap!(ParameterToGen, T);
         static assert(isGen!TP);
