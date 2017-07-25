@@ -304,3 +304,16 @@ unittest {
     }
     check!identity;
 }
+
+unittest {
+    struct Foo {
+        int i;
+        short s;
+    }
+
+    bool identity(Foo f) pure {
+        return f == f;
+    }
+
+    check!identity;
+}

@@ -540,19 +540,26 @@ struct Gen(T) if(isAggregateType!T) {
     AggregateTuple!(Fields!T) generators;
 
     alias Value = T;
+    Value value;
 
     T gen(ref Random rnd) @safe {
         static if(is(T == class))
-            auto ret = new T;
-        else
-            T ret;
+            if(value is null)
+                value = new T;
 
         foreach(i, ref g; generators) {
-            ret.tupleof[i] = g.gen(rnd);
+            value.tupleof[i] = g.gen(rnd);
         }
 
-        return ret;
+        return value;
     }
+
+    inout(T) opCall() inout {
+        return this.value;
+    }
+
+    alias opCall this;
+
 }
 
 @("struct")
