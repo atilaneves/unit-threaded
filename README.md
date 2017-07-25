@@ -251,9 +251,8 @@ Classes could override `setup` and `shutdown` already.
 Property-based testing
 ----------------------
 
-There is preliminary and experimental support for property-based testing.
-The current types supported are all primitive types, all 3 string types,
-and arrays of these types. To check a property use the `check` function
+There is preliminary support for property-based testing.
+To check a property use the `check` function
 from `unit_threaded.property` with a function returning `bool`:
 
 ```d
