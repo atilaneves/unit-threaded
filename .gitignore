@@ -13,3 +13,4 @@ ut_fail*
 gen_ut_main
 perf.data
 perf.data.old
+unit-threaded-test-unittest-only

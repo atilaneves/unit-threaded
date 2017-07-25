@@ -21,6 +21,12 @@
         },
 
         {
+            "name": "unittest-only",
+            "targetType": "executable",
+            "versions": ["testing_unit_threaded"]
+        },
+
+        {
             "name": "unittest-unthreaded",
             "targetType": "executable",
             "targetName": "ut_pass",
