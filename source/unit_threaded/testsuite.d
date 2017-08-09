@@ -186,7 +186,7 @@ private:
         if (!_failures.empty)
             _output.writeln("");
         foreach (failure; _failures) {
-            _output.write("Test ", (failure.canFind(" ") ? `"` ~ failure ~ `"` : failure), " ");
+            _output.write("Test ", (failure.canFind(" ") ? `'` ~ failure ~ `'` : failure), " ");
             _output.writeRed("failed");
             _output.writeln(".");
         }
