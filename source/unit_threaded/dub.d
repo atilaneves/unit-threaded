@@ -71,13 +71,17 @@ private string[] jsonValueToStrings(JSONValue json) @trusted {
 
 
 private auto byKey(JSONValue json, in string key) @trusted {
-    return json.object[key];
+    import std.json: JSONException;
+    if (auto p = key in json.object)
+        return *p;
+    else throw new JSONException("\"" ~ key ~ "\" not found");
 }
 
 private auto byOptionalKey(JSONValue json, in string key, bool def) {
-    import std.conv: to;
-    auto value = json.object;
-    return key in value ? value[key].boolean : def;
+    if (auto p = key in json.object)
+        return (*p).boolean;
+    else
+        return def;
 }
 
 //std.json has no conversion to bool
@@ -90,35 +94,51 @@ private bool boolean(JSONValue json) @trusted {
 }
 
 private string getOptional(JSONValue json, in string key) @trusted {
-    auto aa = json.object;
-    return key in aa ? aa[key].str : "";
+    if (auto p = key in json.object)
+        return p.str;
+    else
+        return "";
 }
 
 private string[] getOptionalList(JSONValue json, in string key) @trusted {
-    auto aa = json.object;
-    return key in aa ? aa[key].jsonValueToStrings : [];
+    if (auto p = key in json.object)
+        return (*p).jsonValueToStrings;
+    else
+        return [];
 }
 
 
 DubInfo getDubInfo(in bool verbose) {
-    import core.exception: RangeError;
+    import std.json: JSONException;
     import std.conv: text;
-    import std.algorithm: find;
+    import std.algorithm: joiner, map, copy;
     import std.stdio: writeln;
     import std.exception: enforce;
-    import std.process: execute;
-    import std.array: join;
+    import std.process: pipeProcess, Redirect, wait;
+    import std.array: join, appender;
 
     if(verbose)
         writeln("Running dub describe");
 
     immutable args = ["dub", "describe", "-c", "unittest"];
-    immutable res = execute(args);
-    enforce(res.status == 0, text("Could not execute ", args.join(" "), ":\n", res.output));
+    auto pipes = pipeProcess(args, Redirect.stdout | Redirect.stderr);
+    scope(exit) wait(pipes.pid); // avoid zombies in all cases
+    string stdoutStr;
+    string stderrStr;
+    enum chunkSize = 4096;
+    pipes.stdout.byChunk(chunkSize).joiner
+        .map!"cast(immutable char)a".copy(appender(&stdoutStr));
+    pipes.stderr.byChunk(chunkSize).joiner
+        .map!"cast(immutable char)a".copy(appender(&stderrStr));
+    auto status = wait(pipes.pid);
+    auto allOutput = "stdout:\n" ~ stdoutStr ~ "\nstderr:\n" ~ stderrStr;
+
+    enforce(status == 0, text("Could not execute ", args.join(" "),
+                ":\n", allOutput));
     try {
-        return getDubInfo(res.output.find("{"));
-    } catch(RangeError e) {
-        throw new Exception(text("Could not parse the output of dub describe:\n", res.output, "\n", e.toString));
+        return getDubInfo(stdoutStr);
+    } catch(JSONException e) {
+        throw new Exception(text("Could not parse the output of dub describe:\n", allOutput, "\n", e.toString));
     }
 }
 
