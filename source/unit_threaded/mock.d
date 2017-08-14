@@ -147,7 +147,7 @@ mixin template MockImplCommon() {
     string[] expectedValues;
     string[] calledValues;
 
-    void expect(string funcName, V...)(auto ref V values) @safe pure {
+    void expect(string funcName, V...)(auto ref V values) {
         import std.conv: to;
         import std.typecons: tuple;
 
