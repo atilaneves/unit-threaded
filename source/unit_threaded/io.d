@@ -708,4 +708,44 @@ version(testing_unit_threaded) {
             ]
         );
     }
+
+    unittest {
+        import std.concurrency: spawn, thisTid, send, receiveOnly;
+        import std.range: iota;
+        import std.parallelism: parallel;
+        import std.algorithm: map, canFind;
+        import std.array: array;
+        import std.conv: text;
+        import unit_threaded.should;
+
+        resetFakeFiles;
+
+        auto writerTid = spawn(&threadWriter!(gOut, gErr), thisTid);
+        writerTid.send(ThreadWait());
+        receiveOnly!ThreadStarted;
+
+        string textFor(int i, int j) {
+            return text("i_", i, "_j_", j);
+        }
+
+        enum numThreads = 100;
+        enum numMessages = 5;
+
+        foreach(i; numThreads.iota.parallel) {
+            foreach(j; 0 .. numMessages) {
+                writerTid.send(textFor(i, j) ~ "\n", thisTid);
+            }
+            writerTid.send(Flush(), thisTid);
+        }
+
+
+        writerTid.send(ThreadFinish());
+        receiveOnly!ThreadEnded;
+
+        foreach(i; 0 .. numThreads) {
+            const messages = numMessages.iota.map!(j => textFor(i, j)).array;
+            if(!gOut.lines.canFind(messages))
+                throw new Exception(text("Could not find ", messages, " in:\n", gOut.lines));
+        }
+    }
 }
