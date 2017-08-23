@@ -332,7 +332,7 @@ version (Posix) {
     enum nullFileName = "NUL";
 }
 
-shared bool gBool;
+
 private void threadWriter(alias OUT, alias ERR)(Tid tid)
 {
     import std.concurrency: receive, send, OwnerTerminated;
@@ -355,26 +355,50 @@ private void threadWriter(alias OUT, alias ERR)(Tid tid)
         ERR = typeof(ERR)(nullFileName, "w");
     }
 
-    // the first thread to send output becomes the current
-    // until that thread sends a Flush message no other thread
-    // can print to stdout, so we store their outputs in the meanwhile
-    string[Tid] outputs;
-    Tid currentTid;
-
     void actuallyPrint(in string msg) {
         if(msg.length) saveStdout.write(msg);
     }
 
+    // the first thread to send output becomes the current
+    // until that thread sends a Flush message no other thread
+    // can print to stdout, so we store their outputs in the meanwhile
+    static struct ThreadOutput {
+        string currentOutput;
+        string[] outputs;
+
+        void store(in string msg) {
+            currentOutput ~= msg;
+        }
+
+        void flush() {
+            outputs ~= currentOutput;
+            currentOutput = "";
+        }
+    }
+    ThreadOutput[Tid] outputs;
+
+    Tid currentTid;
+
     while (!done) {
         receive(
             (string msg, Tid originTid) {
-                if(currentTid == currentTid.init)
+
+                if(currentTid == currentTid.init) {
                     currentTid = originTid;
+
+                    // it could be that this thread became the current thread but had output not yet printed
+                    if(originTid in outputs) {
+                        actuallyPrint(outputs[originTid].currentOutput);
+                        outputs[originTid].currentOutput = "";
+                    }
+                }
 
                 if(currentTid == originTid)
                     actuallyPrint(msg);
-                else
-                    outputs[originTid] ~= msg;
+                else {
+                    if(originTid !in outputs) outputs[originTid] = typeof(outputs[originTid]).init;
+                    outputs[originTid].store(msg);
+                }
             },
             (ThreadWait w) {
                 tid.send(ThreadStarted());
@@ -384,13 +408,17 @@ private void threadWriter(alias OUT, alias ERR)(Tid tid)
             },
             (Flush f, Tid originTid) {
 
+                if(originTid in outputs) outputs[originTid].flush;
+
                 if(currentTid != currentTid.init && currentTid != originTid)
                     return;
 
-                foreach(t, output; outputs)
-                    actuallyPrint(output);
+                foreach(tid, ref threadOutput; outputs) {
+                    foreach(o; threadOutput.outputs)
+                        actuallyPrint(o);
+                    threadOutput.outputs = [];
+                }
 
-                outputs = outputs.init;
                 currentTid = currentTid.init;
             },
             (OwnerTerminated trm) {
@@ -409,8 +437,8 @@ version(testing_unit_threaded) {
         string mode;
         string output;
         void flush() shared {}
-        void write(string s) shared {
-            output ~= s;
+        void write(in string s) shared {
+            output ~= s.dup;
         }
         string[] lines() shared const @safe pure {
             import std.string: splitLines;
@@ -420,10 +448,11 @@ version(testing_unit_threaded) {
     shared FakeFile gOut;
     shared FakeFile gErr;
     void resetFakeFiles() {
-        gOut = FakeFile("out", "mode");
-        gErr = FakeFile("err", "mode");
+        synchronized {
+            gOut = FakeFile("out", "mode");
+            gErr = FakeFile("err", "mode");
+        }
     }
-
 
     unittest {
         import std.concurrency: spawn, thisTid, send, receiveOnly;
@@ -488,28 +517,6 @@ version(testing_unit_threaded) {
             );
     }
 
-    void otherThread(Tid writerTid, Tid testTid) {
-        import std.concurrency: send, receiveOnly, OwnerTerminated, thisTid;
-        try {
-            writerTid.send("what about me?\n", thisTid);
-            testTid.send(true);
-            receiveOnly!bool;
-
-            writerTid.send("seriously, what about me?\n", thisTid);
-            testTid.send(true);
-            receiveOnly!bool;
-
-            writerTid.send(Flush(), thisTid);
-            testTid.send(true);
-            receiveOnly!bool;
-
-            writerTid.send("final attempt\n", thisTid);
-            testTid.send(true);
-
-        } catch(OwnerTerminated ex) {}
-    }
-
-
     unittest {
         import std.concurrency: spawn, thisTid, send, receiveOnly;
         import unit_threaded.should;
@@ -521,7 +528,29 @@ version(testing_unit_threaded) {
         receiveOnly!ThreadStarted;
 
         writerTid.send("foobar\n", thisTid);
-        auto otherTid = spawn(&otherThread, writerTid, thisTid);
+        auto otherTid = spawn(
+            (Tid writerTid, Tid testTid) {
+                import std.concurrency: send, receiveOnly, OwnerTerminated, thisTid;
+                try {
+                    writerTid.send("what about me?\n", thisTid);
+                    testTid.send(true);
+                    receiveOnly!bool;
+
+                    writerTid.send("seriously, what about me?\n", thisTid);
+                    testTid.send(true);
+                    receiveOnly!bool;
+
+                    writerTid.send(Flush(), thisTid);
+                    testTid.send(true);
+                    receiveOnly!bool;
+
+                    writerTid.send("final attempt\n", thisTid);
+                    testTid.send(true);
+
+                } catch(OwnerTerminated ex) {}
+            },
+            writerTid,
+            thisTid);
         receiveOnly!bool; //wait for otherThread 1st message
 
         writerTid.send("toto\n", thisTid);
@@ -550,7 +579,133 @@ version(testing_unit_threaded) {
                 "what about me?",
                 "seriously, what about me?",
                 "final attempt",
-                ]
-            );
+            ]
+        );
+    }
+
+    unittest {
+        import std.concurrency: spawn, thisTid, send, receiveOnly;
+        import unit_threaded.should;
+
+        resetFakeFiles;
+
+        auto writerTid = spawn(&threadWriter!(gOut, gErr), thisTid);
+        writerTid.send(ThreadWait());
+        receiveOnly!ThreadStarted;
+
+        writerTid.send("foo\n", thisTid);
+
+        auto otherTid = spawn(
+            (Tid writerTid, Tid testTid) {
+                writerTid.send("bar\n", thisTid);
+                testTid.send(true); // synchronize with test tid
+            },
+            writerTid,
+            thisTid);
+
+        receiveOnly!bool; //wait for spawned thread to do its thing
+
+        // from now on, we've send "foo\n" but not flushed
+        // and the other tid has send "bar\n" and flushed
+
+        writerTid.send(Flush(), thisTid);
+
+        writerTid.send(ThreadFinish());
+        receiveOnly!ThreadEnded;
+
+        gOut.lines.shouldEqual(
+            [
+                "foo",
+            ]
+        );
+    }
+
+    unittest {
+        import std.concurrency: spawn, thisTid, send, receiveOnly;
+        import unit_threaded.should;
+
+        resetFakeFiles;
+
+        auto writerTid = spawn(&threadWriter!(gOut, gErr), thisTid);
+        writerTid.send(ThreadWait());
+        receiveOnly!ThreadStarted;
+
+        writerTid.send("foo\n", thisTid);
+
+        auto otherTid = spawn(
+            (Tid writerTid, Tid testTid) {
+                writerTid.send("bar\n", thisTid);
+                writerTid.send(Flush(), thisTid);
+                writerTid.send("baz\n", thisTid);
+                testTid.send(true); // synchronize with test tid
+            },
+            writerTid,
+            thisTid);
+
+        receiveOnly!bool; //wait for spawned thread to do its thing
+
+        // from now on, we've send "foo\n" but not flushed
+        // and the other tid has send "bar\n", flushed, then "baz\n"
+
+        writerTid.send(Flush(), thisTid);
+
+        writerTid.send(ThreadFinish());
+        receiveOnly!ThreadEnded;
+
+        gOut.lines.shouldEqual(
+            [
+                "foo",
+                "bar",
+            ]
+        );
+    }
+
+    unittest {
+        import std.concurrency: spawn, thisTid, send, receiveOnly;
+        import unit_threaded.should;
+
+        resetFakeFiles;
+
+        auto writerTid = spawn(&threadWriter!(gOut, gErr), thisTid);
+        writerTid.send(ThreadWait());
+        receiveOnly!ThreadStarted;
+
+        writerTid.send("foo\n", thisTid);
+
+        auto otherTid = spawn(
+            (Tid writerTid, Tid testTid) {
+                writerTid.send("bar\n", thisTid);
+                testTid.send(true); // synchronize with test tid
+                receiveOnly!bool; // wait for test thread to flush and give up being the primary thread
+                writerTid.send("baz\n", thisTid);
+                writerTid.send(Flush(), thisTid);
+                testTid.send(true);
+            },
+            writerTid,
+            thisTid);
+
+        receiveOnly!bool; //wait for spawned thread to do its thing
+
+        // from now on, we've send "foo\n" but not flushed
+        // and the other tid has send "bar\n" and flushed
+
+        writerTid.send(Flush(), thisTid);
+
+        otherTid.send(true); // tell it to continue
+        receiveOnly!bool;
+
+        // now the other thread should be the main thread and prints out its partial output ("bar")
+        // and what it sent afterwards in order
+
+        writerTid.send(ThreadFinish());
+        receiveOnly!ThreadEnded;
+
+        gOut.lines.shouldEqual(
+            [
+                "foo",
+                "bar",
+                "baz",
+            ]
+        );
     }
 }
