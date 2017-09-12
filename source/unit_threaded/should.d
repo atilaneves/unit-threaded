@@ -730,7 +730,7 @@ if (isObject!V && isObject!E)
                   "Cannot compare instances of " ~ V.stringof ~
                   " or " ~ E.stringof ~ " unless toString is overridden for both");
 
-    return value.tupleof == expected.tupleof;
+    return (value is null && expected is null) || (value.tupleof == expected.tupleof);
 }
 
 
@@ -1051,4 +1051,16 @@ void shouldBeSameJsonAs(in string actual,
     }
 
     Move(5).shouldEqual(Move(5));
+}
+
+@("issue 88")
+unittest {
+
+    class C {
+        int foo;
+        override string toString() @safe pure nothrow const { return null; }
+    }
+
+    C c = null;
+    c.shouldEqual(c);
 }
