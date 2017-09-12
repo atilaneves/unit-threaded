@@ -406,32 +406,44 @@ void shouldNotBeIn(T, U)(in auto ref T value, U container,
  * Verify that expr throws the templated Exception class.
  * This succeeds if the expression throws a child class of
  * the template parameter.
+ * Returns: The caught throwable.
  * Throws: UnitTestException on failure (when expr does not
  * throw the expected exception)
  */
-void shouldThrow(T : Throwable = Exception, E)
+auto shouldThrow(T : Throwable = Exception, E)
                 (lazy E expr, in string file = __FILE__, in size_t line = __LINE__)
 {
     import std.conv: text;
     import std.stdio;
 
-    () @trusted { // @trusted because of catching Throwable
+    return () @trusted { // @trusted because of catching Throwable
         try {
-            if (!threw!T(expr))
+           const threw = threw!T(expr);
+           if (!threw)
                 fail("Expression did not throw", file, line);
+           return threw.throwable;
         } catch(Throwable t)
             fail(text("Expression threw ", typeid(t), " instead of the expected ", T.stringof), file, line);
+        assert(0);
     }();
+}
+
+///
+@safe pure unittest {
+    void funcThrows(string msg) { throw new Exception(msg); }
+    auto exception = funcThrows("foo bar").shouldThrow;
+    exception.msg.shouldEqual("foo bar");
 }
 
 /**
  * Verify that expr throws the templated Exception class.
  * This only succeeds if the expression throws an exception of
  * the exact type of the template parameter.
+ * Returns: The caught throwable.
  * Throws: UnitTestException on failure (when expr does not
  * throw the expected exception)
  */
-void shouldThrowExactly(T : Throwable = Exception, E)(lazy E expr,
+auto shouldThrowExactly(T : Throwable = Exception, E)(lazy E expr,
     in string file = __FILE__, in size_t line = __LINE__)
 {
     import std.conv: text;
@@ -445,6 +457,8 @@ void shouldThrowExactly(T : Throwable = Exception, E)(lazy E expr,
     if (!sameType)
         fail(text("Expression threw wrong type ", threw.typeInfo,
             "instead of expected type ", typeid(T)), file, line);
+
+    return threw.throwable;
 }
 
 /**
