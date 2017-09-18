@@ -744,7 +744,8 @@ if (isObject!V && isObject!E)
                   "Cannot compare instances of " ~ V.stringof ~
                   " or " ~ E.stringof ~ " unless toString is overridden for both");
 
-    return (value is null && expected is null) || (value.tupleof == expected.tupleof);
+    return (value is null && expected is null) ||
+        (value !is null && expected !is null && value.tupleof == expected.tupleof);
 }
 
 
@@ -1077,4 +1078,6 @@ unittest {
 
     C c = null;
     c.shouldEqual(c);
+    C null_;
+    assertFail((new C).shouldEqual(null_));
 }
