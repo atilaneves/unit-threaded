@@ -625,12 +625,16 @@ private string[] formatValue(T)(in string prefix, auto ref T value) {
 // helper function for non-copyable types
 private string convertToString(T)(in auto ref T value) { // std.conv.to sometimes is @system
     import std.conv: to;
+    import std.traits: Unqual;
 
     static if(__traits(compiles, value.to!string))
         return () @trusted { return value.to!string; }();
-    else static if(__traits(compiles, value.toString))
-        return value.toString;
-    else
+    else static if(__traits(compiles, value.toString)) {
+        static if(isObject!T)
+            return () @trusted pure { return (cast(Unqual!T)value).toString; }();
+        else
+            return value.toString;
+    } else
         return T.stringof ~ "<cannot print>";
 
 
@@ -1076,7 +1080,7 @@ void shouldBeSameJsonAs(in string actual,
 }
 
 @("issue 88")
-unittest {
+@safe pure unittest {
 
     class C {
         int foo;
@@ -1090,7 +1094,7 @@ unittest {
 }
 
 @("issue 89")
-unittest {
+@safe pure unittest {
     class C {
         override string toString() @safe pure nothrow const { return null; }
     }
@@ -1101,4 +1105,12 @@ unittest {
     // these should both pass
     actual.shouldEqual(expected);      // passes: actual.tupleof == expected.tupleof
     [actual].shouldEqual([expected]);  // fails: actual != expected
+}
+
+@("non-const toString should compile")
+@safe pure unittest {
+    class C {
+        override string toString() @safe pure nothrow { return null; }
+    }
+    (new C).shouldEqual(new C);
 }
