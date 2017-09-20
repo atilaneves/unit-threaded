@@ -712,10 +712,17 @@ void shouldApproxEqual(V, E)(in V value, in E expected, string file = __FILE__, 
 
 
 private bool isEqual(V, E)(V value, E expected)
-if (!isObject!V && isInputRange!V && isInputRange!E && is(typeof(value.front == expected.front) == bool))
+if (!isObject!V && isInputRange!V && isInputRange!E &&
+    is(typeof(value.front == expected.front) == bool))
 {
-    import std.algorithm: equal;
-    return equal(value, expected);
+
+    import std.algorithm: fold;
+    import std.range: zip, StoppingPolicy;
+    try
+        return zip(StoppingPolicy.requireSameLength, value, expected)
+            .fold!((a, b) => a && isEqual(b[0], b[1]))(true);
+    catch(Exception _)
+        return false;
 }
 
 private bool isEqual(V, E)(V value, E expected)
@@ -1080,4 +1087,18 @@ unittest {
     c.shouldEqual(c);
     C null_;
     assertFail((new C).shouldEqual(null_));
+}
+
+@("issue 89")
+unittest {
+    class C {
+        override string toString() @safe pure nothrow const { return null; }
+    }
+
+    auto actual = new C;
+    auto expected = new C;
+
+    // these should both pass
+    actual.shouldEqual(expected);      // passes: actual.tupleof == expected.tupleof
+    [actual].shouldEqual([expected]);  // fails: actual != expected
 }
