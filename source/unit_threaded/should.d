@@ -631,7 +631,7 @@ private string convertToString(T)(in auto ref T value) { // std.conv.to sometime
         return () @trusted { return value.to!string; }();
     else static if(__traits(compiles, value.toString)) {
         static if(isObject!T)
-            return () @trusted pure { return (cast(Unqual!T)value).toString; }();
+            return () @trusted { return (cast(Unqual!T)value).toString; }();
         else
             return value.toString;
     } else
@@ -716,37 +716,31 @@ void shouldApproxEqual(V, E)(in V value, in E expected, string file = __FILE__, 
 
 
 private bool isEqual(V, E)(V value, E expected)
-if (!isObject!V && isInputRange!V && isInputRange!E &&
-    is(typeof(value.front == expected.front) == bool))
+    if (!isObject!V && isInputRange!V && isInputRange!E && !isSomeString!V &&
+        is(typeof(isEqual(value.front, expected.front))))
 {
 
-    import std.algorithm: fold;
-    import std.range: zip, StoppingPolicy;
-    try
-        return zip(StoppingPolicy.requireSameLength, value, expected)
-            .fold!((a, b) => a && isEqual(b[0], b[1]))(true);
-    catch(Exception _)
-        return false;
-}
-
-private bool isEqual(V, E)(V value, E expected)
-if (!isObject!V &&
-    isInputRange!V && isInputRange!E && !is(typeof(value.front == expected.front) == bool) &&
-    isInputRange!(ElementType!V) && isInputRange!(ElementType!E))
-{
-    import std.algorithm: equal;
-
-    while (!value.empty && !expected.empty)
-    {
-        if (!equal(value.front, expected.front))
-            return false;
-
+    while (!value.empty && !expected.empty) {
+        if(!isEqual(value.front, expected.front)) return false;
         value.popFront;
         expected.popFront;
     }
 
     return value.empty && expected.empty;
 }
+
+private bool isEqual(V, E)(V value, E expected)
+    if (!isObject!V && isInputRange!V && isInputRange!E && isSomeString!V && isSomeString!E &&
+        is(typeof(isEqual(value.front, expected.front))))
+{
+    if(value.length != expected.length) return false;
+    // prevent auto-decoding
+    foreach(i; 0 .. value.length)
+        if(value[i] != expected[i]) return false;
+
+    return true;
+}
+
 
 private bool isEqual(V, E)(V value, E expected)
 if (isObject!V && isObject!E)
@@ -1094,7 +1088,7 @@ void shouldBeSameJsonAs(in string actual,
 }
 
 @("issue 89")
-@safe pure unittest {
+unittest {
     class C {
         override string toString() @safe pure nothrow const { return null; }
     }
@@ -1113,4 +1107,12 @@ void shouldBeSameJsonAs(in string actual,
         override string toString() @safe pure nothrow { return null; }
     }
     (new C).shouldEqual(new C);
+}
+
+@safe pure unittest {
+    ['\xff'].shouldEqual(['\xff']);
+}
+
+@safe unittest {
+    shouldEqual(new Object, new Object);
 }
