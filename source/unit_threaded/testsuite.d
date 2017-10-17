@@ -36,6 +36,7 @@ struct TestSuite
      * Params:
      * options = The options to run tests with.
      * testData = The information about the tests to run.
+     * output = Where to send text output.
      */
     this(in Options options, in TestData[] testData, Output output) {
         import unit_threaded.factory: createTestCases;

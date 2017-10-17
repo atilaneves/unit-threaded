@@ -118,6 +118,7 @@ struct Benchmark
     Params:
         funcname = The name of the $(D benchmark) instance. The $(D funcname)
             will be used to associate the results with the function
+        founds = How many rounds.
         filename = The $(D filename) will be used as a filename to store the
             results.
     */
