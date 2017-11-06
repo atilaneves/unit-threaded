@@ -38,7 +38,7 @@ class TestCase {
      * Returns: array of failures (child classes may have more than 1)
      */
     string[] opCall() {
-        import std.datetime: StopWatch, AutoStart;
+        import std.datetime.stopwatch: StopWatch, AutoStart;
 
         currentTest = this;
         auto sw = StopWatch(AutoStart.yes);
@@ -80,7 +80,7 @@ private:
 
     final auto doTest() {
         import std.conv: text;
-        import std.datetime: StopWatch, AutoStart, Duration;
+        import std.datetime.stopwatch: StopWatch, AutoStart, Duration;
 
         auto sw = StopWatch(AutoStart.yes);
         print(getPath() ~ ":\n");

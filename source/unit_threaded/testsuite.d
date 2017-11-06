@@ -23,7 +23,7 @@ struct TestSuite
     import unit_threaded.io: Output;
     import unit_threaded.options: Options;
     import unit_threaded.reflection: TestData;
-    import std.datetime: StopWatch, Duration;
+    import std.datetime.stopwatch: StopWatch, Duration;
 
     package Output output;
 
