@@ -23,7 +23,11 @@ struct TestSuite
     import unit_threaded.io: Output;
     import unit_threaded.options: Options;
     import unit_threaded.reflection: TestData;
-    import std.datetime.stopwatch: StopWatch, Duration;
+    import std.datetime: Duration;
+    static if(__VERSION__ >= 2077)
+        import std.datetime.stopwatch: StopWatch;
+    else
+        import std.datetime: StopWatch;
 
     package Output output;
 
