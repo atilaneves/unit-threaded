@@ -36,13 +36,23 @@ randomized_sources = [
     'source/unit_threaded/randomized/random.d',
 ]
 
+tests_sources = [
+    'source/unit_threaded/tests/issue33.d',
+    'source/unit_threaded/tests/module_with_attrs.d',
+    'source/unit_threaded/tests/module_with_setup.d',
+    'source/unit_threaded/tests/module_with_tests.d',
+    'source/unit_threaded/tests/parametrized.d',
+    'source/unit_threaded/tests/structs_are_not_classes.d',
+    'source/unit_threaded/tests/tags.d',
+]
+
 inc_dirs = [
     include_directories('source'),
 ]
 
 shared_library(
     meson.project_name(),
-    main_sources + randomized_sources,
+    main_sources + randomized_sources + tests_sources,
     include_directories: inc_dirs,
     version: meson.project_version(),
     soversion: '0',
@@ -51,7 +61,7 @@ shared_library(
 
 static_library(
     meson.project_name(),
-    main_sources + randomized_sources,
+    main_sources + randomized_sources + tests_sources,
     include_directories: inc_dirs,
     install: true,
 )
@@ -62,6 +72,10 @@ endforeach
 
 foreach item: randomized_sources
     install_data(item, install_dir: get_option('prefix') + '/include/d/unit_threaded/randomized')
+endforeach
+
+foreach item: tests_sources
+    install_data(item, install_dir: get_option('prefix') + '/include/d/unit_threaded/tests')
 endforeach
 
 # The pkgconfig system produces C/C++ library flags which are of
@@ -80,7 +94,7 @@ install_data(pc_file, install_dir: 'share/pkgconfig')
 
 #testExecutable = executable(
 #    'unit-threaded-test',
-#    main_sources + randomized_sources,
+#    main_sources + randomized_sources + tests_sources,
 #    include_directories: inc_dirs,
 #    d_args: ['-unittest'],
 #    link_args: ['--main'],
