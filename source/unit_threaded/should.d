@@ -414,26 +414,53 @@ auto shouldThrow(T : Throwable = Exception, E)
                 (lazy E expr, in string file = __FILE__, in size_t line = __LINE__)
 {
     import std.conv: text;
-    import std.stdio;
 
     return () @trusted { // @trusted because of catching Throwable
         try {
-           const threw = threw!T(expr);
-           if (!threw)
-                fail("Expression did not throw", file, line);
-           return threw.throwable;
+           const result = threw!T(expr);
+           if (result) return result.throwable;
         } catch(Throwable t)
             fail(text("Expression threw ", typeid(t), " instead of the expected ", T.stringof), file, line);
+
+        fail("Expression did not throw", file, line);
         assert(0);
     }();
 }
 
 ///
 @safe pure unittest {
+    import unit_threaded.asserts;
     void funcThrows(string msg) { throw new Exception(msg); }
-    auto exception = funcThrows("foo bar").shouldThrow;
-    exception.msg.shouldEqual("foo bar");
+    try {
+        auto exception = funcThrows("foo bar").shouldThrow;
+        assertEqual(exception.msg, "foo bar");
+    } catch(Exception e) {
+        assert(false, "should not have thrown anything and threw: " ~ e.msg);
+    }
 }
+
+///
+@safe pure unittest {
+    import unit_threaded.asserts;
+    void func() {}
+    try {
+        func.shouldThrow;
+        assert(false, "Should never get here");
+    } catch(Exception e)
+        assertEqual(e.msg, "Expression did not throw");
+}
+
+///
+@safe pure unittest {
+    import unit_threaded.asserts;
+    void funcAsserts() { assert(false); }
+    try {
+        funcAsserts.shouldThrow;
+        assert(false, "Should never get here");
+    } catch(Exception e)
+        assertEqual(e.msg, "Expression threw core.exception.AssertError instead of the expected Exception");
+}
+
 
 /**
  * Verify that expr throws the templated Exception class.
@@ -500,13 +527,13 @@ void shouldThrowWithMessage(T : Throwable = Exception, E)(lazy E expr,
 private auto threw(T : Throwable, E)(lazy E expr) @trusted
 {
 
-    struct ThrowResult
+    static struct ThrowResult
     {
         bool threw;
         TypeInfo typeInfo;
         immutable(T) throwable;
 
-        T opCast(T)() const pure if (is(T == bool))
+        T opCast(T)() @safe @nogc const pure if (is(T == bool))
         {
             return threw;
         }
