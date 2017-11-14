@@ -326,8 +326,14 @@ unittest {
     check!identity;
 }
 
-@("issue 93")
+@("issue 93 uint")
 unittest {
     import unit_threaded.should;
     check!((uint i) => i != i).shouldThrowWithMessage("Property failed with input:\n0");
+}
+
+@("issue 93 array")
+unittest {
+    import unit_threaded.should;
+    check!((int[] i) => i != i).shouldThrowWithMessage("Property failed with input:\n[]");
 }
