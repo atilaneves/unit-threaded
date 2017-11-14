@@ -174,19 +174,25 @@ private enum canShrink(T) = __traits(compiles, shrink!((T _) => true)(T.init));
 T shrink(alias F, T)(T value) {
     import std.conv: text;
     assert(!F(value), text("Property did not fail for value ", value));
-    return shrinkImpl!F(value, [value]);
+    T[][] oldParams;
+    return shrinkImpl!F(value, [value], oldParams);
 }
 
-private T shrinkImpl(alias F, T)(T value, T[] values) if(isIntegral!T) {
+private T shrinkImpl(alias F, T)(in T value, T[] candidates, T[][] oldParams = []) if(isIntegral!T) {
     import std.algorithm: canFind, minPos;
     import std.traits: isSigned;
 
+    auto params = value ~ candidates;
+    if(oldParams.canFind(params)) return value;
+    oldParams ~= params;
+
+    // if it suddenly starts passing we've found our boundary value
     if(value < T.max && F(value + 1)) return value;
     if(value > T.min && F(value - 1)) return value;
 
-    bool try_(T attempt) {
-        if(!F(attempt) && !values.canFind(attempt)) {
-            values ~= attempt;
+    bool stillFails(T attempt) {
+        if(!F(attempt) && !candidates.canFind(attempt)) {
+            candidates ~= attempt;
             return true;
         }
 
@@ -194,23 +200,25 @@ private T shrinkImpl(alias F, T)(T value, T[] values) if(isIntegral!T) {
     }
 
     T[] attempts;
-    static if(isSigned!T) attempts ~= -value;
-    attempts ~= value / 2;
+    if(value != 0) {
+        static if(isSigned!T) attempts ~= -value;
+        attempts ~= value / 2;
+    }
     if(value < T.max / 2) attempts ~= cast(T)(value * 2);
     if(value < T.max) attempts ~= cast(T)(value + 1);
     if(value > T.min) attempts ~= cast(T)(value - 1);
 
     foreach(attempt; attempts)
-        if(try_(attempt))
-            return shrinkImpl!F(attempt, values);
+        if(stillFails(attempt))
+            return shrinkImpl!F(attempt, candidates, oldParams);
 
-    auto min = values.minPos[0];
-    auto max = values.minPos!"a > b"[0]; // maxPos doesn't exist before DMD 2.071.0
+    const min = candidates.minPos[0];
+    const max = candidates.minPos!"a > b"[0]; // maxPos doesn't exist before DMD 2.071.0
 
-    if(!F(min)) return shrinkImpl!F(min, values);
-    if(!F(max)) return shrinkImpl!F(max, values);
+    if(!F(min)) return shrinkImpl!F(min, candidates, oldParams);
+    if(!F(max)) return shrinkImpl!F(max, candidates, oldParams);
 
-    return values[0];
+    return candidates[0];
 }
 
 static assert(canShrink!int);
@@ -247,7 +255,7 @@ static assert(canShrink!int);
     }
 }
 
-private T shrinkImpl(alias F, T)(T value, T[] values) if(isArray!T) {
+private T shrinkImpl(alias F, T)(T value, T[] candidates, T[][] oldParams = []) if(isArray!T) {
     if(value == []) return value;
 
     if(value.length == 1) {
@@ -257,15 +265,15 @@ private T shrinkImpl(alias F, T)(T value, T[] values) if(isArray!T) {
 
     auto fst = value[0 .. $ / 2];
     auto snd = value[$ / 2 .. $];
-    if(!F(fst)) return shrinkImpl!F(fst, values);
-    if(!F(snd)) return shrinkImpl!F(snd, values);
+    if(!F(fst)) return shrinkImpl!F(fst, candidates);
+    if(!F(snd)) return shrinkImpl!F(snd, candidates);
 
     if(F(value[0 .. $ - 1])) return value[0 .. $ - 1];
     if(F(value[1 .. $])) return value[1 .. $];
 
-    if(!F(value[0 .. $ - 1])) return shrinkImpl!F(value[0 .. $ - 1], values);
-    if(!F(value[1 .. $])) return shrinkImpl!F(value[1 .. $], values);
-    return values[0];
+    if(!F(value[0 .. $ - 1])) return shrinkImpl!F(value[0 .. $ - 1], candidates);
+    if(!F(value[1 .. $])) return shrinkImpl!F(value[1 .. $], candidates);
+    return candidates[0];
 }
 
 @("shrink empty int array")
@@ -316,4 +324,16 @@ unittest {
     }
 
     check!identity;
+}
+
+@("issue 93 uint")
+unittest {
+    import unit_threaded.should;
+    check!((uint i) => i != i).shouldThrowWithMessage("Property failed with input:\n0");
+}
+
+@("issue 93 array")
+unittest {
+    import unit_threaded.should;
+    check!((int[] i) => i != i).shouldThrowWithMessage("Property failed with input:\n[]");
 }
