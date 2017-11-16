@@ -50,7 +50,7 @@ inc_dirs = [
     include_directories('source'),
 ]
 
-shared_library(
+unit_threaded = shared_library(
     meson.project_name(),
     main_sources + randomized_sources + tests_sources,
     include_directories: inc_dirs,
@@ -91,6 +91,16 @@ pc_file_data.set('PREFIX', get_option('prefix'))
 pc_file = configure_file(configuration: pc_file_data, input: meson.project_name() + '.pc.in', output: meson.project_name() + '.pc')
 
 install_data(pc_file, install_dir: 'share/pkgconfig')
+
+executable(
+    'gen-ut-main',
+    'gen/gen_ut_main.d',
+    include_directories: inc_dirs,
+    link_with: unit_threaded,
+    install: true,
+)
+
+# unit_threaded requires a unity build which Meson cannot do for D as yet (2017-11-10).
 
 #testExecutable = executable(
 #    'unit-threaded-test',
