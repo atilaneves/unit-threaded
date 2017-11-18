@@ -244,7 +244,8 @@ void shouldBeNull(T)(in auto ref T value, in string file = __FILE__, in size_t l
 ///
 @safe pure unittest
 {
-    shouldBeNull(null) ;
+    shouldBeNull(null);
+    assertFail(shouldBeNull(new int));
 }
 
 
@@ -272,7 +273,8 @@ void shouldNotBeNull(T)(in auto ref T value, in string file = __FILE__, in size_
         int i;
     }
 
-    shouldNotBeNull(new Foo(4)) ;
+    shouldNotBeNull(new Foo(4));
+    assertFail(shouldNotBeNull(null));
     shouldEqual(new Foo(5), new Foo(5));
     assertFail(shouldEqual(new Foo(5), new Foo(4)));
     shouldNotEqual(new Foo(5), new Foo(4)) ;
@@ -341,6 +343,7 @@ void shouldBeIn(T, U)(in auto ref T value, U container, in string file = __FILE_
 {
     shouldBeIn(4, [1, 2, 4]);
     shouldBeIn("foo", ["foo" : 1]);
+    assertFail("foo".shouldBeIn(["bar"]));
 }
 
 
@@ -400,6 +403,7 @@ void shouldNotBeIn(T, U)(in auto ref T value, U container,
 {
     shouldNotBeIn(3.5, [1.1, 2.2, 4.4]);
     shouldNotBeIn(1.0, [2.0 : 1, 3.0 : 2]);
+    assertFail("foo".shouldNotBeIn(["foo"]));
 }
 
 /**
@@ -499,6 +503,13 @@ void shouldNotThrow(T: Throwable = Exception, E)(lazy E expr,
         fail("Expression threw", file, line);
 }
 
+unittest {
+    void func() {}
+    func.shouldNotThrow;
+    void funcThrows() { throw new Exception("oops"); }
+    assertFail(shouldNotThrow(funcThrows));
+}
+
 /**
  * Verify that an exception is thrown with the right message
  */
@@ -519,6 +530,8 @@ void shouldThrowWithMessage(T : Throwable = Exception, E)(lazy E expr,
     funcThrows("foo bar").shouldThrowWithMessage!Exception("foo bar");
     funcThrows("foo bar").shouldThrowWithMessage("foo bar");
     assertFail(funcThrows("boo boo").shouldThrowWithMessage("foo bar"));
+    void func() {}
+    assertFail(func.shouldThrowWithMessage("oops"));
 }
 
 
@@ -597,6 +610,9 @@ private auto threw(T : Throwable, E)(lazy E expr) @trusted
     catch (Exception ex)
     {
     }
+
+    void doesntThrow() {}
+    assertFail(doesntThrow.shouldThrowExactly!Exception);
 }
 
 @safe pure unittest
@@ -663,8 +679,18 @@ private string convertToString(T)(in auto ref T value) { // std.conv.to sometime
             return value.toString;
     } else
         return T.stringof ~ "<cannot print>";
+}
 
+unittest {
+    import unit_threaded.asserts;
+    class Foo {
+        override string toString() @safe pure nothrow const {
+            return "Foo";
+        }
+    }
 
+    auto foo = new const Foo;
+    assertEqual(foo.convertToString, "Foo");
 }
 
 private string[] formatRange(T)(in string prefix, T value) {
@@ -739,6 +765,7 @@ void shouldApproxEqual(V, E)(in V value, in E expected, string file = __FILE__, 
 ///
 @safe unittest {
     1.0.shouldApproxEqual(1.0001);
+    assertFail(2.0.shouldApproxEqual(1.0));
 }
 
 
@@ -1084,9 +1111,14 @@ void shouldBeSameJsonAs(in string actual,
 
 ///
 @safe unittest { // not pure because parseJSON isn't pure
+    import unit_threaded.asserts;
     `{"foo": "bar"}`.shouldBeSameJsonAs(`{"foo": "bar"}`);
     `{"foo":    "bar"}`.shouldBeSameJsonAs(`{"foo":"bar"}`);
     `{"foo":"bar"}`.shouldBeSameJsonAs(`{"foo": "baz"}`).shouldThrow!UnitTestException;
+    try
+        `oops`.shouldBeSameJsonAs(`oops`);
+    catch(Exception e)
+        assertEqual(e.msg, "Error parsing JSON: Unexpected character 'o'. (Line 1:1)");
 }
 
 @("Non-copyable types can be asserted on")
