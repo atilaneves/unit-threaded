@@ -7,44 +7,9 @@ project(
     default_options: ['buildtype=release'],
 )
 
-main_sources =  [
-    'source/unit_threaded/asserts.d',
-    'source/unit_threaded/attrs.d',
-    'source/unit_threaded/dub.d',
-    'source/unit_threaded/factory.d',
-    'source/unit_threaded/integration.d',
-    'source/unit_threaded/io.d',
-    'source/unit_threaded/light.d',
-    'source/unit_threaded/meta.d',
-    'source/unit_threaded/mock.d',
-    'source/unit_threaded/options.d',
-    'source/unit_threaded/package.d',
-    'source/unit_threaded/property.d',
-    'source/unit_threaded/reflection.d',
-    'source/unit_threaded/runner.d',
-    'source/unit_threaded/runtime.d',
-    'source/unit_threaded/should.d',
-    'source/unit_threaded/testcase.d',
-    'source/unit_threaded/testsuite.d',
-    'source/unit_threaded/uda.d',
-]
-
-randomized_sources = [
-    'source/unit_threaded/randomized/benchmark.d',
-    'source/unit_threaded/randomized/gen.d',
-    'source/unit_threaded/randomized/package.d',
-    'source/unit_threaded/randomized/random.d',
-]
-
-tests_sources = [
-    'source/unit_threaded/tests/issue33.d',
-    'source/unit_threaded/tests/module_with_attrs.d',
-    'source/unit_threaded/tests/module_with_setup.d',
-    'source/unit_threaded/tests/module_with_tests.d',
-    'source/unit_threaded/tests/parametrized.d',
-    'source/unit_threaded/tests/structs_are_not_classes.d',
-    'source/unit_threaded/tests/tags.d',
-]
+main_sources = run_command('sh', '-c', 'cd $MESON_SOURCE_ROOT && ls source/unit_threaded/*.d').stdout().split()
+randomized_sources = run_command('sh', '-c', 'cd $MESON_SOURCE_ROOT && ls source/unit_threaded/randomized/*.d').stdout().split()
+tests_sources = run_command('sh', '-c', 'cd $MESON_SOURCE_ROOT && ls source/unit_threaded/tests/*.d').stdout().split()
 
 inc_dirs = [
     include_directories('source'),
