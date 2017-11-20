@@ -1,0 +1,9 @@
+prefix=@PREFIX@
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: @NAME@
+Description: @DESCRIPTION@
+Version: @VERSION@
+Libs: @LIBS@
+Cflags: @CFLAGS@
