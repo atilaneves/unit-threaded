@@ -1,8 +1,6 @@
 module unit_threaded.mock;
 
-import std.traits;
-import std.traits: allSameType, allSatisfy;
-import unit_threaded.should: UnitTestException;
+import unit_threaded.from;
 
 alias Identity(alias T) = T;
 private enum isPrivate(T, string member) = !__traits(compiles, __traits(getMember, T, member));
@@ -12,7 +10,7 @@ string implMixinStr(T)() {
     import std.array: join;
     import std.format : format;
     import std.range : iota;
-    import std.traits: functionAttributes, FunctionAttribute, Parameters, arity;
+    import std.traits: functionAttributes, FunctionAttribute, Parameters, ReturnType, arity;
     import std.conv: text;
 
     if(!__ctfe) return null;
@@ -428,7 +426,7 @@ private class Class {
     fun(m).shouldEqual(0);
 }
 
-struct ReturnValues(string function_, T...) if(allSatisfy!(isValue, T)) {
+struct ReturnValues(string function_, T...) if(from!"std.meta".allSatisfy!(isValue, T)) {
     alias funcName = function_;
     alias Values = T;
 
@@ -502,7 +500,7 @@ auto mockStruct(T...)(auto ref T returns) {
 //    must be a value of type `ReturnValues`
 //  */
 
-auto mockStruct(T...)() if(T.length > 0 && allSatisfy!(isReturnValue, T)) {
+auto mockStruct(T...)() if(T.length > 0 && from!"std.meta".allSatisfy!(isReturnValue, T)) {
 
     struct Mock {
         mixin MockImplCommon;
@@ -681,7 +679,7 @@ auto mockStruct(T...)() if(T.length > 0 && allSatisfy!(isReturnValue, T)) {
 }
 
 
-auto throwStruct(E = UnitTestException, R = void)() {
+auto throwStruct(E = from!"unit_threaded.should".UnitTestException, R = void)() {
 
     struct Mock {
 
@@ -696,7 +694,7 @@ auto throwStruct(E = UnitTestException, R = void)() {
 
 @("throwStruct default")
 @safe pure unittest {
-    import unit_threaded.should: shouldThrow;
+    import unit_threaded.should: shouldThrow, UnitTestException;
     auto m = throwStruct;
     m.foo.shouldThrow!UnitTestException;
     m.bar(1, "foo").shouldThrow!UnitTestException;
@@ -723,6 +721,7 @@ version(testing_unit_threaded) {
 @("throwStruct return value type")
 @safe pure unittest {
     import unit_threaded.asserts;
+    import unit_threaded.should: UnitTestException;
     auto m = throwStruct!(UnitTestException, int);
     int i;
     assertExceptionMsg(i = m.foo,
