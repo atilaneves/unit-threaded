@@ -1,10 +1,13 @@
 module unit_threaded.property;
 
+
 import std.random: Random;
-import std.traits: isIntegral, isArray;
-
-
 version(unittest) import unit_threaded.asserts;
+
+template from(string moduleName) {
+    mixin("import from = " ~ moduleName ~ ";");
+}
+
 
 Random gRandom;
 
@@ -178,7 +181,9 @@ T shrink(alias F, T)(T value) {
     return shrinkImpl!F(value, [value], oldParams);
 }
 
-private T shrinkImpl(alias F, T)(in T value, T[] candidates, T[][] oldParams = []) if(isIntegral!T) {
+private T shrinkImpl(alias F, T)(in T value, T[] candidates, T[][] oldParams = [])
+    if(from!"std.traits".isIntegral!T)
+{
     import std.algorithm: canFind, minPos;
     import std.traits: isSigned;
 
@@ -255,7 +260,9 @@ static assert(canShrink!int);
     }
 }
 
-private T shrinkImpl(alias F, T)(T value, T[] candidates, T[][] oldParams = []) if(isArray!T) {
+private T shrinkImpl(alias F, T)(T value, T[] candidates, T[][] oldParams = [])
+    if(from!"std.traits".isArray!T)
+{
     if(value == []) return value;
 
     if(value.length == 1) {

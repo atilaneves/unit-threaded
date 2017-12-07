@@ -23,7 +23,8 @@ version(Windows) {
 
 
 shared static this() {
-    import std.file;
+    import std.file: exists, dirEntries, SpanMode, isDir, rmdirRecurse;
+
     if(!Sandbox.sanboxesPath.exists) return;
 
     foreach(entry; dirEntries(Sandbox.sanboxesPath, SpanMode.shallow)) {
@@ -61,15 +62,15 @@ struct Sandbox {
     }
 
     static void setPath(string path) {
-        import std.file;
+        import std.file: exists, mkdirRecurse;
         sanboxesPath = path;
         if(!sanboxesPath.exists) () @trusted { mkdirRecurse(sanboxesPath); }();
     }
 
     ///
     @safe unittest {
-        import std.file;
-        import std.path;
+        import std.file: exists, rmdirRecurse;
+        import std.path: buildPath;
         import unit_threaded.should;
 
         Sandbox.sanboxesPath.shouldEqual(defaultSandboxesPath);
@@ -112,8 +113,8 @@ struct Sandbox {
 
     ///
     @safe unittest {
-        import std.file;
-        import std.path;
+        import std.file: exists;
+        import std.path: buildPath;
 
         with(immutable Sandbox()) {
             assert(!buildPath(testPath, "foo.txt").exists);
@@ -156,8 +157,8 @@ struct Sandbox {
 
     /// Assert that a file does not exist in the sandbox
     void shouldNotExist(string fileName, in string file = __FILE__, in size_t line = __LINE__) const {
-        import std.file;
-        import std.path;
+        import std.file: exists;
+        import std.path: buildPath;
         import unit_threaded.should;
 
         fileName = buildPath(testPath, fileName);
@@ -179,8 +180,8 @@ struct Sandbox {
     /// read a file in the test sandbox and verify its contents
     void shouldEqualLines(in string fileName, in string[] lines,
                           string file = __FILE__, size_t line = __LINE__) const @trusted {
-        import std.file;
-        import std.string;
+        import std.file: readText;
+        import std.string: chomp, splitLines;
         import unit_threaded.should;
 
         readText(buildPath(testPath, fileName)).chomp.splitLines

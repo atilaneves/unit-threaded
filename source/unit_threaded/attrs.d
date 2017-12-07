@@ -1,7 +1,6 @@
 module unit_threaded.attrs;
 
-import std.range.primitives : isInputRange, ElementType;
-
+import unit_threaded.from;
 
 enum UnitTest; //opt-in to registration
 enum DontTest; //opt-out of registration
@@ -79,7 +78,8 @@ auto Values(T)(T[] values...) {
     return ValuesImpl!T(values.dup);
 }
 
-auto Values(R)(R values) if(isInputRange!R) {
+auto Values(R)(R values) if(from!"std.range.primitives".isInputRange!R) {
+    import std.range.primitives: ElementType;
     import std.array: array;
     return ValuesImpl!(ElementType!R)(values.array);
 }

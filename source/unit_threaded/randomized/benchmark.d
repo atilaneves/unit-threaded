@@ -1,12 +1,6 @@
 module unit_threaded.randomized.benchmark;
 
-import core.time : MonoTimeImpl, Duration, ClockType, dur, seconds;
-import std.array : appender, array;
-import std.datetime : Clock;
-import std.traits : fullyQualifiedName, Parameters, ParameterIdentifierTuple;
-
-import unit_threaded;
-import unit_threaded.randomized.gen;
+import unit_threaded.from;
 
 /* This function used $(D MonoTimeImpl!(ClockType.precise).currTime) to time
 how long $(D MonoTimeImpl!(ClockType.precise).currTime) takes to return
@@ -16,6 +10,7 @@ private auto medianStopWatchTime()
 {
     import core.time;
     import std.algorithm : sort;
+    import std.datetime: Duration, MonoTimeImpl;
 
     enum numRounds = 51;
     Duration[numRounds] times;
@@ -35,7 +30,10 @@ private auto medianStopWatchTime()
     return times[$ / 2].total!"hnsecs";
 }
 
-private Duration getQuantilTick(double q)(Duration[] ticks) pure @safe
+private from!"std.datetime".Duration getQuantilTick
+    (double q)
+    (from!"std.datetime".Duration[] ticks)
+    pure @safe
 {
     size_t idx = cast(size_t)(ticks.length * q);
 
@@ -79,6 +77,8 @@ private Duration getQuantilTick(double q)(Duration[] ticks) pure @safe
 /** The options  controlling the behaviour of benchmark. */
 struct BenchmarkOptions
 {
+    import std.datetime: Duration, seconds;
+
     string funcname; // the name of the function to benchmark
     string filename; // the name of the file the results will be appended to
     Duration duration = 1.seconds; // the time after which the function to
@@ -99,6 +99,7 @@ statistics.
 struct Benchmark
 {
     import std.array : Appender;
+    import std.datetime: Duration, MonoTimeImpl, ClockType;
 
     string filename; // where to write the benchmark result to
     string funcname; // the name of the benchmark
@@ -124,6 +125,7 @@ struct Benchmark
     */
     this(in string funcname, in size_t rounds, in string filename)
     {
+        import std.array : appender;
         this.filename = filename;
         this.funcname = funcname;
         this.rounds = rounds;
@@ -153,6 +155,7 @@ struct Benchmark
     ~this()
     {
         import std.stdio : File;
+        import std.datetime: Clock;
 
         if (!this.dontWrite && this.ticks.data.length)
         {
@@ -247,8 +250,9 @@ Params:
 */
 void benchmark(alias T)(const ref BenchmarkOptions opts)
 {
-        import std.random : Random;
-        import unit_threaded.randomized.random;
+    import std.random : Random;
+    import std.traits: ParameterIdentifierTuple, Parameters;
+    import unit_threaded.randomized.random;
 
     auto bench = Benchmark(opts.funcname, opts.maxRounds, opts.filename);
     auto rnd = Random(opts.seed);
@@ -284,6 +288,7 @@ void benchmark(alias T)(const ref BenchmarkOptions opts)
 void benchmark(alias T)(string funcname = "", string filename = __FILE__)
 {
     import std.string : empty;
+    import std.traits: fullyQualifiedName;
 
     auto opt = BenchmarkOptions(
         funcname.empty ? fullyQualifiedName!T : funcname
@@ -293,8 +298,9 @@ void benchmark(alias T)(string funcname = "", string filename = __FILE__)
 }
 
 /// Ditto
-void benchmark(alias T)(Duration maxRuntime, string filename = __FILE__)
+void benchmark(alias T)(from!"std.datetime".Duration maxRuntime, string filename = __FILE__)
 {
+    import std.traits: fullyQualifiedName;
     auto opt = BenchmarkOptions(fullyQualifiedName!T);
     opt.filename = filename;
     opt.duration = maxRuntime;
@@ -310,7 +316,7 @@ void benchmark(alias T)(Duration maxRuntime, string filename = __FILE__)
 }*/
 
 /// Ditto
-void benchmark(alias T)(string name, Duration maxRuntime,
+void benchmark(alias T)(string name, from!"std.datetime".Duration maxRuntime,
     string filename = __FILE__)
 {
     auto opt = BenchmarkOptions(name);

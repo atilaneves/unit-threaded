@@ -1,8 +1,5 @@
 module unit_threaded.randomized.random;
 
-import unit_threaded.randomized.gen;
-import std.random : Random;
-
 
 /** This type will generate a $(D Gen!T) for all passed $(D T...).
     Every call to $(D genValues) will call $(D gen) of all $(D Gen) structs
@@ -12,6 +9,7 @@ import std.random : Random;
 struct RndValueGen(T...)
 {
     import std.meta : staticMap;
+    import std.random: Random;
 
     /* $(D Values) is a collection of $(D Gen) types created through
        $(D ParameterToGen) of passed $(T ...).
@@ -73,6 +71,9 @@ struct RndValueGen(T...)
 ///
 unittest
 {
+    import unit_threaded.randomized.gen: Gen;
+    import std.random: Random;
+
     auto rnd = Random(1337);
     auto generator = (&rnd).RndValueGen!(["i", "f"],
                                          Gen!(int, 0, 10),
@@ -92,6 +93,9 @@ unittest
 @("RndValueGen can be used without parameter names")
 unittest
 {
+    import unit_threaded.randomized.gen: Gen;
+    import std.random: Random;
+
     auto rnd = Random(1337);
     auto generator = rnd.RndValueGen!(Gen!(int, 0, 10),
                                       Gen!(float, 0.0, 10.0));
@@ -110,6 +114,9 @@ unittest
 
 unittest
 {
+    import unit_threaded.randomized.gen: Gen;
+    import std.random: Random;
+
     static fun(int i, float f)
     {
         assert(i >= 0 && i <= 10);
@@ -130,9 +137,10 @@ unittest
 
 @("RndValueGen with int[]")
 unittest {
-    void fun(int[] i) {
+    import unit_threaded.randomized.gen: Gen;
+    import std.random: Random;
 
-    }
+    void fun(int[] i) { }
     auto rnd = Random(1337);
     auto gen = rnd.RndValueGen!(Gen!(int[]));
     gen.genValues;
@@ -144,6 +152,7 @@ unittest {
 */
 template ParameterToGen(T)
 {
+    import unit_threaded.randomized.gen: isGen, Gen;
     static if (isGen!T)
         alias ParameterToGen = T;
     else static if (is(T : GenASCIIString!(S), S...))
@@ -172,6 +181,8 @@ unittest
 
 @("RndValueGen with user defined struct")
 unittest {
+    import unit_threaded.randomized.gen: Gen;
+    import std.random: Random;
 
     struct Foo {
         int i;
@@ -195,6 +206,8 @@ unittest {
 
 unittest
 {
+    import unit_threaded.randomized.gen: isGen;
+    import std.random: Random;
     import std.meta : AliasSeq, staticMap;
 
     struct Foo {
