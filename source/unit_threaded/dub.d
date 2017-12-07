@@ -1,7 +1,6 @@
 module unit_threaded.dub;
 
-import unit_threaded.runtime: Options;
-import std.json: JSONValue;
+import unit_threaded.from;
 
 
 struct DubPackage {
@@ -50,7 +49,7 @@ DubInfo getDubInfo(string jsonString) @trusted {
                    array);
 }
 
-private string[] jsonValueToFiles(JSONValue files) @trusted {
+private string[] jsonValueToFiles(from!"std.json".JSONValue files) @trusted {
     import std.algorithm: map, filter;
     import std.array: array;
 
@@ -62,7 +61,7 @@ private string[] jsonValueToFiles(JSONValue files) @trusted {
         array;
 }
 
-private string[] jsonValueToStrings(JSONValue json) @trusted {
+private string[] jsonValueToStrings(from!"std.json".JSONValue json) @trusted {
     import std.algorithm: map, filter;
     import std.array: array;
 
@@ -70,14 +69,14 @@ private string[] jsonValueToStrings(JSONValue json) @trusted {
 }
 
 
-private auto byKey(JSONValue json, in string key) @trusted {
+private auto byKey(from!"std.json".JSONValue json, in string key) @trusted {
     import std.json: JSONException;
     if (auto p = key in json.object)
         return *p;
     else throw new JSONException("\"" ~ key ~ "\" not found");
 }
 
-private auto byOptionalKey(JSONValue json, in string key, bool def) {
+private auto byOptionalKey(from!"std.json".JSONValue json, in string key, bool def) {
     if (auto p = key in json.object)
         return (*p).boolean;
     else
@@ -85,7 +84,7 @@ private auto byOptionalKey(JSONValue json, in string key, bool def) {
 }
 
 //std.json has no conversion to bool
-private bool boolean(JSONValue json) @trusted {
+private bool boolean(from!"std.json".JSONValue json) @trusted {
     import std.exception: enforce;
     import std.json: JSONException, JSON_TYPE;
     enforce!JSONException(json.type == JSON_TYPE.TRUE || json.type == JSON_TYPE.FALSE,
@@ -93,14 +92,14 @@ private bool boolean(JSONValue json) @trusted {
     return json.type == JSON_TYPE.TRUE;
 }
 
-private string getOptional(JSONValue json, in string key) @trusted {
+private string getOptional(from!"std.json".JSONValue json, in string key) @trusted {
     if (auto p = key in json.object)
         return p.str;
     else
         return "";
 }
 
-private string[] getOptionalList(JSONValue json, in string key) @trusted {
+private string[] getOptionalList(from!"std.json".JSONValue json, in string key) @trusted {
     if (auto p = key in json.object)
         return (*p).jsonValueToStrings;
     else
@@ -149,7 +148,7 @@ bool isDubProject() {
 
 
 // set import paths from dub information
-void dubify(ref Options options) {
+void dubify(ref from!"unit_threaded.runtime".Options options) {
 
     import std.path: buildPath;
     import std.algorithm: map, reduce;
