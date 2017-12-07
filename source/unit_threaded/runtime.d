@@ -38,14 +38,7 @@ rdmd ut.d -h # list command-line options
 
 module unit_threaded.runtime;
 
-import std.stdio;
-import std.array : replace, array, join;
-import std.conv : to;
-import std.algorithm : map, filter, startsWith, endsWith, remove;
-import std.string: strip;
-import std.exception : enforce;
-import std.file : exists, DirEntry, dirEntries, isDir, SpanMode, tempDir, getcwd, mkdirRecurse;
-import std.path : buildNormalizedPath, buildPath, baseName, relativePath, dirSeparator, dirName;
+import unit_threaded.from;
 
 
 mixin template genUtMain() {
@@ -80,6 +73,7 @@ struct Options {
 
 Options getGenUtOptions(string[] args) {
     import std.getopt;
+    import std.stdio: writeln;
 
     Options options;
     auto getOptRes = getopt(
@@ -111,10 +105,13 @@ Options getGenUtOptions(string[] args) {
 }
 
 
-DirEntry[] findModuleEntries(in Options options) {
+from!"std.file".DirEntry[] findModuleEntries(in Options options) {
 
-    import std.algorithm: splitter, canFind;
+    import std.algorithm: splitter, canFind, map, startsWith, filter;
     import std.array: array, empty;
+    import std.file: DirEntry, isDir, dirEntries, SpanMode;
+    import std.path: dirSeparator, buildNormalizedPath;
+    import std.exception: enforce;
 
     // dub list of files, don't bother reading the filesystem since
     // dub has done it already
@@ -142,12 +139,15 @@ DirEntry[] findModuleEntries(in Options options) {
 }
 
 auto toDirEntry(string a) {
+    import std.file: DirEntry;
     return DirEntry(removePackage(a));
 }
 
 // package.d files will show up as foo.bar.package
 // remove .package from the end
 string removePackage(string name) {
+    import std.algorithm: endsWith;
+    import std.array: replace;
     enum toRemove = "/package.d";
     return name.endsWith(toRemove)
         ? name.replace(toRemove, "")
@@ -156,6 +156,9 @@ string removePackage(string name) {
 
 
 private string[] dubFilesToAbsPaths(in string fileName, in string[] files) {
+    import std.algorithm: filter, map;
+    import std.array: array;
+    import std.path: buildNormalizedPath;
 
     // dub list of files, don't bother reading the filesystem since
     // dub has done it already
@@ -176,7 +179,10 @@ unittest {
 
 
 string[] findModuleNames(in Options options) {
-    import std.path : dirSeparator, stripExtension, absolutePath;
+    import std.path : dirSeparator, stripExtension, absolutePath, relativePath;
+    import std.algorithm: endsWith, startsWith, filter, map;
+    import std.array: replace, array;
+    import std.path: baseName, absolutePath;
 
     // if a user passes -Isrc and a file is called src/foo/bar.d,
     // the module name should be foo.bar, not src.foo.bar,
@@ -215,6 +221,12 @@ string writeUtMainFile(Options options) {
 }
 
 private string writeUtMainFile(Options options, in string[] modules) {
+    import std.path: buildPath, dName = dirName;
+    import std.stdio: writeln, File;
+    import std.file: tempDir, getcwd, mkdirRecurse, exists;
+    import std.algorithm: map;
+    import std.array: join;
+
     if (!options.fileName) {
         options.fileName = buildPath(tempDir, getcwd[1..$], "ut.d");
     }
@@ -226,7 +238,7 @@ private string writeUtMainFile(Options options, in string[] modules) {
         if(options.verbose) writeln("Writing to unit test main file ", options.fileName);
     }
 
-    const dirName = options.fileName.dirName;
+    const dirName = options.fileName.dName;
     dirName.exists || mkdirRecurse(dirName);
 
 
@@ -252,6 +264,11 @@ import unit_threaded;
 
 
 private bool haveToUpdate(in Options options, in string[] modules) {
+    import std.file: exists;
+    import std.stdio: File;
+    import std.array: join;
+    import std.string: strip;
+
     if (!options.fileName.exists) {
         return true;
     }
@@ -263,5 +280,6 @@ private bool haveToUpdate(in Options options, in string[] modules) {
 
 //used to not update the file if the file list hasn't changed
 private string modulesDbList(in string[] modules) @safe pure nothrow {
+    import std.array: join;
     return "//" ~ modules.join(",");
 }
