@@ -19,7 +19,14 @@ module unit_threaded.light;
 
 
 int runTests(T...)(in string[] args) {
+    return runTestsImpl;
+}
 
+int runTests(T)(string[] args, T testData) {
+    return runTestsImpl;
+}
+
+int runTestsImpl() {
     import core.runtime: Runtime;
     import core.stdc.stdio: printf;
 
@@ -38,6 +45,10 @@ int runTests(T...)(in string[] args) {
         return 0;
     } catch(Throwable _)
         return 1;
+}
+
+int[] allTestData(T...)() {
+    return [];
 }
 
 void writelnUt(T...)(auto ref T args) {

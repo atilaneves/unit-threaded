@@ -52,9 +52,12 @@ int runTests(Modules...)(string[] args) if(Modules.length > 0) {
  */
 int runTests(string[] args, in TestData[] testData) {
     import unit_threaded.options: getOptions;
+    return runTests(getOptions(args), testData);
+}
+
+int runTests(in Options options, in TestData[] testData) {
     import unit_threaded.testsuite: TestSuite;
 
-    const options = getOptions(args);
     handleCmdLineOptions(options, testData);
     if (options.exit)
         return 0;
@@ -62,6 +65,7 @@ int runTests(string[] args, in TestData[] testData) {
     auto suite = TestSuite(options, testData);
     return suite.run ? 0 : 1;
 }
+
 
 private void handleCmdLineOptions(in Options options, in TestData[] testData) {
 
