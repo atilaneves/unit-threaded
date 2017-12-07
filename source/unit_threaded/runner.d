@@ -12,7 +12,7 @@ import unit_threaded.options: Options;
  * Runs all tests in passed-in modules. Modules can be symbols or
  * strings. Generates a main function and substitutes the default D
  * runtime unittest runner. This mixin should be used instead of
- * $(D runTests) if Phobos is linked as a shared library.
+ * $(D runTests) if a shared library is used instead of an executable.
  */
 mixin template runTestsMixin(Modules...) if(Modules.length > 0) {
 

@@ -51,7 +51,9 @@ const(TestData)[] allTestData(MOD_STRINGS...)() if(allSatisfy!(isSomeString, typ
 
     enum modulesString = getModulesString;
     mixin("import " ~ modulesString ~ ";");
-    mixin("return allTestData!(" ~ 0.iota(MOD_STRINGS.length).map!(i => "module%d".format(i)).join(", ") ~ ");");
+    mixin("return allTestData!(" ~
+          MOD_STRINGS.length.iota.map!(i => "module%d".format(i)).join(", ") ~
+          ");");
 }
 
 
