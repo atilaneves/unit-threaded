@@ -69,7 +69,7 @@ struct Sandbox {
 
     ///
     @safe unittest {
-        import std.file: exists;
+        import std.file: exists, rmdirRecurse;
         import std.path: buildPath;
         import unit_threaded.should;
 

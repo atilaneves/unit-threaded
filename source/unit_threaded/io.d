@@ -518,7 +518,7 @@ version(testing_unit_threaded) {
     }
 
     unittest {
-        import std.concurrency: spawn, thisTid, send, receiveOnly;
+        import std.concurrency: spawn, thisTid, send, receiveOnly, Tid;
         import unit_threaded.should;
 
         resetFakeFiles;
@@ -584,7 +584,7 @@ version(testing_unit_threaded) {
     }
 
     unittest {
-        import std.concurrency: spawn, thisTid, send, receiveOnly;
+        import std.concurrency: spawn, thisTid, send, receiveOnly, Tid;
         import unit_threaded.should;
 
         resetFakeFiles;
@@ -621,7 +621,7 @@ version(testing_unit_threaded) {
     }
 
     unittest {
-        import std.concurrency: spawn, thisTid, send, receiveOnly;
+        import std.concurrency: spawn, thisTid, send, receiveOnly, Tid;
         import unit_threaded.should;
 
         resetFakeFiles;
@@ -661,7 +661,7 @@ version(testing_unit_threaded) {
     }
 
     unittest {
-        import std.concurrency: spawn, thisTid, send, receiveOnly;
+        import std.concurrency: spawn, thisTid, send, receiveOnly, Tid;
         import unit_threaded.should;
 
         resetFakeFiles;
