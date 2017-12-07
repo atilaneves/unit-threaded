@@ -4,7 +4,7 @@
 
 module unit_threaded.io;
 
-import std.concurrency: Tid;
+import unit_threaded.from;
 
 /**
  * Write if debug output was enabled.
@@ -333,9 +333,9 @@ version (Posix) {
 }
 
 
-private void threadWriter(alias OUT, alias ERR)(Tid tid)
+private void threadWriter(alias OUT, alias ERR)(from!"std.concurrency".Tid tid)
 {
-    import std.concurrency: receive, send, OwnerTerminated;
+    import std.concurrency: receive, send, OwnerTerminated, Tid;
 
     auto done = false;
 
