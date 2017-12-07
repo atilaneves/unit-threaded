@@ -5,12 +5,12 @@
 
 module unit_threaded.testsuite;
 
-import unit_threaded.testcase: TestCase;
+import unit_threaded.from;
 
 /*
  * taskPool.amap only works with public functions, not closures.
  */
-auto runTest(TestCase test)
+auto runTest(from!"unit_threaded.testcase".TestCase test)
 {
     return test();
 }
@@ -23,6 +23,7 @@ struct TestSuite
     import unit_threaded.io: Output;
     import unit_threaded.options: Options;
     import unit_threaded.reflection: TestData;
+    import unit_threaded.testcase: TestCase;
     import std.datetime: Duration;
     static if(__VERSION__ >= 2077)
         import std.datetime.stopwatch: StopWatch;
