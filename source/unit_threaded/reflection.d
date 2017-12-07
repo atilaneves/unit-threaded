@@ -1,9 +1,7 @@
 module unit_threaded.reflection;
 
-import std.traits: isSomeString;
-import std.meta: allSatisfy, anySatisfy;
-import std.traits;
-import unit_threaded.uda;
+import unit_threaded.from;
+import std.traits; // can't find out why
 
 /**
  * Common data for test functions and test classes
@@ -37,7 +35,9 @@ struct TestData {
  * Finds all test cases (functions, classes, built-in unittest blocks)
  * Template parameters are module strings
  */
-const(TestData)[] allTestData(MOD_STRINGS...)() if(allSatisfy!(isSomeString, typeof(MOD_STRINGS))) {
+const(TestData)[] allTestData(MOD_STRINGS...)()
+    if(from!"std.meta".allSatisfy!(from!"std.traits".isSomeString, typeof(MOD_STRINGS)))
+{
     import std.array: join;
     import std.range : iota;
     import std.format : format;
@@ -61,7 +61,9 @@ const(TestData)[] allTestData(MOD_STRINGS...)() if(allSatisfy!(isSomeString, typ
  * Finds all test cases (functions, classes, built-in unittest blocks)
  * Template parameters are module symbols
  */
-const(TestData)[] allTestData(MOD_SYMBOLS...)() if(!anySatisfy!(isSomeString, typeof(MOD_SYMBOLS))) {
+const(TestData)[] allTestData(MOD_SYMBOLS...)()
+    if(!from!"std.meta".anySatisfy!(from!"std.traits".isSomeString, typeof(MOD_SYMBOLS)))
+{
     auto allTestsWithFunc(string expr)() pure {
         import std.traits: ReturnType;
         import std.meta: AliasSeq;
@@ -326,6 +328,7 @@ private string getValueAsString(T)(T value) nothrow pure @safe {
 
 
 private template isStringUDA(alias T) {
+    import std.traits: isSomeString;
     static if(__traits(compiles, isSomeString!(typeof(T))))
         enum isStringUDA = isSomeString!(typeof(T));
     else
@@ -338,6 +341,7 @@ unittest {
 }
 
 private template isPrivate(alias module_, string moduleMember) {
+    import unit_threaded.uda: HasTypes;
     import std.traits: fullyQualifiedName;
 
     // obfuscate the name (user code might just be defining their own isPrivate)
@@ -444,6 +448,7 @@ TestData[] moduleTestClasses(alias module_)() pure nothrow {
         import unit_threaded.meta: importMember;
         import unit_threaded.uda: HasAttribute;
         import unit_threaded.attrs: UnitTest;
+        import std.traits: isAggregateType;
 
         mixin(importMember!module_(moduleMember));
 
@@ -465,7 +470,6 @@ TestData[] moduleTestClasses(alias module_)() pure nothrow {
         }
     }
 
-
     return moduleTestData!(module_, isTestClass, memberTestData);
 }
 
@@ -476,7 +480,7 @@ TestData[] moduleTestClasses(alias module_)() pure nothrow {
  */
 TestData[] moduleTestFunctions(alias module_)() pure {
 
-    enum isTypesAttr(alias T) = is(T) && is(T:Types!U, U...);
+    import unit_threaded.uda: isTypesAttr;
 
     template isTestFunction(alias module_, string moduleMember) {
         import unit_threaded.meta: importMember;
@@ -644,7 +648,9 @@ private TestData[] createFuncTestData(alias module_, string moduleMember)() {
 private TestData[] moduleTestData(alias module_, alias pred, alias createTestData)() pure {
     import std.traits: fullyQualifiedName;
     mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
+
     TestData[] testData;
+
     foreach(moduleMember; __traits(allMembers, module_)) {
 
         static if(PassesTestPred!(module_, pred, moduleMember))
@@ -669,11 +675,14 @@ private TestData memberTestData(alias module_, string moduleMember, string[] ext
     enum builtin = false;
     enum tags = tagsFromAttrs!(GetAttributes!(module_, moduleMember, Tags));
     enum exceptionTypeInfo = getExceptionTypeInfo!(mixin(moduleMember));
+    enum shouldFail =
+        HasAttribute!(module_, moduleMember, ShouldFail) ||
+        hasUtUDA!(mixin(moduleMember), ShouldFailWith);
 
     return TestData(fullyQualifiedName!module_~ "." ~ moduleMember,
                     testFunction,
                     HasAttribute!(module_, moduleMember, HiddenTest),
-                    HasAttribute!(module_, moduleMember, ShouldFail) || hasUtUDA!(mixin(moduleMember), ShouldFailWith),
+                    shouldFail,
                     singleThreaded,
                     builtin,
                     suffix,

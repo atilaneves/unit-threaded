@@ -2,8 +2,6 @@ module unit_threaded.factory;
 
 import unit_threaded.from;
 import unit_threaded.testcase: CompositeTestCase;
-// import unit_threaded.testcase: TestCase, CompositeTestCase;
-// import unit_threaded.reflection: TestData;
 
 
 private CompositeTestCase[string] serialComposites;
