@@ -17,6 +17,7 @@ struct TestData {
     string suffix; // append to end of getPath
     string[] tags;
     TypeInfo exceptionTypeInfo; // for ShouldFailWith
+    int flakyRetries = 0;
 
     string getPath() const pure nothrow {
         string path = name.dup;
@@ -191,6 +192,7 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
                 enum isTags(alias T) = is(typeof(T)) && is(typeof(T) == Tags);
                 enum tags = tagsFromAttrs!(Filter!(isTags, __traits(getAttributes, eLtEstO)));
                 enum exceptionTypeInfo = getExceptionTypeInfo!eLtEstO;
+                enum flakyRetries = getFlakyRetries!(eLtEstO);
 
                 static if(valuesUDAs.length == 0) {
                     testData ~= TestData(name,
@@ -209,7 +211,8 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
                                          builtin,
                                          suffix,
                                          tags,
-                                         exceptionTypeInfo);
+                                         exceptionTypeInfo,
+                                         flakyRetries);
                 } else {
                     import std.range;
 
@@ -239,8 +242,14 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
                                                      ValueHolder!(typeof(comb[i])).values[i] = comb[i];
                                                  eLtEstO();
                                              },
-                                             hidden, shouldFail, singleThreaded, builtin, suffix, realTags, exceptionTypeInfo);
-
+                                             hidden,
+                                             shouldFail,
+                                             singleThreaded,
+                                             builtin,
+                                             suffix,
+                                             realTags,
+                                             exceptionTypeInfo,
+                                             flakyRetries);
                     }
                 }
             }
@@ -678,6 +687,7 @@ private TestData memberTestData(alias module_, string moduleMember, string[] ext
     enum shouldFail =
         HasAttribute!(module_, moduleMember, ShouldFail) ||
         hasUtUDA!(mixin(moduleMember), ShouldFailWith);
+    enum flakyRetries = getFlakyRetries!(mixin(moduleMember));
 
     return TestData(fullyQualifiedName!module_~ "." ~ moduleMember,
                     testFunction,
@@ -687,7 +697,28 @@ private TestData memberTestData(alias module_, string moduleMember, string[] ext
                     builtin,
                     suffix,
                     tags ~ extraTags,
-                    exceptionTypeInfo);
+                    exceptionTypeInfo,
+                    flakyRetries);
+}
+
+private int getFlakyRetries(alias test)() {
+    import unit_threaded.attrs: Flaky;
+    import std.traits: getUDAs;
+    import std.conv: text;
+
+    alias flakies = getUDAs!(test, Flaky);
+
+    static assert(flakies.length == 0 || flakies.length == 1,
+                  text("Only 1 @Flaky allowed, found ", flakies.length, " on ",
+                       __traits(identifier, test)));
+
+    static if(flakies.length == 1) {
+        static if(is(flakies[0]))
+            return Flaky.defaultRetries;
+        else
+            return flakies[0].retries;
+    } else
+        return 0;
 }
 
 string[] tagsFromAttrs(T...)() {
@@ -1060,4 +1091,27 @@ unittest {
     import unit_threaded.tests.structs_are_not_classes;
     const testData = allTestData!"unit_threaded.tests.structs_are_not_classes";
     testData.shouldBeEmpty;
+}
+
+@("@Flaky") unittest {
+    import unit_threaded.factory;
+    import unit_threaded.asserts;
+    import unit_threaded.tests.module_with_attrs;
+    import unit_threaded.should: shouldThrowExactly, UnitTestException;
+    import std.algorithm: find, canFind;
+    import std.array: array;
+
+    const testData = allTestData!"unit_threaded.tests.module_with_attrs";
+
+    auto flakyPasses = testData
+        .filter!(a => a.getPath.canFind("flaky that passes eventually"))
+        .array
+        .createTestCases[0];
+    assertPass(flakyPasses);
+
+    auto flakyFails = testData
+        .filter!(a => a.getPath.canFind("flaky that fails due to not enough retries"))
+        .array
+        .createTestCases[0];
+    assertFail(flakyFails);
 }

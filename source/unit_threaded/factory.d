@@ -38,14 +38,18 @@ package from!"unit_threaded.testcase".TestCase createTestCase(
     import std.array: array;
 
     TestCase createImpl() {
-        import unit_threaded.testcase: BuiltinTestCase, FunctionTestCase, ShouldFailTestCase;
+        import unit_threaded.testcase:
+            BuiltinTestCase, FunctionTestCase, ShouldFailTestCase, FlakyTestCase;
         import std.conv: text;
 
         TestCase testCase;
+
         if(testData.isTestClass)
             testCase = cast(TestCase) Object.factory(testData.name);
          else
-            testCase = testData.builtin ? new BuiltinTestCase(testData) : new FunctionTestCase(testData);
+            testCase = testData.builtin
+                ? new BuiltinTestCase(testData)
+                : new FunctionTestCase(testData);
 
         version(unitThreadedLight) {}
         else
@@ -56,7 +60,8 @@ package from!"unit_threaded.testcase".TestCase createTestCase(
 
         if(testData.shouldFail) {
             testCase = new ShouldFailTestCase(testCase, testData.exceptionTypeInfo);
-        }
+        } else if(testData.flakyRetries > 0)
+            testCase = new FlakyTestCase(testCase, testData.flakyRetries);
 
         return testCase;
     }

@@ -147,6 +147,12 @@ attribute can be used on a test. This causes all tests in the same
 module that have this attribute to be executed sequentially so they
 don't interleave with one another.
 
+Although not the best practice, it happens sometimes that a test is
+flaky. It is recommended to fix the test, but as a stopgap measure
+the `@Flaky` UDA can be used to rerun the test up to a default number
+of 10 times. This can be customized by passing it a number
+(e.g. `@Flaky(12)`);
+
 The `@UnitTest` and `@DontTest` attributes are explained below.
 
 There is support for parameterized tests. This means running the test

@@ -123,3 +123,9 @@ unittest {
     string val = getValue!(string);
     val.startsWith("abc").shouldBeTrue;
 }
+
+@Flaky
+void testFlaky() {
+    static int i = 0;
+    if(i++ % 2 == 0) throw new Exception("oops");
+}

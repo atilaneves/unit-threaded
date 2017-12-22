@@ -104,3 +104,9 @@ package struct ValueHolder(T) {
 
 enum Setup;
 enum Shutdown;
+
+struct Flaky {
+    /// the number of times to run the test
+    enum defaultRetries = 10;
+    int retries = defaultRetries;
+}

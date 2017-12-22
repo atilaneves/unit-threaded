@@ -47,3 +47,18 @@ unittest {
 unittest {
     throw new TestException("you won't see this");
 }
+
+
+@Flaky
+@("flaky that passes eventually")
+unittest {
+    static int i = 0;
+    if(i++ % 2 == 0) throw new Exception("failed");
+}
+
+@Flaky(1)
+@("flaky that fails due to not enough retries")
+unittest {
+    static int i = 0;
+    if(i++ % 2 == 0) throw new Exception("failed");
+}

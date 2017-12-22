@@ -226,3 +226,33 @@ class BuiltinTestCase: FunctionTestCase {
         }
     }
 }
+
+
+class FlakyTestCase: TestCase {
+    this(TestCase testCase, int retries) {
+        this.testCase = testCase;
+        this.retries = retries;
+    }
+
+    override string getPath() const pure nothrow {
+        return this.testCase.getPath;
+    }
+
+    override void test() {
+
+        foreach(i; 0 .. retries) {
+            try {
+                testCase.test;
+                break;
+            } catch(Throwable t) {
+                if(i == retries - 1)
+                    throw t;
+            }
+        }
+    }
+
+private:
+
+    TestCase testCase;
+    int retries;
+}
