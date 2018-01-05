@@ -215,8 +215,11 @@ void replaceModuleUnitTester() {
     Runtime.moduleUnitTester = &moduleUnitTester;
 }
 
-shared static this() {
-    replaceModuleUnitTester;
+version(unitThreadedLight) {}
+else {
+    shared static this() {
+        replaceModuleUnitTester;
+    }
 }
 
 /**
