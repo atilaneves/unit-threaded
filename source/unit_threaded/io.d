@@ -287,9 +287,11 @@ class WriterThread: Output {
     void join() {
         version(unitUnthreaded) {}
         else {
-            import std.concurrency: send, receiveOnly;
+            import std.concurrency: send, receiveOnly, LinkTerminated;
             _tid.send(ThreadFinish()); //tell it to join
-            receiveOnly!ThreadEnded;
+            try
+                receiveOnly!ThreadEnded;
+            catch(LinkTerminated _) {}
             _instance = null;
             _instantiated = false;
         }
