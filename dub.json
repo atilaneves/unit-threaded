@@ -6,6 +6,11 @@
     "copyright": "Copyright © 2013, Atila Neves",
     "license": "BSD 3-clause",
     "targetType": "library",
+    "-ddoxFilterArgs": [
+        "--unittest-examples",
+        "--min-protection=Protected"
+    ],
+    "-ddoxTool": "scod",
     "configurations": [
 
         { "name": "library" },
