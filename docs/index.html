@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		<title>API documentation</title>
+		<link rel="stylesheet" href="./css/style.min.css"/>
+		<script type="text/javascript" src="./js/script.min.js"></script>
+	</head>
+	<body onload="setupDdox();">
+		<header></header>
+		<nav id="main-nav">
+			<div>
+				<noscript>
+					<p style="color: red">The search functionality needs JavaScript enabled</p>
+				</noscript>
+				<div id="symbolSearchPane" style="display: none">
+					<form action="#" method="GET">
+						<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(24);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();" autofocus/>
+					</form>
+					<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="./symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "./";
+document.getElementById('symbolSearchPane').style.display = 'block';</script>
+				</div>
+				<ul class="tree-view">
+					<li class="tree-view ">
+						<div class="package ">
+							<a href="./unit_threaded.html">unit_threaded</a>
+						</div>
+				<ul class="tree-view">
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="./unit_threaded/randomized.html">randomized</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/randomized/benchmark.html">benchmark</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/randomized/gen.html">gen</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/randomized/random.html">random</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">tests
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/tests/issue33.html">issue33</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/tests/module_with_attrs.html">module_with_attrs</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/tests/module_with_setup.html">module_with_setup</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/tests/module_with_tests.html">module_with_tests</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/tests/parametrized.html">parametrized</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/tests/structs_are_not_classes.html">structs_are_not_classes</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/tests/tags.html">tags</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/asserts.html">asserts</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/attrs.html">attrs</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/dub.html">dub</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/factory.html">factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/from.html">from</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/integration.html">integration</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/io.html">io</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/light.html">light</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/meta.html">meta</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/mock.html">mock</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/options.html">options</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/property.html">property</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/reflection.html">reflection</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/runner.html">runner</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/runtime.html">runtime</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/should.html">should</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/testcase.html">testcase</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/testsuite.html">testsuite</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="./unit_threaded/uda.html">uda</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+				</ul>
+			</div>
+			<p id="main-nav-footer">
+				Built with
+				<a href="https://github.com/MartinNowak/scod">scod</a>
+			</p>
+		</nav>
+		<div id="main-contents">
+			<div>
+				<h1>API documentation</h1>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Module</th><th>Description</th>
+					</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/randomized/benchmark.html">unit_threaded.randomized.benchmark</a>
+					</td>
+					<td>
+						
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/randomized/gen.html">unit_threaded.randomized.gen</a>
+					</td>
+					<td>
+						
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/randomized/random.html">unit_threaded.randomized.random</a>
+					</td>
+					<td>
+						
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/tests/issue33.html">unit_threaded.tests.issue33</a>
+					</td>
+					<td>
+						
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/tests/module_with_attrs.html">unit_threaded.tests.module_with_attrs</a>
+					</td>
+					<td>
+						
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/tests/module_with_setup.html">unit_threaded.tests.module_with_setup</a>
+					</td>
+					<td>
+						
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/tests/module_with_tests.html">unit_threaded.tests.module_with_tests</a>
+					</td>
+					<td>
+						A module with tests to test the compile-time reflection
+
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/tests/parametrized.html">unit_threaded.tests.parametrized</a>
+					</td>
+					<td>
+						A module with tests to test the compile-time reflection
+
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/tests/structs_are_not_classes.html">unit_threaded.tests.structs_are_not_classes</a>
+					</td>
+					<td>
+						
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/tests/tags.html">unit_threaded.tests.tags</a>
+					</td>
+					<td>
+						
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/asserts.html">unit_threaded.asserts</a>
+					</td>
+					<td>
+						
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/attrs.html">unit_threaded.attrs</a>
+					</td>
+					<td>
+						
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/dub.html">unit_threaded.dub</a>
+					</td>
+					<td>
+						
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/factory.html">unit_threaded.factory</a>
+					</td>
+					<td>
+						
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/from.html">unit_threaded.from</a>
+					</td>
+					<td>
+						
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/integration.html">unit_threaded.integration</a>
+					</td>
+					<td>
+						This module implements functionality helpful for writing integration tests
+ as opposed to the unit variety where unit-tests are defined as not
+ having global side-effects. In constrast, this module implements
+ assertions that check for global side-effects such as writing to the
+ file system.
+
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/io.html">unit_threaded.io</a>
+					</td>
+					<td>
+						IO related functions
+
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/light.html">unit_threaded.light</a>
+					</td>
+					<td>
+						This module is an attempt to alleviate compile times by including the bare
+   minimum. The idea is that while the reporting usually done by unit-threaded
+   is welcome, it only really matters when tests fail. Otherwise, no news is
+   good news.
+
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/meta.html">unit_threaded.meta</a>
+					</td>
+					<td>
+						
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/mock.html">unit_threaded.mock</a>
+					</td>
+					<td>
+						
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/options.html">unit_threaded.options</a>
+					</td>
+					<td>
+						
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/property.html">unit_threaded.property</a>
+					</td>
+					<td>
+						
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/randomized.html">unit_threaded.randomized</a>
+					</td>
+					<td>
+						
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/reflection.html">unit_threaded.reflection</a>
+					</td>
+					<td>
+						
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/runner.html">unit_threaded.runner</a>
+					</td>
+					<td>
+						This module implements functions to run the unittests with
+ command-line options.
+
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/runtime.html">unit_threaded.runtime</a>
+					</td>
+					<td>
+						This module implements a <a href="http://dlang.org/template-mixin.html">template mixin</a> containing a program to search a list of directories
+for all .d files therein, then writes a D program to run all unit
+tests in those files using unit_threaded. The program
+implemented by this mixin only writes out a D file that itself must be
+compiled and run.
+
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/should.html">unit_threaded.should</a>
+					</td>
+					<td>
+						This module implements custom assertions via <code class="lang-d"><span class="pln">shouldXXX</span></code> functions
+ that throw exceptions containing information about why the assertion
+ failed.
+
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/testcase.html">unit_threaded.testcase</a>
+					</td>
+					<td>
+						
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/testsuite.html">unit_threaded.testsuite</a>
+					</td>
+					<td>
+						This module implements <code class="lang-d"><a href="./unit_threaded/testsuite/TestSuite.html"><span class="typ">TestSuite</span></a></code>, an aggregator for <code class="lang-d"><span class="typ">TestCase</span></code>
+ objects to run all tests.
+
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded/uda.html">unit_threaded.uda</a>
+					</td>
+					<td>
+						
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a href="./unit_threaded.html">unit_threaded</a>
+					</td>
+					<td>
+						
+					</td>
+				</tr>
+				</table>
+			</div>
+			<footer>
+				<div id="license-info"></div>
+			</footer>
+		</div>
+	</body>
+</html>

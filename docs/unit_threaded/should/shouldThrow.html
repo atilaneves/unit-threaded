@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		<title>Function shouldThrow</title>
+		<link rel="stylesheet" href="../../css/style.min.css"/>
+		<script type="text/javascript" src="../../js/script.min.js"></script>
+	</head>
+	<body onload="setupDdox();">
+		<header></header>
+		<nav id="main-nav">
+			<div>
+				<noscript>
+					<p style="color: red">The search functionality needs JavaScript enabled</p>
+				</noscript>
+				<div id="symbolSearchPane" style="display: none">
+					<form action="#" method="GET">
+						<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(24);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();" autofocus/>
+					</form>
+					<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../../";
+document.getElementById('symbolSearchPane').style.display = 'block';</script>
+				</div>
+				<ul class="tree-view">
+					<li class="tree-view ">
+						<div class="package ">
+							<a href="../../unit_threaded.html">unit_threaded</a>
+						</div>
+				<ul class="tree-view">
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="../../unit_threaded/randomized.html">randomized</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/randomized/benchmark.html">benchmark</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/randomized/gen.html">gen</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/randomized/random.html">random</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li class="tree-view collapsed">
+						<div class="package ">tests
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/tests/issue33.html">issue33</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/tests/module_with_attrs.html">module_with_attrs</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/tests/module_with_setup.html">module_with_setup</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/tests/module_with_tests.html">module_with_tests</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/tests/parametrized.html">parametrized</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/tests/structs_are_not_classes.html">structs_are_not_classes</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/tests/tags.html">tags</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/asserts.html">asserts</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/attrs.html">attrs</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/dub.html">dub</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/factory.html">factory</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/from.html">from</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/integration.html">integration</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/io.html">io</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/light.html">light</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/meta.html">meta</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/mock.html">mock</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/options.html">options</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/property.html">property</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/reflection.html">reflection</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/runner.html">runner</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/runtime.html">runtime</a>
+						</div>
+					</li>
+					<li>
+						<div class="module selected">
+							<a href="../../unit_threaded/should.html">should</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/testcase.html">testcase</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/testsuite.html">testsuite</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../unit_threaded/uda.html">uda</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+				</ul>
+			</div>
+			<p id="main-nav-footer">
+				Built with
+				<a href="https://github.com/MartinNowak/scod">scod</a>
+			</p>
+		</nav>
+		<div id="main-contents">
+			<div>
+				<h1>Function shouldThrow</h1><p>Verify that expr throws the templated Exception class.
+ This succeeds if the expression throws a child class of
+ the template parameter.
+</p>
+				<div class="prototype">
+					<code class="lang-d">
+						<div class="single-prototype">
+				<span class="kwd">auto </span><span class="kwd">auto</span> <span class="pln">shouldThrow</span>(T, E)
+				<span class="pun">(</span>
+				<br/>
+				&nbsp;&nbsp;<span class="kwd">lazy </span><span class="pln">E</span> <span class="pln">expr</span><span class="pun">,</span>
+				<br/>
+				&nbsp;&nbsp;<span class="kwd">in </span><span class="typ">string</span> <span class="pln">file</span> <span class="pun">=</span> <span class="kwd">__FILE__</span><span class="pun">,</span>
+				<br/>
+				&nbsp;&nbsp;<span class="kwd">in </span><span class="pln">size_t</span> <span class="pln">line</span> <span class="pun">=</span> <span class="kwd">__LINE__</span>
+				<br/>
+				<span class="pun">)</span><span class="pun">;</span>
+						</div>
+					</code>
+				</div>
+				
+				<section><h2>Returns</h2>
+<p>The caught throwable.
+</p>
+</section>
+<section><h2>Throws</h2>
+<p>UnitTestException on failure (when expr does not
+ throw the expected exception)
+</p>
+</section>
+<section><h2>Example</h2>
+
+<pre class="code"><code class="lang-d"><span class="kwd">import <a href="../../unit_threaded/asserts.html"></span><span class="pln">unit_threaded<wbr/></span><span class="pun">.</span><span class="pln">asserts</span></a><span class="pun">;
+</span><span class="typ">void </span><span class="pln">funcThrows</span><span class="pun">(</span><span class="typ">string </span><span class="pln">msg</span><span class="pun">) { </span><span class="kwd">throw new </span><span class="typ">Exception</span><span class="pun">(</span><span class="pln">msg</span><span class="pun">); }
+</span><span class="kwd">try </span><span class="pun">{
+    </span><span class="kwd">auto </span><span class="pln">exception </span><span class="pun">= </span><span class="pln">funcThrows</span><span class="pun">(</span><span class="str">"foo bar"</span><span class="pun">)<wbr/>.</span><span class="pln">shouldThrow</span><span class="pun">;
+    </span><span class="pln">assertEqual</span><span class="pun">(</span><span class="pln">exception<wbr/></span><span class="pun">.</span><span class="pln">msg</span><span class="pun">, </span><span class="str">"foo bar"</span><span class="pun">);
+} </span><span class="kwd">catch</span><span class="pun">(</span><span class="typ">Exception </span><span class="pln">e</span><span class="pun">) {
+    </span><span class="kwd">assert</span><span class="pun">(</span><span class="kwd">false</span><span class="pun">, </span><span class="str">"should not have thrown anything and threw: " </span><span class="pun">~ </span><span class="pln">e<wbr/></span><span class="pun">.</span><span class="pln">msg</span><span class="pun">);
+}
+</span></code></pre>
+</section>
+<section><h2>Example</h2>
+
+<pre class="code"><code class="lang-d"><span class="kwd">import <a href="../../unit_threaded/asserts.html"></span><span class="pln">unit_threaded<wbr/></span><span class="pun">.</span><span class="pln">asserts</span></a><span class="pun">;
+</span><span class="typ">void </span><span class="pln">func</span><span class="pun">() {}
+</span><span class="kwd">try </span><span class="pun">{
+    </span><span class="pln">func<wbr/></span><span class="pun">.</span><span class="pln">shouldThrow</span><span class="pun">;
+    </span><span class="kwd">assert</span><span class="pun">(</span><span class="kwd">false</span><span class="pun">, </span><span class="str">"Should never get here"</span><span class="pun">);
+} </span><span class="kwd">catch</span><span class="pun">(</span><span class="typ">Exception </span><span class="pln">e</span><span class="pun">)
+    </span><span class="pln">assertEqual</span><span class="pun">(</span><span class="pln">e<wbr/></span><span class="pun">.</span><span class="pln">msg</span><span class="pun">, </span><span class="str">"Expression did not throw"</span><span class="pun">);
+</span></code></pre>
+</section>
+<section><h2>Example</h2>
+
+<pre class="code"><code class="lang-d"><span class="kwd">import <a href="../../unit_threaded/asserts.html"></span><span class="pln">unit_threaded<wbr/></span><span class="pun">.</span><span class="pln">asserts</span></a><span class="pun">;
+</span><span class="typ">void </span><span class="pln">funcAsserts</span><span class="pun">() { </span><span class="kwd">assert</span><span class="pun">(</span><span class="kwd">false</span><span class="pun">); }
+</span><span class="kwd">try </span><span class="pun">{
+    </span><span class="pln">funcAsserts<wbr/></span><span class="pun">.</span><span class="pln">shouldThrow</span><span class="pun">;
+    </span><span class="kwd">assert</span><span class="pun">(</span><span class="kwd">false</span><span class="pun">, </span><span class="str">"Should never get here"</span><span class="pun">);
+} </span><span class="kwd">catch</span><span class="pun">(</span><span class="typ">Exception </span><span class="pln">e</span><span class="pun">)
+    </span><span class="pln">assertEqual</span><span class="pun">(</span><span class="pln">e<wbr/></span><span class="pun">.</span><span class="pln">msg</span><span class="pun">, </span><span class="str">"Expression threw core.exception.AssertError instead of the expected Exception"</span><span class="pun">);
+</span></code></pre>
+</section>
+
+			</div>
+			<footer>
+				<div id="license-info">
+					
+					
+					
+				</div>
+			</footer>
+		</div>
+	</body>
+</html>
