@@ -26,7 +26,7 @@ addons:
 script:
   - ./test.sh
   - integration/run.sh
-  - dub build -b ddox
+  # - dub build -b ddox
 
 deploy:
   provider: pages
