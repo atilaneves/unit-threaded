@@ -28,10 +28,10 @@ script:
   - integration/run.sh
   # - dub build -b ddox
 
-deploy:
-  provider: pages
-  skip_cleanup: true
-  local_dir: $TRAVIS_BUILD_DIR/docs
-  github_token: $GH_REPO_TOKEN
-  on:
-    branch: master
+# deploy:
+#   provider: pages
+#   skip_cleanup: true
+#   local_dir: $TRAVIS_BUILD_DIR/docs
+#   github_token: $GH_REPO_TOKEN
+#   on:
+#     branch: master
