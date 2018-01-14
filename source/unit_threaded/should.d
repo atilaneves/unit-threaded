@@ -391,7 +391,7 @@ void shouldNotBeIn(T, U)(in auto ref T value, U container,
     import std.algorithm: find;
     import std.conv: to;
 
-    if (find(container, value).length > 0)
+    if (!find(container, value).empty)
     {
         fail("Value " ~ to!string(value) ~ " is in " ~ to!string(container), file,
             line);
