@@ -119,6 +119,9 @@ struct TestSuite
 
         _output.writeln(".\n");
 
+        if(_options.random)
+            _output.writeln("Tests were run in random order. To repeat this run, use --seed ", _options.seed, "\n");
+
         if (_failures.length) {
             _output.writelnRed("Tests failed!\n");
             return false; //oops
