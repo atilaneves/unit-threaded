@@ -391,7 +391,7 @@ void shouldNotBeIn(T, U)(in auto ref T value, U container,
     import std.algorithm: find;
     import std.conv: to;
 
-    if (find(container, value).length > 0)
+    if (!find(container, value).empty)
     {
         fail("Value " ~ to!string(value) ~ " is in " ~ to!string(container), file,
             line);
@@ -401,8 +401,34 @@ void shouldNotBeIn(T, U)(in auto ref T value, U container,
 ///
 @safe unittest
 {
+    auto arrayRangeWithoutLength(T)(T[] array)
+    {
+        struct ArrayRangeWithoutLength(T)
+        {
+        private:
+            T[] array;
+        public:
+            T front() const @property
+            {
+                return array[0];
+            }
+
+            void popFront()
+            {
+                array = array[1 .. $];
+            }
+
+            bool empty() const @property
+            {
+                return array.empty;
+            }
+        }
+        return ArrayRangeWithoutLength!T(array);
+    }
     shouldNotBeIn(3.5, [1.1, 2.2, 4.4]);
     shouldNotBeIn(1.0, [2.0 : 1, 3.0 : 2]);
+    shouldNotBeIn(1, arrayRangeWithoutLength([2, 3, 4]));
+    assertFail(1.shouldNotBeIn(arrayRangeWithoutLength([1, 2, 3])));
     assertFail("foo".shouldNotBeIn(["foo"]));
 }
 
