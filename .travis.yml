@@ -28,6 +28,9 @@ script:
   - integration/run.sh
   # - dub build -b ddox
 
+after_success:
+ - bash <(curl -s https://codecov.io/bash)
+
 # deploy:
 #   provider: pages
 #   skip_cleanup: true
