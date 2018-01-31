@@ -6,8 +6,6 @@
 module unit_threaded.runner;
 
 import unit_threaded.from;
-// import unit_threaded.reflection: TestData;
-// import unit_threaded.options: Options;
 
 /**
  * Runs all tests in passed-in modules. Modules can be symbols or

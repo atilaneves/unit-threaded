@@ -30,8 +30,6 @@ struct TestSuite
     else
         import std.datetime: StopWatch;
 
-    package Output output;
-
     this(in Options options, in TestData[] testData) {
         import unit_threaded.io: WriterThread;
         this(options, testData, WriterThread.get);
