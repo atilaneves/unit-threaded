@@ -218,10 +218,13 @@ class WriterThread: Output {
      * Returns a reference to the only instance of this class.
      */
     static WriterThread get() @trusted {
+        import std.concurrency: send, receiveOnly;
         if (!_instantiated) {
             synchronized {
                 if (_instance is null) {
                     _instance = new WriterThread;
+                    _instance._tid.send(ThreadWait());
+                    receiveOnly!ThreadStarted;
                 }
                 _instantiated = true;
             }
@@ -248,19 +251,6 @@ class WriterThread: Output {
             () @trusted { _tid.send(Flush(), thisTid); }();
         }
     }
-
-    /**
-     * Creates the singleton instance and waits until it's ready.
-     */
-    static void start() {
-        version(unitUnthreaded) {}
-        else {
-            import std.concurrency: send, receiveOnly;
-            WriterThread.get._tid.send(ThreadWait());
-            receiveOnly!ThreadStarted;
-        }
-    }
-
 
     static void stop() {
 
