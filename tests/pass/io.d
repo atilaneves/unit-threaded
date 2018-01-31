@@ -10,24 +10,5 @@ class TestIo: TestCase {
 }
 
 void testNoIo1() {
-    import std.stdio;
-    writeln("This should not be seen except for -d option");
-    writeln("Or this");
-    stderr.writeln("Stderr shouldn't be seen either");
     writelnUt("But this should show up when using -d option");
-}
-
-
-void testNoIo2() {
-    import std.stdio;
-    writeln("This should not be seen except for -d option");
-    writeln("Or this");
-    stderr.writeln("Stderr shouldn't be seen either");
-}
-
-void testNoIo3() {
-    import std.stdio;
-    writeln("This should not be seen except for -d option");
-    writeln("Or this");
-    stderr.writeln("Stderr shouldn't be seen either");
 }
