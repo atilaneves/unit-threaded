@@ -223,8 +223,6 @@ class WriterThread: Output {
             synchronized {
                 if (_instance is null) {
                     _instance = new WriterThread;
-                    _instance._tid.send(ThreadWait());
-                    receiveOnly!ThreadStarted;
                 }
                 _instantiated = true;
             }
@@ -292,9 +290,11 @@ private:
     this() {
         version(unitUnthreaded) {}
         else {
-            import std.concurrency: spawn, thisTid;
+            import std.concurrency: spawn, thisTid, receiveOnly, send;
             import std.stdio: stdout, stderr;
             _tid = spawn(&threadWriter!(stdout, stderr), thisTid);
+            _tid.send(ThreadWait());
+            receiveOnly!ThreadStarted;
         }
     }
 
