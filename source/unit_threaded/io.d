@@ -214,22 +214,15 @@ class WriterThread: Output {
 
     import std.concurrency: Tid;
 
+
     /**
      * Returns a reference to the only instance of this class.
      */
     static WriterThread get() @trusted {
-        import std.concurrency: send, receiveOnly;
-        if (!_instantiated) {
-            synchronized {
-                if (_instance is null) {
-                    _instance = new WriterThread;
-                }
-                _instantiated = true;
-            }
-        }
-        return _instance;
+        import std.concurrency: initOnce;
+        static __gshared WriterThread instance;
+        return initOnce!instance(new WriterThread);
     }
-
 
     override void send(in string output) @safe {
 
@@ -250,40 +243,6 @@ class WriterThread: Output {
         }
     }
 
-    static void stop() {
-
-        void impl() {
-            WriterThread.get.flush;
-            WriterThread.get.join;
-        }
-
-        if (_instantiated) {
-            impl;
-            return;
-        }
-
-        synchronized {
-            if (_instance !is null) {
-                impl;
-            }
-        }
-    }
-
-    /**
-     * Waits for the writer thread to terminate.
-     */
-    void join() {
-        version(unitUnthreaded) {}
-        else {
-            import std.concurrency: send, receiveOnly, LinkTerminated;
-            _tid.send(ThreadFinish()); //tell it to join
-            try
-                receiveOnly!ThreadEnded;
-            catch(LinkTerminated _) {}
-            _instance = null;
-            _instantiated = false;
-        }
-    }
 
 private:
 
@@ -300,17 +259,8 @@ private:
 
 
     Tid _tid;
-
-    static bool _instantiated; /// Thread local
-    __gshared WriterThread _instance;
 }
 
-unittest
-{
-    //make sure this can be brought up and down again
-    WriterThread.get.join;
-    WriterThread.get.join;
-}
 
 private struct ThreadWait{};
 private struct ThreadFinish{};
