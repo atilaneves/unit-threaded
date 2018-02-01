@@ -24,8 +24,7 @@ addons:
       - libevent-dev
 
 script:
-  - ./test.sh
-  - integration/run.sh
+  - ./ci.sh
   # - dub build -b ddox
 
 after_success:
