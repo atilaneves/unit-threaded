@@ -126,15 +126,15 @@ void shouldEqual(V, E)(auto ref V value, auto ref E expected, in string file = _
     }
 }
 
-void shouldNotEqual(V, E)(in auto ref V value, in auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
+void shouldNotEqual(V, E)(scope auto ref V value, scope auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
     assert_(value != expected, file, line);
 }
 
-void shouldBeNull(T)(in auto ref T value, in string file = __FILE__, in size_t line = __LINE__) {
+void shouldBeNull(T)(scope auto ref T value, in string file = __FILE__, in size_t line = __LINE__) {
     assert_(value is null, file, line);
 }
 
-void shouldNotBeNull(T)(in auto ref T value, in string file = __FILE__, in size_t line = __LINE__) {
+void shouldNotBeNull(T)(scope auto ref T value, in string file = __FILE__, in size_t line = __LINE__) {
     assert_(value !is null, file, line);
 }
 
@@ -146,12 +146,12 @@ static assert(isLikeAssociativeArray!(string[string], string));
 static assert(!isLikeAssociativeArray!(string[string], int));
 
 
-void shouldBeIn(T, U)(in auto ref T value, in auto ref U container, in string file = __FILE__, in size_t line = __LINE__)
+void shouldBeIn(T, U)(scope auto ref T value, scope auto ref U container, in string file = __FILE__, in size_t line = __LINE__)
     if(isLikeAssociativeArray!U) {
     assert_(cast(bool)(value in container), file, line);
 }
 
-void shouldBeIn(T, U)(in auto ref T value, U container, in string file = __FILE__, in size_t line = __LINE__)
+void shouldBeIn(T, U)(scope auto ref T value, U container, in string file = __FILE__, in size_t line = __LINE__)
     if (!isLikeAssociativeArray!(U, T))
 {
     import std.algorithm: find;
@@ -159,12 +159,12 @@ void shouldBeIn(T, U)(in auto ref T value, U container, in string file = __FILE_
     assert_(!find(container, value).empty, file, line);
 }
 
-void shouldNotBeIn(T, U)(in auto ref T value, in auto ref U container, in string file = __FILE__, in size_t line = __LINE__)
+void shouldNotBeIn(T, U)(scope auto ref T value, scope auto ref U container, in string file = __FILE__, in size_t line = __LINE__)
     if(isLikeAssociativeArray!U) {
     assert_(!cast(bool)(value in container), file, line);
 }
 
-void shouldNotBeIn(T, U)(in auto ref T value, U container, in string file = __FILE__, in size_t line = __LINE__)
+void shouldNotBeIn(T, U)(scope auto ref T value, U container, in string file = __FILE__, in size_t line = __LINE__)
     if (!isLikeAssociativeArray!(U, T))
 {
     import std.algorithm: find;
@@ -228,7 +228,7 @@ void shouldApproxEqual(V, E)(in V value, in E expected, string file = __FILE__, 
     assert_(approxEqual(value, expected), file, line);
 }
 
-void shouldBeEmpty(R)(in auto ref R rng, in string file = __FILE__, in size_t line = __LINE__) {
+void shouldBeEmpty(R)(scope auto ref R rng, in string file = __FILE__, in size_t line = __LINE__) {
     import std.range: isInputRange;
     import std.traits: isAssociativeArray;
     import std.array;
@@ -241,7 +241,7 @@ void shouldBeEmpty(R)(in auto ref R rng, in string file = __FILE__, in size_t li
         static assert(false, "Cannot call shouldBeEmpty on " ~ R.stringof);
 }
 
-void shouldNotBeEmpty(R)(in auto ref R rng, in string file = __FILE__, in size_t line = __LINE__) {
+void shouldNotBeEmpty(R)(scope auto ref R rng, in string file = __FILE__, in size_t line = __LINE__) {
     import std.range: isInputRange;
     import std.traits: isAssociativeArray;
     import std.array;
@@ -254,27 +254,27 @@ void shouldNotBeEmpty(R)(in auto ref R rng, in string file = __FILE__, in size_t
         static assert(false, "Cannot call shouldBeEmpty on " ~ R.stringof);
 }
 
-void shouldBeGreaterThan(T, U)(in auto ref T t, in auto ref U u,
+void shouldBeGreaterThan(T, U)(scope auto ref T t, scope auto ref U u,
                                in string file = __FILE__, in size_t line = __LINE__)
 {
     assert_(t > u, file, line);
 }
 
-void shouldBeSmallerThan(T, U)(in auto ref T t, in auto ref U u,
+void shouldBeSmallerThan(T, U)(scope auto ref T t, scope auto ref U u,
                                in string file = __FILE__, in size_t line = __LINE__)
 {
     assert_(t < u, file, line);
 }
 
-void shouldBeSameSetAs(V, E)(in auto ref V value, in auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
+void shouldBeSameSetAs(V, E)(scope auto ref V value, scope auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
     assert_(isSameSet(value, expected), file, line);
 }
 
-void shouldNotBeSameSetAs(V, E)(in auto ref V value, in auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
+void shouldNotBeSameSetAs(V, E)(scope auto ref V value, scope auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
     assert_(!isSameSet(value, expected), file, line);
 }
 
-private bool isSameSet(T, U)(in auto ref T t, in auto ref U u) {
+private bool isSameSet(T, U)(scope auto ref T t, scope auto ref U u) {
     import std.array: array;
     import std.algorithm: canFind;
 

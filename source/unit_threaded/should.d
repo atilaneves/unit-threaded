@@ -235,7 +235,7 @@ void shouldNotEqual(V, E)(V value, E expected, in string file = __FILE__, in siz
  * Verify that the value is null.
  * Throws: UnitTestException on failure
  */
-void shouldBeNull(T)(in auto ref T value, in string file = __FILE__, in size_t line = __LINE__)
+void shouldBeNull(T)(scope auto ref T value, in string file = __FILE__, in size_t line = __LINE__)
 {
     if (value !is null)
         fail("Value is not null", file, line);
@@ -253,7 +253,7 @@ void shouldBeNull(T)(in auto ref T value, in string file = __FILE__, in size_t l
  * Verify that the value is not null.
  * Throws: UnitTestException on failure
  */
-void shouldNotBeNull(T)(in auto ref T value, in string file = __FILE__, in size_t line = __LINE__)
+void shouldNotBeNull(T)(scope auto ref T value, in string file = __FILE__, in size_t line = __LINE__)
 {
     if (value is null)
         fail("Value is null", file, line);
@@ -294,7 +294,7 @@ static assert(!isLikeAssociativeArray!(string[string], int));
  * Verify that the value is in the container.
  * Throws: UnitTestException on failure
 */
-void shouldBeIn(T, U)(in auto ref T value, in auto ref U container, in string file = __FILE__, in size_t line = __LINE__)
+void shouldBeIn(T, U)(scope auto ref T value, scope auto ref U container, in string file = __FILE__, in size_t line = __LINE__)
     if (isLikeAssociativeArray!(U, T))
 {
     import std.conv: to;
@@ -325,7 +325,7 @@ void shouldBeIn(T, U)(in auto ref T value, in auto ref U container, in string fi
  * Verify that the value is in the container.
  * Throws: UnitTestException on failure
  */
-void shouldBeIn(T, U)(in auto ref T value, U container, in string file = __FILE__, in size_t line = __LINE__)
+void shouldBeIn(T, U)(scope auto ref T value, U container, in string file = __FILE__, in size_t line = __LINE__)
     if (!isLikeAssociativeArray!(U, T) && isInputRange!U)
 {
     import std.algorithm: find;
@@ -351,7 +351,7 @@ void shouldBeIn(T, U)(in auto ref T value, U container, in string file = __FILE_
  * Verify that the value is not in the container.
  * Throws: UnitTestException on failure
  */
-void shouldNotBeIn(T, U)(in auto ref T value, in auto ref U container,
+void shouldNotBeIn(T, U)(scope auto ref T value, scope auto ref U container,
                          in string file = __FILE__, in size_t line = __LINE__)
     if (isLikeAssociativeArray!(U, T))
 {
@@ -384,7 +384,7 @@ void shouldNotBeIn(T, U)(in auto ref T value, in auto ref U container,
  * Verify that the value is not in the container.
  * Throws: UnitTestException on failure
  */
-void shouldNotBeIn(T, U)(in auto ref T value, U container,
+void shouldNotBeIn(T, U)(scope auto ref T value, U container,
                          in string file = __FILE__, in size_t line = __LINE__)
     if (!isLikeAssociativeArray!(U, T) && isInputRange!U)
 {
@@ -692,7 +692,7 @@ private string[] formatValue(T)(in string prefix, auto ref T value) {
 }
 
 // helper function for non-copyable types
-private string convertToString(T)(in auto ref T value) { // std.conv.to sometimes is @system
+private string convertToString(T)(scope auto ref T value) { // std.conv.to sometimes is @system
     import std.conv: to;
     import std.traits: Unqual;
 
@@ -744,7 +744,7 @@ private string[] formatRange(T)(in string prefix, T value) {
 
 private enum isObject(T) = is(T == class) || is(T == interface);
 
-private bool isEqual(V, E)(in auto ref V value, in auto ref E expected)
+private bool isEqual(V, E)(scope auto ref V value, scope auto ref E expected)
  if (!isObject!V &&
      (!isInputRange!V || !isInputRange!E) &&
      !isFloatingPoint!V && !isFloatingPoint!E &&
@@ -890,7 +890,7 @@ private void assertFail(E)(lazy E expression, in string file = __FILE__, in size
  * Verify that rng is empty.
  * Throws: UnitTestException on failure.
  */
-void shouldBeEmpty(R)(in auto ref R rng, in string file = __FILE__, in size_t line = __LINE__)
+void shouldBeEmpty(R)(scope auto ref R rng, in string file = __FILE__, in size_t line = __LINE__)
 if (isInputRange!R)
 {
     import std.conv: text;
@@ -958,7 +958,7 @@ if (isInputRange!R)
  * Verify that aa is not empty.
  * Throws: UnitTestException on failure.
  */
-void shouldNotBeEmpty(T)(in auto ref T aa, in string file = __FILE__, in size_t line = __LINE__)
+void shouldNotBeEmpty(T)(scope auto ref T aa, in string file = __FILE__, in size_t line = __LINE__)
 if (isAssociativeArray!T)
 {
     //keys is @system
@@ -990,7 +990,7 @@ if (isAssociativeArray!T)
  * Verify that t is greater than u.
  * Throws: UnitTestException on failure.
  */
-void shouldBeGreaterThan(T, U)(in auto ref T t, in auto ref U u,
+void shouldBeGreaterThan(T, U)(scope auto ref T t, scope auto ref U u,
                                in string file = __FILE__, in size_t line = __LINE__)
 {
     import std.conv: text;
@@ -1011,7 +1011,7 @@ void shouldBeGreaterThan(T, U)(in auto ref T t, in auto ref U u,
  * Verify that t is smaller than u.
  * Throws: UnitTestException on failure.
  */
-void shouldBeSmallerThan(T, U)(in auto ref T t, in auto ref U u,
+void shouldBeSmallerThan(T, U)(scope auto ref T t, scope auto ref U u,
                                in string file = __FILE__, in size_t line = __LINE__)
 {
     import std.conv: text;
