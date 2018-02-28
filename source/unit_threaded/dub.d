@@ -1,3 +1,7 @@
+/**
+   Code to parse the output from `dub describe` and generate the main
+   test file automatically.
+ */
 module unit_threaded.dub;
 
 import unit_threaded.from;

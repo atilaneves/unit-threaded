@@ -1,3 +1,6 @@
+/**
+   Advanced testing library for D. Please consult the documentation in the different modules.
+ */
 module unit_threaded;
 
 version(unitThreadedLight) {

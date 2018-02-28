@@ -1,3 +1,6 @@
+/**
+   The different TestCase classes
+ */
 module unit_threaded.testcase;
 
 
@@ -127,6 +130,9 @@ private:
     }
 }
 
+/**
+   A test that runs other tests.
+ */
 class CompositeTestCase: TestCase {
     void add(TestCase t) { _tests ~= t;}
 
@@ -158,6 +164,9 @@ private:
     TestCase[] _tests;
 }
 
+/**
+   A test that should fail
+ */
 class ShouldFailTestCase: TestCase {
     this(TestCase testCase, in TypeInfo exceptionTypeInfo) {
         this.testCase = testCase;
@@ -186,6 +195,9 @@ private:
     const(TypeInfo) exceptionTypeInfo;
 }
 
+/**
+   A test that is a regular function.
+ */
 class FunctionTestCase: TestCase {
 
     import unit_threaded.reflection: TestData, TestFunction;
@@ -207,6 +219,9 @@ class FunctionTestCase: TestCase {
     private TestFunction _func;
 }
 
+/**
+   A test that is a `unittest` block.
+ */
 class BuiltinTestCase: FunctionTestCase {
 
     import unit_threaded.reflection: TestData;
@@ -228,6 +243,9 @@ class BuiltinTestCase: FunctionTestCase {
 }
 
 
+/**
+   A test that is expected to fail some of the time.
+ */
 class FlakyTestCase: TestCase {
     this(TestCase testCase, int retries) {
         this.testCase = testCase;

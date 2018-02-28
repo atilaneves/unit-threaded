@@ -1,3 +1,6 @@
+/**
+   Creates test cases from compile-time information.
+ */
 module unit_threaded.factory;
 
 import unit_threaded.from;

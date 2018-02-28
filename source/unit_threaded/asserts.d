@@ -1,3 +1,6 @@
+/**
+   Custom assertions for testing unit-threaded itself, not intended for the end-user.
+ */
 module unit_threaded.asserts;
 
 @safe:

@@ -1,3 +1,6 @@
+/**
+   UDAs for decorating tests.
+ */
 module unit_threaded.attrs;
 
 import unit_threaded.from;

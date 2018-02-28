@@ -1,12 +1,17 @@
+/**
+   Compile-time reflection to find unit tests and set their properties.
+ */
 module unit_threaded.reflection;
 
 import unit_threaded.from;
 import std.traits; // can't find out why
 
+///
+alias void delegate() TestFunction;
+
 /**
  * Common data for test functions and test classes
  */
-alias void delegate() TestFunction;
 struct TestData {
     string name;
     TestFunction testFunction; ///only used for functions, null for classes
@@ -19,6 +24,7 @@ struct TestData {
     TypeInfo exceptionTypeInfo; // for ShouldFailWith
     int flakyRetries = 0;
 
+    /// The test's name
     string getPath() const pure nothrow {
         string path = name.dup;
         import std.array: empty;
@@ -26,6 +32,7 @@ struct TestData {
         return path;
     }
 
+    /// If the test is a class
     bool isTestClass() @safe const pure nothrow {
         return testFunction is null;
     }

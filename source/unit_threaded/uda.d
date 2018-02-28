@@ -1,3 +1,7 @@
+/**
+   Helper functions for dealing with UDAs, written before hasUDA and
+   others were added to Phobos.
+ */
 module unit_threaded.uda;
 
 /**

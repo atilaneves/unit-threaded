@@ -1,3 +1,6 @@
+/**
+   Property-based testing.
+ */
 module unit_threaded.property;
 
 
@@ -18,6 +21,7 @@ static this() {
 }
 
 
+///
 class PropertyException : Exception
 {
     this(in string msg, string file = __FILE__,
@@ -27,6 +31,9 @@ class PropertyException : Exception
     }
 }
 
+/**
+   Check that bool-returning F is true with randomly generated values.
+ */
 void check(alias F)(int numFuncCalls = 100,
                     in string file = __FILE__, in size_t line = __LINE__) @trusted {
 
@@ -73,6 +80,10 @@ void check(alias F)(int numFuncCalls = 100,
     }
 }
 
+/**
+   For values that unit-threaded doesn't know how to generate, test that the Predicate
+   holds, using Generator to come up with new values.
+ */
 void checkCustom(alias Generator, alias Predicate)
                 (int numFuncCalls = 100, in string file = __FILE__, in size_t line = __LINE__) @trusted {
 
@@ -121,6 +132,7 @@ private auto shrinkOne(alias F, int index, T)(T values) {
 
 }
 
+///
 @("Verify identity property for int[] succeeds")
 @safe unittest {
     import unit_threaded.should;
@@ -163,6 +175,7 @@ private auto shrinkOne(alias F, int index, T)(T values) {
 }
 
 
+///
 @("Explicit Gen")
 @safe unittest {
     import unit_threaded.randomized.gen;

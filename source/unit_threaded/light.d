@@ -18,10 +18,14 @@
 module unit_threaded.light;
 
 
+/**
+   Dummy version of runTests so "normal" code compiles.
+ */
 int runTests(T...)(in string[] args) {
     return runTestsImpl;
 }
 
+/// ditto
 int runTests(T)(string[] args, T testData) {
     return runTestsImpl;
 }
@@ -47,20 +51,32 @@ int runTestsImpl() {
         return 1;
 }
 
+/**
+   Dummy version so "normal" code compiles
+ */
 int[] allTestData(T...)() {
     return [];
 }
 
+/**
+   No-op version of writelnUt
+ */
 void writelnUt(T...)(auto ref T args) {
 
 }
 
+/**
+   Same as unit_threaded.property.check
+ */
 void check(alias F)(int numFuncCalls = 100,
                     in string file = __FILE__, in size_t line = __LINE__) @trusted {
     import unit_threaded.property: utCheck = check;
     utCheck!F(numFuncCalls, file, line);
 }
 
+/**
+   Same as unit_threaded.property.checkCustom
+ */
 void checkCustom(alias Generator, alias Predicate)
                 (int numFuncCalls = 100, in string file = __FILE__, in size_t line = __LINE__) @trusted {
     import unit_threaded.property: utCheckCustom = checkCustom;
@@ -68,11 +84,17 @@ void checkCustom(alias Generator, alias Predicate)
 }
 
 
+/**
+   Generic output interface
+ */
 interface Output {
     void send(in string output) @safe;
     void flush() @safe;
 }
 
+/**
+   Dummy version of unit_threaded.testcase.TestCase
+ */
 class TestCase {
     abstract void test();
     void setup() {}
@@ -82,24 +104,35 @@ class TestCase {
 }
 
 
+/**
+   Same as unit_threaded.mock.mock
+ */
 auto mock(T)() {
     import unit_threaded.mock: utMock = mock;
     return utMock!T;
 }
 
+/**
+   Same as unit_threaded.mock.mockStruct
+ */
 auto mockStruct(T...)(auto ref T returns) {
     import unit_threaded.mock: utMockStruct = mockStruct;
     return utMockStruct(returns);
 }
 
+/**
+   Throw if condition is not true.
+ */
 void shouldBeTrue(E)(lazy E condition, in string file = __FILE__, in size_t line = __LINE__) {
     assert_(cast(bool)condition(), file, line);
 }
 
+/// Throw if condition not false.
 void shouldBeFalse(E)(lazy E condition, in string file = __FILE__, in size_t line = __LINE__) {
     assert_(!cast(bool)condition(), file, line);
 }
 
+/// Assert value is equal to expected
 void shouldEqual(V, E)(auto ref V value, auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
 
     void checkInputRange(T)(auto ref const(T) _) @trusted {
@@ -126,14 +159,17 @@ void shouldEqual(V, E)(auto ref V value, auto ref E expected, in string file = _
     }
 }
 
+/// Assert value is not equal to expected.
 void shouldNotEqual(V, E)(in auto ref V value, in auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
     assert_(value != expected, file, line);
 }
 
+/// Assert value is null.
 void shouldBeNull(T)(in auto ref T value, in string file = __FILE__, in size_t line = __LINE__) {
     assert_(value is null, file, line);
 }
 
+/// Assert value is not null
 void shouldNotBeNull(T)(in auto ref T value, in string file = __FILE__, in size_t line = __LINE__) {
     assert_(value !is null, file, line);
 }
@@ -146,11 +182,13 @@ static assert(isLikeAssociativeArray!(string[string], string));
 static assert(!isLikeAssociativeArray!(string[string], int));
 
 
+/// Assert that value is in container.
 void shouldBeIn(T, U)(in auto ref T value, in auto ref U container, in string file = __FILE__, in size_t line = __LINE__)
     if(isLikeAssociativeArray!U) {
     assert_(cast(bool)(value in container), file, line);
 }
 
+/// ditto.
 void shouldBeIn(T, U)(in auto ref T value, U container, in string file = __FILE__, in size_t line = __LINE__)
     if (!isLikeAssociativeArray!(U, T))
 {
@@ -159,11 +197,13 @@ void shouldBeIn(T, U)(in auto ref T value, U container, in string file = __FILE_
     assert_(!find(container, value).empty, file, line);
 }
 
+/// Assert value is not in container.
 void shouldNotBeIn(T, U)(in auto ref T value, in auto ref U container, in string file = __FILE__, in size_t line = __LINE__)
     if(isLikeAssociativeArray!U) {
     assert_(!cast(bool)(value in container), file, line);
 }
 
+/// ditto.
 void shouldNotBeIn(T, U)(in auto ref T value, U container, in string file = __FILE__, in size_t line = __LINE__)
     if (!isLikeAssociativeArray!(U, T))
 {
@@ -172,6 +212,7 @@ void shouldNotBeIn(T, U)(in auto ref T value, U container, in string file = __FI
     assert_(find(container, value).empty, file, line);
 }
 
+/// Assert that expr throws.
 void shouldThrow(T : Throwable = Exception, E)
                 (lazy E expr, in string file = __FILE__, in size_t line = __LINE__) {
     () @trusted {
@@ -184,8 +225,9 @@ void shouldThrow(T : Throwable = Exception, E)
     }();
 }
 
-void shouldThrowExactly(T : Throwable = Exception, E)(lazy E expr,
-    in string file = __FILE__, in size_t line = __LINE__)
+/// Assert that expr throws an Exception that must have the type E, derived types won't do.
+void shouldThrowExactly(T : Throwable = Exception, E)
+                       (lazy E expr, in string file = __FILE__, in size_t line = __LINE__)
 {
     () @trusted {
         try {
@@ -199,6 +241,7 @@ void shouldThrowExactly(T : Throwable = Exception, E)(lazy E expr,
     }();
 }
 
+/// Assert that expr doesn't throw
 void shouldNotThrow(T: Throwable = Exception, E)
                    (lazy E expr, in string file = __FILE__, in size_t line = __LINE__) {
     () @trusted {
@@ -209,6 +252,7 @@ void shouldNotThrow(T: Throwable = Exception, E)
     }();
 }
 
+/// Assert that expr throws and the exception message is msg.
 void shouldThrowWithMessage(T : Throwable = Exception, E)(lazy E expr,
                                                           string msg,
                                                           string file = __FILE__,
@@ -223,11 +267,13 @@ void shouldThrowWithMessage(T : Throwable = Exception, E)(lazy E expr,
     }();
 }
 
+/// Assert that value is approximately equal to expected.
 void shouldApproxEqual(V, E)(in V value, in E expected, string file = __FILE__, size_t line = __LINE__) {
     import std.math: approxEqual;
     assert_(approxEqual(value, expected), file, line);
 }
 
+/// assert that rng is empty.
 void shouldBeEmpty(R)(in auto ref R rng, in string file = __FILE__, in size_t line = __LINE__) {
     import std.range: isInputRange;
     import std.traits: isAssociativeArray;
@@ -241,6 +287,7 @@ void shouldBeEmpty(R)(in auto ref R rng, in string file = __FILE__, in size_t li
         static assert(false, "Cannot call shouldBeEmpty on " ~ R.stringof);
 }
 
+/// Assert that rng is not empty.
 void shouldNotBeEmpty(R)(in auto ref R rng, in string file = __FILE__, in size_t line = __LINE__) {
     import std.range: isInputRange;
     import std.traits: isAssociativeArray;
@@ -254,22 +301,26 @@ void shouldNotBeEmpty(R)(in auto ref R rng, in string file = __FILE__, in size_t
         static assert(false, "Cannot call shouldBeEmpty on " ~ R.stringof);
 }
 
+/// Assert that t should be greater than u.
 void shouldBeGreaterThan(T, U)(in auto ref T t, in auto ref U u,
                                in string file = __FILE__, in size_t line = __LINE__)
 {
     assert_(t > u, file, line);
 }
 
+/// Assert that t should be smaller than u.
 void shouldBeSmallerThan(T, U)(in auto ref T t, in auto ref U u,
                                in string file = __FILE__, in size_t line = __LINE__)
 {
     assert_(t < u, file, line);
 }
 
+/// Assert that value is the same set as expected (i.e. order doesn't matter)
 void shouldBeSameSetAs(V, E)(in auto ref V value, in auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
     assert_(isSameSet(value, expected), file, line);
 }
 
+/// Assert that value is not the same set as expected.
 void shouldNotBeSameSetAs(V, E)(in auto ref V value, in auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
     assert_(!isSameSet(value, expected), file, line);
 }
@@ -291,6 +342,7 @@ private bool isSameSet(T, U)(in auto ref T t, in auto ref U u) {
     return true;
 }
 
+/// Assert that actual and expected represent the same JSON (i.e. formatting doesn't matter)
 void shouldBeSameJsonAs(in string actual,
                         in string expected,
                         in string file = __FILE__,

@@ -1,3 +1,6 @@
+/**
+   Support the automatic implementation of test doubles via programmable mocks.
+ */
 module unit_threaded.mock;
 
 import unit_threaded.from;
@@ -193,6 +196,9 @@ mixin template MockImplCommon() {
 
 private enum isString(alias T) = is(typeof(T) == string);
 
+/**
+   A mock object that conforms to an interface/class.
+ */
 struct Mock(T) {
 
     MockAbstract _impl;
@@ -208,14 +214,17 @@ struct Mock(T) {
         mixin MockImplCommon;
     }
 
+    ///
     this(int/* force constructor*/) {
         _impl = new MockAbstract;
     }
 
+    ///
     ~this() pure @safe {
         if(!_verified) verify;
     }
 
+    /// Set the returnValue of a function to certain values.
     void returnValue(string funcName, V...)(V values) {
         assertFunctionIsVirtual!funcName;
         return returnValue!(0, funcName)(values);
@@ -257,11 +266,12 @@ private string importsString(string module_, string[] Modules...) {
     return ret;
 }
 
+/// Helper function for creating a Mock object.
 auto mock(T)() {
     return Mock!T(0);
 }
 
-
+///
 @("mock interface positive test no params")
 @safe pure unittest {
     interface Foo {
@@ -316,7 +326,7 @@ auto mock(T)() {
     }
 }
 
-
+///
 @("mock interface negative test")
 @safe pure unittest {
     import unit_threaded.should;
@@ -373,6 +383,7 @@ private class Class {
     m.verify;
 }
 
+///
 @("interface expectCalled")
 @safe pure unittest {
     interface Foo {
@@ -389,6 +400,7 @@ private class Class {
     m.expectCalled!"foo"(5, "foobar");
 }
 
+///
 @("interface return value")
 @safe pure unittest {
     import unit_threaded.should;
@@ -407,6 +419,7 @@ private class Class {
     res.shouldEqual(84);
 }
 
+///
 @("interface return values")
 @safe pure unittest {
     import unit_threaded.should;
@@ -537,7 +550,7 @@ auto mockStruct(T...)() if(T.length > 0 && from!"std.meta".allSatisfy!(isReturnV
     return mock;
 }
 
-
+///
 @("mock struct positive")
 @safe pure unittest {
     void fun(T)(T t) {
@@ -549,6 +562,7 @@ auto mockStruct(T...)() if(T.length > 0 && from!"std.meta".allSatisfy!(isReturnV
     m.verify;
 }
 
+///
 @("mock struct negative")
 @safe pure unittest {
     import unit_threaded.asserts;
@@ -560,7 +574,7 @@ auto mockStruct(T...)() if(T.length > 0 && from!"std.meta".allSatisfy!(isReturnV
 
 }
 
-
+///
 @("mock struct values positive")
 @safe pure unittest {
     void fun(T)(T t) {
@@ -573,6 +587,7 @@ auto mockStruct(T...)() if(T.length > 0 && from!"std.meta".allSatisfy!(isReturnV
     m.verify;
 }
 
+///
 @("mock struct values negative")
 @safe pure unittest {
     import unit_threaded.asserts;
@@ -589,7 +604,7 @@ auto mockStruct(T...)() if(T.length > 0 && from!"std.meta".allSatisfy!(isReturnV
                        "    source/unit_threaded/mock.d:123 -           instead of the expected Tuple!(int, string)(3, \"quux\")");
 }
 
-
+///
 @("struct return value")
 @safe pure unittest {
     import unit_threaded.should;
@@ -605,6 +620,7 @@ auto mockStruct(T...)() if(T.length > 0 && from!"std.meta".allSatisfy!(isReturnV
     m.expectCalled!"timesN";
 }
 
+///
 @("struct expectCalled")
 @safe pure unittest {
     void fun(T)(T t) {
@@ -616,6 +632,7 @@ auto mockStruct(T...)() if(T.length > 0 && from!"std.meta".allSatisfy!(isReturnV
     m.expectCalled!"foobar"(2, "quux");
 }
 
+///
 @("mockStruct different return types for different functions")
 @safe pure unittest {
     import unit_threaded.should: shouldEqual;

@@ -1,6 +1,10 @@
+/**
+   Run-time options.
+ */
 module unit_threaded.options;
 
 
+///
 struct Options {
     bool multiThreaded;
     string[] testsToRun;
