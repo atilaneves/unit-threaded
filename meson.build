@@ -3,7 +3,7 @@
 project(
     'unit-threaded',
     'd',
-    version: '0.7.36',
+    version: '0.7.38',
     default_options: ['buildtype=release'],
 )
 
