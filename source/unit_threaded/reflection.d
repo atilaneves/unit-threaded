@@ -358,10 +358,9 @@ unittest {
 
 private template isPrivate(alias module_, string moduleMember) {
     import unit_threaded.uda: HasTypes;
-    import std.traits: fullyQualifiedName;
 
-    // obfuscate the name (user code might just be defining their own isPrivate)
-    mixin(`import ` ~ fullyQualifiedName!module_ ~ `: ut_mmbr__ = ` ~ moduleMember ~ `;`);
+    alias ut_mmbr__ = Identity!(__traits(getMember, module_, moduleMember));
+
     static if(__traits(compiles, isSomeFunction!(ut_mmbr__))) {
         static if(__traits(compiles, &ut_mmbr__))
             enum isPrivate = false;
@@ -466,9 +465,7 @@ TestData[] moduleTestClasses(alias module_)() pure nothrow {
         import unit_threaded.attrs: UnitTest;
         import std.traits: isAggregateType;
 
-        mixin(importMember!module_(moduleMember));
-
-        alias member = Identity!(mixin(moduleMember));
+        alias member = Identity!(__traits(getMember, module_, moduleMember));
 
         static if(.isPrivate!(module_, moduleMember)) {
             enum isTestClass = false;
@@ -505,19 +502,19 @@ TestData[] moduleTestFunctions(alias module_)() pure {
         import std.meta: AliasSeq;
         import std.traits: isSomeFunction;
 
-        mixin(importMember!module_(moduleMember));
+        alias member = Identity!(__traits(getMember, module_, moduleMember));
 
         static if(.isPrivate!(module_, moduleMember)) {
             enum isTestFunction = false;
-        } else static if(AliasSeq!(mixin(moduleMember)).length != 1) {
+        } else static if(AliasSeq!(member).length != 1) {
             enum isTestFunction = false;
-        } else static if(isSomeFunction!(mixin(moduleMember))) {
+        } else static if(isSomeFunction!member) {
             enum isTestFunction = hasTestPrefix!(module_, moduleMember) ||
                                   HasAttribute!(module_, moduleMember, UnitTest);
-        } else static if(__traits(compiles, __traits(getAttributes, mixin(moduleMember)))) {
+        } else static if(__traits(compiles, __traits(getAttributes, member))) {
             // in this case we handle the possibility of a template function with
             // the @Types UDA attached to it
-            alias types = GetTypes!(mixin(moduleMember));
+            alias types = GetTypes!member;
             enum isTestFunction = hasTestPrefix!(module_, moduleMember) &&
                                   types.length > 0;
         } else {
@@ -526,17 +523,18 @@ TestData[] moduleTestFunctions(alias module_)() pure {
 
     }
 
-    template hasTestPrefix(alias module_, string member) {
+    template hasTestPrefix(alias module_, string memberName) {
         import std.uni: isUpper;
         import unit_threaded.meta: importMember;
 
-        mixin(importMember!module_(member));
+        alias member = Identity!(__traits(getMember, module_, memberName));
 
         enum prefix = "test";
         enum minSize = prefix.length + 1;
 
-        static if(member.length >= minSize && member[0 .. prefix.length] == prefix &&
-                  isUpper(member[prefix.length])) {
+        static if(memberName.length >= minSize &&
+                  memberName[0 .. prefix.length] == prefix &&
+                  isUpper(memberName[prefix.length])) {
             enum hasTestPrefix = true;
         } else {
             enum hasTestPrefix = false;
