@@ -1,0 +1,15 @@
+.dub
+docs.json
+__dummy.html
+docs/
+issue109.so
+issue109.dylib
+issue109.dll
+issue109.a
+issue109.lib
+issue109-test-*
+*.exe
+*.o
+*.obj
+*.lst
+issue109

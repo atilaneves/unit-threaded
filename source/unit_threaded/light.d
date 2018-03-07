@@ -215,30 +215,36 @@ void shouldNotBeIn(T, U)(in auto ref T value, U container, in string file = __FI
 /// Assert that expr throws.
 void shouldThrow(T : Throwable = Exception, E)
                 (lazy E expr, in string file = __FILE__, in size_t line = __LINE__) {
+    auto threw = false;
     () @trusted {
         try {
             expr();
-            assert_(false, file, line);
         } catch(T _) {
-
+            threw = true;
         }
     }();
+    assert_(threw, file, line);
 }
 
 /// Assert that expr throws an Exception that must have the type E, derived types won't do.
 void shouldThrowExactly(T : Throwable = Exception, E)
                        (lazy E expr, in string file = __FILE__, in size_t line = __LINE__)
 {
+    T throwable = null;
+
     () @trusted {
         try {
             expr();
             assert_(false, file, line);
-        } catch(T _) {
-            //Object.opEquals is @system and impure
-            const sameType = () @trusted { return threw.typeInfo == typeid(T); }();
-            assert_(sameType, file, line);
+        } catch(T t) {
+            throwable = t;
         }
     }();
+
+    //Object.opEquals is @system and impure
+    const sameType = () @trusted { return throwable !is null && typeid(throwable) == typeid(T); }();
+    assert_(sameType, file, line);
+
 }
 
 /// Assert that expr doesn't throw
@@ -257,14 +263,17 @@ void shouldThrowWithMessage(T : Throwable = Exception, E)(lazy E expr,
                                                           string msg,
                                                           string file = __FILE__,
                                                           size_t line = __LINE__) {
+    T throwable = null;
+
     () @trusted {
         try {
             expr();
-            assert_(false, file, line);
         } catch(T ex) {
-            assert_(ex.msg == msg, file, line);
+            throwable = ex;
         }
     }();
+
+    assert_(throwable !is null && throwable.msg == msg, file, line);
 }
 
 /// Assert that value is approximately equal to expected.

@@ -10,6 +10,6 @@
         "unit-threaded": {"path": "../../"}
     },
     "description": "A minimal D application.",
-    "copyright": "Copyright © 2017, atila",
-    "license": "proprietary"
+    "copyright": "Copyright © 2017-2018, Atila Neves",
+    "license": "BSD"
 }
