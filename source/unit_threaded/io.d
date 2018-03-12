@@ -10,9 +10,11 @@ import unit_threaded.from;
  * Write if debug output was enabled.
  */
 void writelnUt(T...)(auto ref T args) {
-    import unit_threaded.testcase: TestCase;
-    if(isDebugOutputEnabled)
-        TestCase.currentTest.getWriter.writeln(args);
+    debug {
+        import unit_threaded.testcase: TestCase;
+        if(isDebugOutputEnabled)
+            TestCase.currentTest.getWriter.writeln(args);
+    }
 }
 
 
@@ -22,6 +24,7 @@ unittest {
     import std.string: splitLines;
 
     enableDebugOutput(false);
+
     class TestOutput: Output {
         string output;
         override void send(in string output) {
