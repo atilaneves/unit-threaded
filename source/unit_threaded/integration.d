@@ -208,23 +208,56 @@ struct Sandbox {
         return buildPath(sandboxPath, fileName);
     }
 
-    void shouldExecuteOk(string file = __FILE__, size_t line = __LINE__)(in string[] args...) @safe const {
+    /**
+       Executing `args` should succeed
+     */
+    void shouldSucceed(string file = __FILE__, size_t line = __LINE__)
+                      (in string[] args...)
+        @safe const
+    {
         import unit_threaded.should: UnitTestException;
-        import std.process: execute, Config;
         import std.conv: text;
         import std.array: join;
+
+        const res = executeInSandbox(args);
+        if(res.status != 0)
+           throw new UnitTestException(text("Could not execute `", args.join(" "), "`:\n", res.output),
+                                       file, line);
+    }
+
+    alias shouldExecuteOk = shouldSucceed;
+
+    /**
+       Executing `args` should fail
+     */
+    void shouldFail(string file = __FILE__, size_t line = __LINE__)
+                   (in string[] args...)
+        @safe const
+    {
+        import unit_threaded.should: UnitTestException;
+        import std.conv: text;
+        import std.array: join;
+
+        const res = executeInSandbox(args);
+        if(res.status == 0)
+            throw new UnitTestException(text("`", args.join(" "), "` should have failed but didn't:\n",
+                                    res.output),
+                               file, line);
+    }
+
+
+private:
+
+    auto executeInSandbox(in string[] args) @safe const {
+        import std.process: execute, Config;
 
         const string[string] env = null;
         const config = Config.none;
         const maxOutput = size_t.max;
         const workDir = testPath;
 
-        const res = execute(args, env, config, maxOutput, workDir);
-        if(res.status != 0)
-           throw new Exception(text("Could not execute ", args.join(" "), ":\n", res.output), file, line);
+        return execute(args, env, config, maxOutput, workDir);
     }
-
-private:
 
     static string newTestDir() {
         import std.file: exists, mkdirRecurse;
