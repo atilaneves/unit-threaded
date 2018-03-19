@@ -304,7 +304,6 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
 }
 
 private TypeInfo getExceptionTypeInfo(alias Test)() {
-    import unit_threaded.should: UnitTestException;
     import unit_threaded.uda: hasUtUDA, getUtUDAs;
     import unit_threaded.attrs: ShouldFailWith;
 
@@ -1066,7 +1065,6 @@ unittest {
     import unit_threaded.factory;
     import unit_threaded.asserts;
     import unit_threaded.tests.module_with_attrs;
-    import unit_threaded.should: shouldThrowExactly, UnitTestException;
     import std.algorithm: find, canFind;
     import std.array: array;
 
@@ -1102,7 +1100,6 @@ unittest {
     import unit_threaded.factory;
     import unit_threaded.asserts;
     import unit_threaded.tests.module_with_attrs;
-    import unit_threaded.should: shouldThrowExactly, UnitTestException;
     import std.algorithm: find, canFind;
     import std.array: array;
 
