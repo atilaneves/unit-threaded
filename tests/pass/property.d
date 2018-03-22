@@ -33,3 +33,42 @@ unittest {
             return s.i == 5;
         });
 }
+
+@("Property testing with strings")
+unittest {
+    check!((string s) {
+        import std.utf : validate, UTFException;
+        try {
+            validate(s);
+        } catch (UTFException e) {
+            return false;
+        }
+        return true;
+    });
+}
+
+@("Property testing with wstrings")
+unittest {
+    check!((wstring s) {
+        import std.utf : validate, UTFException;
+        try {
+            validate(s);
+        } catch (UTFException e) {
+            return false;
+        }
+        return true;
+    });
+}
+
+@("Property testing with dstrings")
+unittest {
+    check!((dstring s) {
+        import std.utf : validate, UTFException;
+        try {
+            validate(s);
+        } catch (UTFException e) {
+            return false;
+        }
+        return true;
+    });
+}
