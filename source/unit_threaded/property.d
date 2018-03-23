@@ -77,6 +77,7 @@ void check(alias F, int numFuncCalls = 100)
                 text("Property threw. Seed: ", seed, ". Input: ", input(No.shrink), ". Message: ", t.msg),
                 file,
                 line,
+                t,
             );
         }
 
@@ -94,7 +95,7 @@ void checkCustom(alias Generator, alias Predicate)
                 (int numFuncCalls = 100, in string file = __FILE__, in size_t line = __LINE__) @trusted {
 
     import unit_threaded.should: UnitTestException;
-    import std.conv: to, text;
+    import std.conv: text;
     import std.traits: ReturnType;
 
     static assert(is(ReturnType!Predicate == bool),
@@ -117,11 +118,16 @@ void checkCustom(alias Generator, alias Predicate)
         try {
             pass = Predicate(object);
         } catch(Throwable t) {
-            throw new PropertyException("Error calling property function\n" ~ t.toString, file, line, t);
+            throw new UnitTestException(
+                text("Property threw. Input: ", object, ". Message: ", t.msg),
+                file,
+                line,
+                t,
+            );
         }
 
         if(!pass) {
-            throw new UnitTestException(["Property failed with input:", object.to!string], file, line);
+            throw new UnitTestException("Property failed with input:" ~ object.text, file, line);
         }
     }
 }
