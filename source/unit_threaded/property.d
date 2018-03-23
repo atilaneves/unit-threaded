@@ -34,8 +34,10 @@ class PropertyException : Exception
 /**
    Check that bool-returning F is true with randomly generated values.
  */
-void check(alias F)(int numFuncCalls = 100,
-                    in string file = __FILE__, in size_t line = __LINE__) @trusted {
+void check(alias F, int numFuncCalls = 100)
+          (in string file = __FILE__, in size_t line = __LINE__)
+    @trusted
+{
 
     import unit_threaded.randomized.random: RndValueGen;
     import unit_threaded.should: UnitTestException;
@@ -156,7 +158,7 @@ private auto shrinkOne(alias F, int index, T)(T values) {
     numCalls.shouldEqual(100);
 
     numCalls = 0;
-    check!identity(10);
+    check!(identity, 10);
     numCalls.shouldEqual(10);
 }
 
