@@ -4,20 +4,10 @@
 module unit_threaded.property;
 
 
-import std.random: Random;
 version(unittest) import unit_threaded.asserts;
 
 template from(string moduleName) {
     mixin("import from = " ~ moduleName ~ ";");
-}
-
-
-Random gRandom;
-
-
-static this() {
-    import std.random: unpredictableSeed;
-    gRandom = Random(unpredictableSeed);
 }
 
 
@@ -35,7 +25,9 @@ class PropertyException : Exception
    Check that bool-returning F is true with randomly generated values.
  */
 void check(alias F, int numFuncCalls = 100)
-          (in string file = __FILE__, in size_t line = __LINE__)
+          (in uint seed = from!"std.random".unpredictableSeed,
+           in string file = __FILE__,
+           in size_t line = __LINE__)
     @trusted
 {
 
@@ -45,11 +37,13 @@ void check(alias F, int numFuncCalls = 100)
     import std.traits: ReturnType, Parameters, isSomeString;
     import std.array: join;
     import std.typecons: Flag, Yes, No;
+    import std.random: Random;
 
     static assert(is(ReturnType!F == bool),
                   text("check only accepts functions that return bool, not ", ReturnType!F.stringof));
 
-    auto gen = RndValueGen!(Parameters!F)(&gRandom);
+    auto random = Random(seed);
+    auto gen = RndValueGen!(Parameters!F)(&random);
 
     auto input(Flag!"shrink" shrink = Yes.shrink) {
         string[] ret;
@@ -80,14 +74,14 @@ void check(alias F, int numFuncCalls = 100)
         } catch(Throwable t) {
             // trying to shrink when an exeption is thrown is too much of a bother code-wise
             throw new UnitTestException(
-                text("Error calling property function with input ", input(No.shrink), ":\n", t.msg),
+                text("Property threw. Seed: ", seed, ". Input: ", input(No.shrink), ". Message: ", t.msg),
                 file,
                 line,
             );
         }
 
         if(!pass) {
-            throw new UnitTestException(["Property failed with input:", input], file, line);
+            throw new UnitTestException(text("Property failed. Seed: ", seed, ". Input: ", input), file, line);
         }
     }
 }
@@ -181,9 +175,8 @@ private auto shrinkOne(alias F, int index, T)(T values) {
     // 2^100 is ~1.26E30, so the chances that no even length array is generated
     // is small enough to disconsider even if it were truly random
     // since Gen!int[] is front-loaded, it'll fail deterministically
-    assertExceptionMsg(check!((int[] a) => a.length % 2 == 1),
-                       "    source/unit_threaded/property.d:123 - Property failed with input:\n" ~
-                       "    source/unit_threaded/property.d:123 - []");
+    assertExceptionMsg(check!((int[] a) => a.length % 2 == 1)(42),
+                       "    source/unit_threaded/property.d:123 - Property failed. Seed: 42. Input: []");
 }
 
 
@@ -334,9 +327,8 @@ unittest {
 
 @("shrink one item with check")
 unittest {
-    assertExceptionMsg(check!((int i) => i < 3),
-                       "    source/unit_threaded/property.d:123 - Property failed with input:\n" ~
-                       "    source/unit_threaded/property.d:123 - 3");
+    assertExceptionMsg(check!((int i) => i < 3)(33),
+                       "    source/unit_threaded/property.d:123 - Property failed. Seed: 33. Input: 3");
 }
 
 @("string[]")
@@ -363,13 +355,13 @@ unittest {
 @("issue 93 uint")
 unittest {
     import unit_threaded.should;
-    check!((uint i) => i != i).shouldThrowWithMessage("Property failed with input:\n0");
+    check!((uint i) => i != i)(77).shouldThrowWithMessage("Property failed. Seed: 77. Input: 0");
 }
 
 @("issue 93 array")
 unittest {
     import unit_threaded.should;
-    check!((int[] i) => i != i).shouldThrowWithMessage("Property failed with input:\n[]");
+    check!((int[] i) => i != i)(11).shouldThrowWithMessage("Property failed. Seed: 11. Input: []");
 }
 
 @("check function that throws is the same as check function that returns false")
@@ -378,5 +370,5 @@ unittest {
     bool funcThrows(uint) {
         throw new Exception("Fail!");
     }
-    check!funcThrows.shouldThrowWithMessage("Error calling property function with input 0:\nFail!");
+    check!funcThrows(42).shouldThrowWithMessage("Property threw. Seed: 42. Input: 0. Message: Fail!");
 }
