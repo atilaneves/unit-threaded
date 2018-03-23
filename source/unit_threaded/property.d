@@ -39,14 +39,30 @@ void check(alias F)(int numFuncCalls = 100,
 
     import unit_threaded.randomized.random: RndValueGen;
     import unit_threaded.should: UnitTestException;
-    import std.conv: text, to;
+    import std.conv: text;
     import std.traits: ReturnType, Parameters, isSomeString;
     import std.array: join;
+    import std.typecons: Flag, Yes, No;
 
     static assert(is(ReturnType!F == bool),
                   text("check only accepts functions that return bool, not ", ReturnType!F.stringof));
 
     auto gen = RndValueGen!(Parameters!F)(&gRandom);
+
+    auto input(Flag!"shrink" shrink = Yes.shrink) {
+        string[] ret;
+        static if(Parameters!F.length == 1 && canShrink!(Parameters!F[0])) {
+            auto val = gen.values[0].value;
+            auto shrunk = shrink ? val.shrink!F : val;
+            ret ~= shrunk.text;
+            static if(isSomeString!(Parameters!F[0]))
+                ret[$-1] = `"` ~ ret[$-1] ~ `"`;
+        } else
+            foreach(ref valueGen; gen.values) {
+                ret ~= valueGen.text;
+            }
+        return ret.join(", ");
+    }
 
     foreach(i; 0 .. numFuncCalls) {
         bool pass;
@@ -60,22 +76,16 @@ void check(alias F)(int numFuncCalls = 100,
         try {
             pass = F(gen.values);
         } catch(Throwable t) {
-            throw new PropertyException("Error calling property function\n" ~ t.toString, file, line, t);
+            // trying to shrink when an exeption is thrown is too much of a bother code-wise
+            throw new UnitTestException(
+                text("Error calling property function with input ", input(No.shrink), ":\n", t.msg),
+                file,
+                line,
+            );
         }
 
         if(!pass) {
-            string[] input;
-
-            static if(Parameters!F.length == 1 && canShrink!(Parameters!F[0])) {
-                input ~= gen.values[0].value.shrink!F.to!string;
-                static if(isSomeString!(Parameters!F[0]))
-                    input[$-1] = `"` ~ input[$-1] ~ `"`;
-            } else
-                foreach(j, ref valueGen; gen.values) {
-                    input ~= valueGen.to!string;
-                }
-
-            throw new UnitTestException(["Property failed with input:", input.join(", ")], file, line);
+            throw new UnitTestException(["Property failed with input:", input], file, line);
         }
     }
 }
@@ -189,7 +199,9 @@ private enum canShrink(T) = __traits(compiles, shrink!((T _) => true)(T.init));
 
 T shrink(alias F, T)(T value) {
     import std.conv: text;
+
     assert(!F(value), text("Property did not fail for value ", value));
+
     T[][] oldParams;
     return shrinkImpl!F(value, [value], oldParams);
 }
@@ -356,4 +368,13 @@ unittest {
 unittest {
     import unit_threaded.should;
     check!((int[] i) => i != i).shouldThrowWithMessage("Property failed with input:\n[]");
+}
+
+@("check function that throws is the same as check function that returns false")
+@safe unittest {
+    import unit_threaded.should;
+    bool funcThrows(uint) {
+        throw new Exception("Fail!");
+    }
+    check!funcThrows.shouldThrowWithMessage("Error calling property function with input 0:\nFail!");
 }

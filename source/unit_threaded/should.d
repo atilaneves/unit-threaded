@@ -450,7 +450,7 @@ auto shouldThrow(T : Throwable = Exception, E)
            const result = threw!T(expr);
            if (result) return result.throwable;
         } catch(Throwable t)
-            fail(text("Expression threw ", typeid(t), " instead of the expected ", T.stringof), file, line);
+            fail(text("Expression threw ", typeid(t), " instead of the expected ", T.stringof, ":\n", t.msg), file, line);
 
         fail("Expression did not throw", file, line);
         assert(0);
@@ -483,12 +483,13 @@ auto shouldThrow(T : Throwable = Exception, E)
 ///
 @safe pure unittest {
     import unit_threaded.asserts;
-    void funcAsserts() { assert(false); }
+    void funcAsserts() { assert(false, "Oh noes"); }
     try {
         funcAsserts.shouldThrow;
         assert(false, "Should never get here");
     } catch(Exception e)
-        assertEqual(e.msg, "Expression threw core.exception.AssertError instead of the expected Exception");
+        assertEqual(e.msg,
+                    "Expression threw core.exception.AssertError instead of the expected Exception:\nOh noes");
 }
 
 
