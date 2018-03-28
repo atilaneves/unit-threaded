@@ -17,6 +17,7 @@
  */
 module unit_threaded.light;
 
+alias UnitTestException = Exception;
 
 /**
    Dummy version of runTests so "normal" code compiles.
