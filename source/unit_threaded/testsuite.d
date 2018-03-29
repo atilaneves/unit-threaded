@@ -211,8 +211,40 @@ void replaceModuleUnitTester() {
     Runtime.moduleUnitTester = &moduleUnitTester;
 }
 
-version(unitThreadedLight) {}
-else {
+version(unitThreadedLight) {
+
+    shared static this() {
+        import std.algorithm: canFind;
+        import core.runtime: Runtime;
+
+        Runtime.moduleUnitTester = () {
+
+            // ModuleInfo has opApply, can't use parallel on that so we collect
+            // all the modules with unit tests first
+            ModuleInfo*[] modules;
+            foreach(module_; ModuleInfo) {
+                if(module_ && module_.unitTest)
+                    modules ~= module_;
+            }
+
+            version(unitUnthreaded)
+                foreach(module_; modules)
+                    module_.unitTest()();
+            else {
+                import std.parallelism: parallel;
+                if(Runtime.args.canFind("-d"))
+                    foreach(module_; modules)
+                        module_.unitTest()();
+                else
+                    foreach(module_; modules.parallel)
+                        module_.unitTest()();
+            }
+
+            return true;
+        };
+    }
+
+} else {
     shared static this() {
         replaceModuleUnitTester;
     }
