@@ -240,9 +240,10 @@ struct Sandbox {
 
         const res = executeInSandbox(args);
         if(res.status == 0)
-            throw new UnitTestException(text("`", args.join(" "), "` should have failed but didn't:\n",
-                                    res.output),
-                               file, line);
+            throw new UnitTestException(
+                text("`", args.join(" "), "` should have failed but didn't:\n", res.output),
+                file,
+                line);
     }
 
 
