@@ -250,13 +250,19 @@ private:
 
     auto executeInSandbox(in string[] args) @safe const {
         import std.process: execute, Config;
+        import std.algorithm: startsWith;
+        import std.array: replace;
 
         const string[string] env = null;
         const config = Config.none;
         const maxOutput = size_t.max;
         const workDir = testPath;
 
-        return execute(args, env, config, maxOutput, workDir);
+        const executable = args[0].startsWith("./")
+            ? inSandboxPath(args[0].replace("./", ""))
+            : args[0];
+
+        return execute(executable ~ args[1..$], env, config, maxOutput, workDir);
     }
 
     static string newTestDir() {
