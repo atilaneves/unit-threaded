@@ -25,9 +25,9 @@ version(Windows) {
 shared static this() {
     import std.file: exists, dirEntries, SpanMode, isDir, rmdirRecurse;
 
-    if(!Sandbox.sanboxesPath.exists) return;
+    if(!Sandbox.sandboxesPath.exists) return;
 
-    foreach(entry; dirEntries(Sandbox.sanboxesPath, SpanMode.shallow)) {
+    foreach(entry; dirEntries(Sandbox.sandboxesPath, SpanMode.shallow)) {
         if(isDir(entry.name)) {
             rmdirRecurse(entry);
         }
@@ -45,7 +45,7 @@ struct Sandbox {
     import std.path;
 
     enum defaultSandboxesPath = buildPath("tmp", "unit-threaded");
-    static string sanboxesPath = defaultSandboxesPath;
+    static string sandboxesPath = defaultSandboxesPath;
     string testPath;
 
     /// Instantiate a Sandbox object
@@ -63,8 +63,8 @@ struct Sandbox {
 
     static void setPath(string path) {
         import std.file: exists, mkdirRecurse;
-        sanboxesPath = path;
-        if(!sanboxesPath.exists) () @trusted { mkdirRecurse(sanboxesPath); }();
+        sandboxesPath = path;
+        if(!sandboxesPath.exists) () @trusted { mkdirRecurse(sandboxesPath); }();
     }
 
     ///
@@ -73,14 +73,14 @@ struct Sandbox {
         import std.path: buildPath;
         import unit_threaded.should;
 
-        Sandbox.sanboxesPath.shouldEqual(defaultSandboxesPath);
+        Sandbox.sandboxesPath.shouldEqual(defaultSandboxesPath);
 
         immutable newPath = buildPath("foo", "bar", "baz");
         assert(!newPath.exists);
         Sandbox.setPath(newPath);
         assert(newPath.exists);
         scope(exit) () @trusted { rmdirRecurse("foo"); }();
-        Sandbox.sanboxesPath.shouldEqual(newPath);
+        Sandbox.sandboxesPath.shouldEqual(newPath);
 
         with(immutable Sandbox()) {
             writeFile("newPath.txt");
@@ -88,11 +88,11 @@ struct Sandbox {
         }
 
         Sandbox.resetPath;
-        Sandbox.sanboxesPath.shouldEqual(defaultSandboxesPath);
+        Sandbox.sandboxesPath.shouldEqual(defaultSandboxesPath);
     }
 
     static void resetPath() {
-        sanboxesPath = defaultSandboxesPath;
+        sandboxesPath = defaultSandboxesPath;
     }
 
     /// Write a file to the sandbox
@@ -269,8 +269,8 @@ private:
     static string newTestDir() {
         import std.file: exists, mkdirRecurse;
 
-        if(!sanboxesPath.exists) {
-            () @trusted { mkdirRecurse(sanboxesPath); }();
+        if(!sandboxesPath.exists) {
+            () @trusted { mkdirRecurse(sandboxesPath); }();
         }
 
         return makeTempDir();
@@ -284,7 +284,7 @@ private:
         import core.stdc.errno: errno;
 
         char[100] template_;
-        copy(buildPath(sanboxesPath, "XXXXXX") ~ '\0', template_[]);
+        copy(buildPath(sandboxesPath, "XXXXXX") ~ '\0', template_[]);
 
         auto ret = () @trusted { return mkdtemp(&template_[0]).to!string; }();
 
