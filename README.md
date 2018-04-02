@@ -49,7 +49,7 @@ project, you can use a `unittest` configuration as exemplified in this
             "mainSourceFile": "bin/ut.d",
             "excludedSourceFiles": ["src/main.d"],
             "dependencies": {
-                "unit-threaded": "~>0.7.11"
+                "unit-threaded": "*"
             }
         }
     ]
@@ -63,7 +63,7 @@ configuration "executable" {
 }
 
 configuration "unittest" {
-    dependency "unit-threaded" version="~>0.7.11"
+    dependency "unit-threaded" version="*"
     mainSourceFile "bin/ut.d"
     excludedSourceFiles "src/main.d"
     targetType "executable"
