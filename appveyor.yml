@@ -1,3 +1,6 @@
 install:
   - choco install dmd
   - choco install dub
+
+test_script:
+  - ci.bat

@@ -6,6 +6,7 @@
     "sourcePaths": ["."],
     "importPaths": ["."],
     "mainSourceFile": "main.d",
+    "targetType": "executable",
     "dependencies": {
         "unit-threaded": {"path": "../../"}
     },
