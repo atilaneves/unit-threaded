@@ -1,0 +1,4 @@
+name "issue166"
+mainSourceFile "main.d"
+targetType "executable"
+dependency "unit-threaded" path="../../"

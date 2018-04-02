@@ -11,12 +11,26 @@ module unit_threaded.integration;
 version(Windows) {
     extern(C) int mkdir(char*);
     extern(C) char* mktemp(char* template_);
+
     char* mkdtemp(char* t) {
+        version(unitUnthreaded)
+            return mkdtempImpl(t);
+        else {
+            synchronized {
+                return mkdtempImpl(t);
+            }
+        }
+    }
+
+    char* mkdtempImpl(char* t) {
         char* result = mktemp(t);
-        if (result is null) return null;
+
+        if(result is null) return null;
         if (mkdir(result)) return null;
+
         return result;
     }
+
 } else {
     extern(C) char* mkdtemp(char* template_);
 }
@@ -280,17 +294,21 @@ private:
         import std.algorithm: copy;
         import std.exception: enforce;
         import std.conv: to;
+        import std.string: fromStringz;
         import core.stdc.string: strerror;
         import core.stdc.errno: errno;
 
-        char[100] template_;
+        char[2048] template_;
         copy(buildPath(sandboxesPath, "XXXXXX") ~ '\0', template_[]);
 
-        auto ret = () @trusted { return mkdtemp(&template_[0]).to!string; }();
+        auto path = () @trusted { return mkdtemp(&template_[0]).to!string; }();
 
-        enforce(ret != "", "Failed to create temporary directory name: " ~
+        enforce(path != "",
+                "\n" ~
+                "Failed to create temporary directory name using template '" ~
+                () @trusted { return fromStringz(&template_[0]); }() ~ "': " ~
                 () @trusted { return strerror(errno).to!string; }());
 
-        return ret.absolutePath;
+        return path.absolutePath;
     }
 }
