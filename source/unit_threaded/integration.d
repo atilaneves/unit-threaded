@@ -37,15 +37,10 @@ version(Windows) {
 
 
 shared static this() {
-    import std.file: exists, dirEntries, SpanMode, isDir, rmdirRecurse;
+    import std.file: exists, rmdirRecurse;
 
-    if(!Sandbox.sandboxesPath.exists) return;
-
-    foreach(entry; dirEntries(Sandbox.sandboxesPath, SpanMode.shallow)) {
-        if(isDir(entry.name)) {
-            rmdirRecurse(entry);
-        }
-    }
+    if(Sandbox.sandboxesPath.exists)
+        rmdirRecurse(Sandbox.sandboxesPath);
 }
 
 
