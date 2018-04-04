@@ -19,7 +19,7 @@
             "name": "unittest",
             "targetType": "executable",
             "targetName": "ut_pass",
-            "sourcePaths": ["tests/examples/pass"],
+            "sourcePaths": ["tests/unit_threaded", "tests/examples/pass"],
             "sourceFiles": ["example/example_pass.d"],
             "mainSourceFile": "example/example_pass.d",
             "versions": ["testing_unit_threaded"]
