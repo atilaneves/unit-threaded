@@ -69,11 +69,6 @@ struct Sandbox {
         return ret;
     }
 
-    ///
-    @safe unittest {
-        auto sb = Sandbox();
-        assert(sb.testPath != "");
-    }
 
     static void setPath(string path) {
         import std.file: exists, mkdirRecurse;
@@ -81,29 +76,6 @@ struct Sandbox {
         if(!sandboxesPath.exists) () @trusted { mkdirRecurse(sandboxesPath); }();
     }
 
-    ///
-    @safe unittest {
-        import std.file: exists, rmdirRecurse;
-        import std.path: buildPath;
-        import unit_threaded.should;
-
-        Sandbox.sandboxesPath.shouldEqual(defaultSandboxesPath);
-
-        immutable newPath = buildPath("foo", "bar", "baz");
-        assert(!newPath.exists);
-        Sandbox.setPath(newPath);
-        assert(newPath.exists);
-        scope(exit) () @trusted { rmdirRecurse("foo"); }();
-        Sandbox.sandboxesPath.shouldEqual(newPath);
-
-        with(immutable Sandbox()) {
-            writeFile("newPath.txt");
-            assert(buildPath(newPath, testPath, "newPath.txt").exists);
-        }
-
-        Sandbox.resetPath;
-        Sandbox.sandboxesPath.shouldEqual(defaultSandboxesPath);
-    }
 
     static void resetPath() {
         sandboxesPath = defaultSandboxesPath;
@@ -125,27 +97,6 @@ struct Sandbox {
         writeFile(fileName, lines.join("\n"));
     }
 
-    ///
-    @safe unittest {
-        import std.file: exists;
-        import std.path: buildPath;
-
-        with(immutable Sandbox()) {
-            assert(!buildPath(testPath, "foo.txt").exists);
-            writeFile("foo.txt");
-            assert(buildPath(testPath, "foo.txt").exists);
-        }
-    }
-
-    @safe unittest {
-        import std.file: exists;
-        import std.path: buildPath;
-
-        with(immutable Sandbox()) {
-            writeFile("foo/bar.txt");
-            assert(buildPath(testPath, "foo", "bar.txt").exists);
-        }
-    }
 
     /// Assert that a file exists in the sandbox
     void shouldExist(string fileName, in string file = __FILE__, in size_t line = __LINE__) const {
@@ -156,17 +107,6 @@ struct Sandbox {
         fileName = buildPath(testPath, fileName);
         if(!fileName.exists)
             fail("Expected " ~ fileName ~ " to exist but it didn't", file, line);
-    }
-
-    ///
-    @safe unittest {
-        with(immutable Sandbox()) {
-            import unit_threaded.should;
-
-            shouldExist("bar.txt").shouldThrow;
-            writeFile("bar.txt");
-            shouldExist("bar.txt");
-        }
     }
 
     /// Assert that a file does not exist in the sandbox
@@ -180,17 +120,6 @@ struct Sandbox {
             fail("Expected " ~ fileName ~ " to not exist but it did", file, line);
     }
 
-    ///
-    @safe unittest {
-        with(immutable Sandbox()) {
-            import unit_threaded.should;
-
-            shouldNotExist("baz.txt");
-            writeFile("baz.txt");
-            shouldNotExist("baz.txt").shouldThrow;
-        }
-    }
-
     /// read a file in the test sandbox and verify its contents
     void shouldEqualLines(in string fileName, in string[] lines,
                           string file = __FILE__, size_t line = __LINE__) const @trusted {
@@ -200,17 +129,6 @@ struct Sandbox {
 
         readText(buildPath(testPath, fileName)).chomp.splitLines
             .shouldEqual(lines, file, line);
-    }
-
-    ///
-    @safe unittest {
-        with(immutable Sandbox()) {
-            import unit_threaded.should;
-
-            writeFile("lines.txt", ["foo", "toto"]);
-            shouldEqualLines("lines.txt", ["foo", "bar"]).shouldThrow;
-            shouldEqualLines("lines.txt", ["foo", "toto"]);
-        }
     }
 
     string sandboxPath() @safe @nogc pure nothrow const {
