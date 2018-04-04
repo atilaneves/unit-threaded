@@ -1,4 +1,4 @@
-module unit_threaded.tests.module_with_setup;
+module unit_threaded.ut.modules.module_with_setup;
 
 import unit_threaded.attrs;
 

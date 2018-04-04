@@ -1,4 +1,4 @@
-module unit_threaded.tests.module_with_attrs;
+module unit_threaded.ut.modules.module_with_attrs;
 
 import unit_threaded.attrs;
 import std.exception;

@@ -19,7 +19,7 @@
             "name": "unittest",
             "targetType": "executable",
             "targetName": "ut_pass",
-            "sourcePaths": ["tests/examples/pass"],
+            "sourcePaths": ["source", "tests/unit_threaded", "tests/examples/pass"],
             "sourceFiles": ["example/example_pass.d"],
             "mainSourceFile": "example/example_pass.d",
             "versions": ["testing_unit_threaded"]
@@ -28,6 +28,8 @@
         {
             "name": "unittest-only",
             "targetType": "executable",
+            "importPaths": ["source"],
+            "sourcePaths": ["source", "tests/unit_threaded"],
             "versions": ["testing_unit_threaded"]
         },
 
@@ -35,7 +37,7 @@
             "name": "unittest-unthreaded",
             "targetType": "executable",
             "targetName": "ut_pass",
-            "sourcePaths": ["tests/examples/pass"],
+            "sourcePaths": ["source", "tests/unit_threaded", "tests/examples/pass"],
             "sourceFiles": ["example/example_pass.d"],
             "mainSourceFile": "example/example_pass.d",
             "versions": ["testing_unit_threaded", "unitUnthreaded"]
@@ -45,7 +47,7 @@
             "name": "unittest-light",
             "targetType": "executable",
             "targetName": "ut_pass",
-            "sourcePaths": ["tests/examples/pass"],
+            "sourcePaths": ["source", "tests/unit_threaded", "tests/examples/pass"],
             "sourceFiles": ["example/example_pass.d"],
             "mainSourceFile": "example/example_pass.d",
             "versions": ["testing_unit_threaded", "unitThreadedLight"]

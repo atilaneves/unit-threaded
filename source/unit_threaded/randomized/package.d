@@ -4,6 +4,7 @@ public import unit_threaded.randomized.gen;
 public import unit_threaded.randomized.random;
 public import unit_threaded.randomized.benchmark;
 
+///
 unittest
 {
     import core.thread : Thread;
@@ -27,6 +28,7 @@ unittest
     benchmark!(del)();
 }
 
+///
 unittest // test that the function parameter names are correct
 {
     import std.string : indexOf;

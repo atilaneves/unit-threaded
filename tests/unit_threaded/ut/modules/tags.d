@@ -1,4 +1,4 @@
-module unit_threaded.tests.tags;
+module unit_threaded.ut.modules.tags;
 
 import unit_threaded.attrs;
 
