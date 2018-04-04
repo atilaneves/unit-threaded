@@ -329,7 +329,6 @@ auto mock(T)() {
 ///
 @("interface return value")
 @safe pure unittest {
-    import unit_threaded.should;
 
     interface Foo {
         int timesN(int i) @safe pure;
@@ -342,13 +341,12 @@ auto mock(T)() {
     auto m = mock!Foo;
     m.returnValue!"timesN"(42);
     immutable res = fun(m);
-    res.shouldEqual(84);
+    assert(res == 84);
 }
 
 ///
 @("interface return values")
 @safe pure unittest {
-    import unit_threaded.should;
 
     interface Foo {
         int timesN(int i) @safe pure;
@@ -360,9 +358,9 @@ auto mock(T)() {
 
     auto m = mock!Foo;
     m.returnValue!"timesN"(42, 12);
-    fun(m).shouldEqual(84);
-    fun(m).shouldEqual(24);
-    fun(m).shouldEqual(0);
+    assert(fun(m) == 84);
+    assert(fun(m) == 24);
+    assert(fun(m) == 0);
 }
 
 struct ReturnValues(string function_, T...) if(from!"std.meta".allSatisfy!(isValue, T)) {
@@ -505,16 +503,15 @@ auto mockStruct(T...)() if(T.length > 0 && from!"std.meta".allSatisfy!(isReturnV
 ///
 @("struct return value")
 @safe pure unittest {
-    import unit_threaded.should;
 
     int fun(T)(T f) {
         return f.timesN(3) * 2;
     }
 
     auto m = mockStruct(42, 12);
-    fun(m).shouldEqual(84);
-    fun(m).shouldEqual(24);
-    fun(m).shouldEqual(0);
+    assert(fun(m) == 84);
+    assert(fun(m) == 24);
+    assert(fun(m) == 0);
     m.expectCalled!"timesN";
 }
 
@@ -533,11 +530,10 @@ auto mockStruct(T...)() if(T.length > 0 && from!"std.meta".allSatisfy!(isReturnV
 ///
 @("mockStruct different return types for different functions")
 @safe pure unittest {
-    import unit_threaded.should: shouldEqual;
     auto m = mockStruct!(ReturnValues!("length", 5),
                          ReturnValues!("greet", "hello"));
-    m.length.shouldEqual(5);
-    m.greet("bar").shouldEqual("hello");
+    assert(m.length == 5);
+    assert(m.greet("bar") == "hello");
     m.expectCalled!"length";
     m.expectCalled!"greet"("bar");
 }
@@ -545,17 +541,16 @@ auto mockStruct(T...)() if(T.length > 0 && from!"std.meta".allSatisfy!(isReturnV
 ///
 @("mockStruct different return types for different functions and multiple return values")
 @safe pure unittest {
-    import unit_threaded.should: shouldEqual;
     auto m = mockStruct!(ReturnValues!("length", 5, 3),
                          ReturnValues!("greet", "hello", "g'day"));
-    m.length.shouldEqual(5);
+    assert(m.length == 5);
     m.expectCalled!"length";
-    m.length.shouldEqual(3);
+    assert(m.length == 3);
     m.expectCalled!"length";
 
-    m.greet("bar").shouldEqual("hello");
+    assert(m.greet("bar") == "hello");
     m.expectCalled!"greet"("bar");
-    m.greet("quux").shouldEqual("g'day");
+    assert(m.greet("quux") == "g'day");
     m.expectCalled!"greet"("quux");
 }
 
@@ -579,8 +574,9 @@ auto throwStruct(E = from!"unit_threaded.should".UnitTestException, R = void)() 
 ///
 @("throwStruct default")
 @safe pure unittest {
-    import unit_threaded.should: shouldThrow, UnitTestException;
+    import std.exception: assertThrown;
+    import unit_threaded.should: UnitTestException;
     auto m = throwStruct;
-    m.foo.shouldThrow!UnitTestException;
-    m.bar(1, "foo").shouldThrow!UnitTestException;
+    assertThrown!UnitTestException(m.foo);
+    assertThrown!UnitTestException(m.bar(1, "foo"));
 }
