@@ -149,8 +149,8 @@ struct Sandbox {
 
     /// Assert that a file exists in the sandbox
     void shouldExist(string fileName, in string file = __FILE__, in size_t line = __LINE__) const {
-        import std.file;
-        import std.path;
+        import std.file: exists;
+        import std.path: buildPath;
         import unit_threaded.should: fail;
 
         fileName = buildPath(testPath, fileName);
