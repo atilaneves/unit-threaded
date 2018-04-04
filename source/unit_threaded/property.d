@@ -4,8 +4,6 @@
 module unit_threaded.property;
 
 
-version(unittest) import unit_threaded.asserts;
-
 template from(string moduleName) {
     mixin("import from = " ~ moduleName ~ ";");
 }
@@ -147,7 +145,7 @@ private auto shrinkOne(alias F, int index, T)(T values) {
 ///
 @("Verify identity property for int[] succeeds")
 @safe unittest {
-    import unit_threaded.should;
+
     int numCalls;
     bool identity(int[] a) pure {
         ++numCalls;
@@ -155,21 +153,22 @@ private auto shrinkOne(alias F, int index, T)(T values) {
     }
 
     check!identity;
-    numCalls.shouldEqual(100);
+    assert(numCalls == 100);
 
     numCalls = 0;
     check!(identity, 10);
-    numCalls.shouldEqual(10);
+    assert(numCalls == 10);
 }
 
 ///
 @("Explicit Gen")
 @safe unittest {
     import unit_threaded.randomized.gen;
-    import unit_threaded.should;
+    import unit_threaded.should: UnitTestException;
+    import std.exception: assertThrown;
 
     check!((Gen!(int, 1, 1) a) => a == 1);
-    check!((Gen!(int, 1, 1) a) => a == 2).shouldThrow!UnitTestException;
+    assertThrown!UnitTestException(check!((Gen!(int, 1, 1) a) => a == 2));
 }
 
 private enum canShrink(T) = __traits(compiles, shrink!((T _) => true)(T.init));
