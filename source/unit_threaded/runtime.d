@@ -155,7 +155,7 @@ string removePackage(string name) {
 }
 
 
-private string[] dubFilesToAbsPaths(in string fileName, in string[] files) {
+string[] dubFilesToAbsPaths(in string fileName, in string[] files) {
     import std.algorithm: filter, map;
     import std.array: array;
     import std.path: buildNormalizedPath;
@@ -169,13 +169,6 @@ private string[] dubFilesToAbsPaths(in string fileName, in string[] files) {
         .array;
 }
 
-@("issue 40")
-unittest {
-    import unit_threaded.should;
-    import std.path;
-    dubFilesToAbsPaths("", ["foo/bar/package.d"]).shouldEqual(
-        [buildPath("foo", "bar")]);
-}
 
 
 string[] findModuleNames(in Options options) {
