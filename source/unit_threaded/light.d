@@ -185,7 +185,7 @@ static assert(!isLikeAssociativeArray!(string[string], int));
 
 /// Assert that value is in container.
 void shouldBeIn(T, U)(in auto ref T value, in auto ref U container, in string file = __FILE__, in size_t line = __LINE__)
-    if(isLikeAssociativeArray!U) {
+    if(isLikeAssociativeArray!(U, T)) {
     assert_(cast(bool)(value in container), file, line);
 }
 
