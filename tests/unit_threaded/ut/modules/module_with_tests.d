@@ -2,7 +2,7 @@
  A module with tests to test the compile-time reflection
  */
 
-module unit_threaded.tests.module_with_tests;
+module unit_threaded.ut.modules.module_with_tests;
 
 import unit_threaded.attrs;
 

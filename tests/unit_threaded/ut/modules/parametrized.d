@@ -2,7 +2,7 @@
  A module with tests to test the compile-time reflection
  */
 
-module unit_threaded.tests.parametrized;
+module unit_threaded.ut.modules.parametrized;
 
 import unit_threaded.attrs;
 
