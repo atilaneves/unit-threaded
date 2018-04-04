@@ -232,12 +232,14 @@ version(unitThreadedLight) {
                     module_.unitTest()();
             else {
                 import std.parallelism: parallel;
-                if(Runtime.args.canFind("-d"))
+                if(Runtime.args.canFind("-s") || Runtime.args.canFind("--single")) {
                     foreach(module_; modules)
                         module_.unitTest()();
-                else
-                    foreach(module_; modules.parallel)
+                } else {
+                    foreach(module_; modules.parallel) {
                         module_.unitTest()();
+                    }
+                }
             }
 
             return true;
