@@ -87,8 +87,8 @@ void shouldEqual(V, E)(auto ref V value, auto ref E expected, in string file = _
 {
     if (!isEqual(value, expected))
     {
-        const msg = formatValue("Expected: ", expected) ~
-                    formatValue("     Got: ", value);
+        const msg = formatValueInItsOwnLine("Expected: ", expected) ~
+                    formatValueInItsOwnLine("     Got: ", value);
         throw new UnitTestException(msg, file, line);
     }
 }
@@ -118,9 +118,9 @@ void shouldNotEqual(V, E)(V value, E expected, in string file = __FILE__, in siz
     if (isEqual(value, expected))
     {
         const msg = ["Value:",
-                     formatValue("", value).join(""),
+                     formatValueInItsOwnLine("", value).join(""),
                      "is not expected to be equal to:",
-                     formatValue("", expected).join("")
+                     formatValueInItsOwnLine("", expected).join("")
             ];
         throw new UnitTestException(msg, file, line);
     }
@@ -206,8 +206,8 @@ void shouldBeIn(T, U)(in auto ref T value, in auto ref U container, in string fi
 
     if (value !in container)
     {
-        fail("Value " ~ to!string(value) ~ " not in " ~ to!string(container), file,
-            line);
+        fail(formatValueInItsOwnLine("Value ", value) ~ formatValueInItsOwnLine("not in ", container),
+             file, line);
     }
 }
 
@@ -237,8 +237,8 @@ void shouldBeIn(T, U)(in auto ref T value, U container, in string file = __FILE_
 
     if (find(container, value).empty)
     {
-        fail("Value " ~ to!string(value) ~ " not in " ~ to!string(container), file,
-            line);
+        fail(formatValueInItsOwnLine("Value ", value) ~ formatValueInItsOwnLine("not in ", container),
+             file, line);
     }
 }
 
@@ -262,8 +262,8 @@ void shouldNotBeIn(T, U)(in auto ref T value, in auto ref U container,
 
     if (value in container)
     {
-        fail("Value " ~ to!string(value) ~ " is in " ~ to!string(container), file,
-            line);
+        fail(formatValueInItsOwnLine("Value ", value) ~ formatValueInItsOwnLine("is in ", container),
+             file, line);
     }
 }
 
@@ -295,8 +295,8 @@ void shouldNotBeIn(T, U)(in auto ref T value, U container,
 
     if (!find(container, value).empty)
     {
-        fail("Value " ~ to!string(value) ~ " is in " ~ to!string(container), file,
-            line);
+        fail(formatValueInItsOwnLine("Value ", value) ~ formatValueInItsOwnLine("is in ", container),
+             file, line);
     }
 }
 
@@ -488,8 +488,14 @@ void fail(in string output, in string file, in size_t line) @safe pure
     throw new UnitTestException([output], file, line);
 }
 
+void fail(in string[] lines, in string file, in size_t line) @safe pure
+{
+    throw new UnitTestException(lines, file, line);
+}
 
-private string[] formatValue(T)(in string prefix, auto ref T value) {
+
+// Formats output in different lines
+private string[] formatValueInItsOwnLine(T)(in string prefix, auto ref T value) {
 
     import std.conv: to;
 
@@ -539,7 +545,7 @@ private string[] formatRange(T)(in string prefix, T value) {
         if (!tooBigForOneLine)
             return defaultLines;
         return [prefix ~ "["] ~
-            value.map!(a => formatValue("              ", a).join("") ~ ",").array ~
+            value.map!(a => formatValueInItsOwnLine("              ", a).join("") ~ ",").array ~
             "          ]";
     }
 }
@@ -576,8 +582,8 @@ void shouldApproxEqual(V, E)(in V value, in E expected, string file = __FILE__, 
     if (!isApproxEqual(value, expected))
     {
         const msg =
-            formatValue("Expected approx: ", expected) ~
-            formatValue("     Got       : ", value);
+            formatValueInItsOwnLine("Expected approx: ", expected) ~
+            formatValueInItsOwnLine("     Got       : ", value);
         throw new UnitTestException(msg, file, line);
     }
 }
@@ -767,8 +773,8 @@ if (isInputRange!V && isInputRange!E && is(typeof(value.front != expected.front)
 {
     if (!isSameSet(value, expected))
     {
-        const msg = formatValue("Expected: ", expected) ~
-                    formatValue("     Got: ", value);
+        const msg = formatValueInItsOwnLine("Expected: ", expected) ~
+                    formatValueInItsOwnLine("     Got: ", value);
         throw new UnitTestException(msg, file, line);
     }
 }
@@ -819,9 +825,9 @@ if (isInputRange!V && isInputRange!E && is(typeof(value.front != expected.front)
     if (isSameSet(value, expected))
     {
         const msg = ["Value:",
-                     formatValue("", value).join(""),
+                     formatValueInItsOwnLine("", value).join(""),
                      "is not expected to be equal to:",
-                     formatValue("", expected).join("")
+                     formatValueInItsOwnLine("", expected).join("")
             ];
         throw new UnitTestException(msg, file, line);
     }

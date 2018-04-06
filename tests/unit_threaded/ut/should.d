@@ -154,6 +154,19 @@ private void assertFail(E)(lazy E expression, in string file = __FILE__, in size
 }
 
 @safe pure unittest {
+    assertExceptionMsg("foo".shouldBeIn(["quux": "toto"]),
+                       `    tests/unit_threaded/ut/should.d:123 - Value "foo"` ~ "\n" ~
+                       `    tests/unit_threaded/ut/should.d:123 - not in ["quux":"toto"]`);
+}
+
+@safe pure unittest {
+    assertExceptionMsg("foo".shouldBeIn("quux"),
+                       `    tests/unit_threaded/ut/should.d:123 - Value "foo"` ~ "\n" ~
+                       `    tests/unit_threaded/ut/should.d:123 - not in "quux"`);
+
+}
+
+@safe pure unittest {
     5.shouldNotBeIn([4: "foo"]);
 
     struct AA {
@@ -166,6 +179,20 @@ private void assertFail(E)(lazy E expression, in string file = __FILE__, in size
     5.shouldNotBeIn(AA(4));
     assertFail(5.shouldNotBeIn(AA(5)));
 }
+
+@safe pure unittest {
+    assertExceptionMsg("quux".shouldNotBeIn(["quux": "toto"]),
+                       `    tests/unit_threaded/ut/should.d:123 - Value "quux"` ~ "\n" ~
+                       `    tests/unit_threaded/ut/should.d:123 - is in ["quux":"toto"]`);
+}
+
+@safe pure unittest {
+    assertExceptionMsg("foo".shouldNotBeIn("foobar"),
+                       `    tests/unit_threaded/ut/should.d:123 - Value "foo"` ~ "\n" ~
+                       `    tests/unit_threaded/ut/should.d:123 - is in "foobar"`);
+
+}
+
 
 @safe unittest
 {
