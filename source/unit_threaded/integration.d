@@ -108,7 +108,7 @@ struct Sandbox {
     void shouldNotExist(string fileName, in string file = __FILE__, in size_t line = __LINE__) const {
         import std.file: exists;
         import std.path: buildPath;
-        import unit_threaded.should;
+        import unit_threaded.should: fail;
 
         fileName = buildPath(testPath, fileName);
         if(fileName.exists)
@@ -116,14 +116,39 @@ struct Sandbox {
     }
 
     /// read a file in the test sandbox and verify its contents
-    void shouldEqualLines(in string fileName, in string[] lines,
-                          string file = __FILE__, size_t line = __LINE__) const @trusted {
+    void shouldEqualContent(in string fileName, in string content,
+                            in string file = __FILE__, in size_t line = __LINE__)
+        const
+    {
         import std.file: readText;
         import std.string: chomp, splitLines;
-        import unit_threaded.should;
+        import unit_threaded.should: shouldEqual;
+
+        readText(buildPath(testPath, fileName)).shouldEqual(content, file, line);
+    }
+
+    /// read a file in the test sandbox and verify its contents
+    void shouldEqualLines(in string fileName, in string[] lines,
+                          string file = __FILE__, size_t line = __LINE__)
+        const
+    {
+        import std.file: readText;
+        import std.string: chomp, splitLines;
+        import unit_threaded.should: shouldEqual;
 
         readText(buildPath(testPath, fileName)).chomp.splitLines
             .shouldEqual(lines, file, line);
+    }
+
+    // `fileName` should contain `needle`
+    void fileShouldContain(in string fileName,
+                           in string needle,
+                           in string file = __FILE__,
+                           in size_t line = __LINE__)
+    {
+        import std.file: readText;
+        import unit_threaded.should: shouldBeIn;
+        needle.shouldBeIn(readText(inSandboxPath(fileName)), file, line);
     }
 
     string sandboxPath() @safe @nogc pure nothrow const {
