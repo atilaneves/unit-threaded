@@ -7,12 +7,6 @@ environment:
   - DC: dmd
     DVersion: 2.079.1
     arch: x86
-  - DC: ldc
-    DVersion: 1.8.0
-    arch: x64
-  - DC: ldc
-    DVersion: 1.8.0
-    arch: x64
 
 skip_tags: true
 branches:
