@@ -10,18 +10,12 @@ Multi-threaded advanced unit test framework for [the D programming language](htt
 Augments D's `unittest` blocks with:
 
 * Tests can be named and individually run
-* Custom assertions for better error reporting
+* Custom assertions for better error reporting (e.g. 1.should == 2)
 * Runs in threads by default
 * UDAs for customisation of tests
 * Value and type parameterized tests
 * Property based testing
 * Mocking
-
-New
----
-Fast compilation mode. Set the version to `unitThreadedLight` and it will
-compile much faster, but with no error reporting and certain features
-might not work. Experimental support.
 
 
 Quick start with dub
@@ -132,6 +126,36 @@ int adder(int i, int j) { return i + j; }
 
 If using a custom dub configuration for unit-threaded as shown above, a version
 block can be used on `Have_unit_threaded` (this is added by dub to the build).
+
+Custom Assertions
+-----------------
+Code speaks louder than words:
+
+```d
+    1.should == 1;
+    1.should.not == 2;
+    1.should in [1, 2, 3];
+    4.should.not in [1, 2, 3];
+
+    void funcThrows() { throw new Exception("oops"); }
+    funcThrows.should.throw_;
+
+    // or with .be
+    1.should.be == 1;
+    1.should.not.be == 2;
+    1.should.be in [1, 2, 3];
+    4.should.not.be in [1, 2, 3];
+```
+
+See more in the `unit_threaded.should` module.
+
+
+Fast compilation mode
+--------------------
+Fast compilation mode. Set the version to `unitThreadedLight` and it will
+compile much faster, but with no error reporting and certain features
+might not work. Experimental support.
+
 
 Advanced Usage: Attributes
 --------------------------

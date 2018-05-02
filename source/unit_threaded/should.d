@@ -879,3 +879,109 @@ void shouldBeSameJsonAs(in string actual,
     catch(Exception e)
         assert(e.msg == "Error parsing JSON: Unexpected character 'o'. (Line 1:1)");
 }
+
+
+
+auto should(E)(lazy E expr) {
+
+    struct ShouldNot {
+
+        bool opEquals(U)(auto ref U other,
+                         in string file = __FILE__,
+                         in size_t line = __LINE__)
+        {
+            expr.shouldNotEqual(other, file, line);
+            return true;
+        }
+
+        void opBinary(string op, R)(R range,
+                                    in string file = __FILE__,
+                                    in size_t line = __LINE__) const if(op == "in") {
+            shouldNotBeIn(expr, range, file, line);
+        }
+
+        // void opDispatch(string s, A...)(auto ref A args)
+        // {
+        //     import std.functional: forward;
+        //     mixin(`Should().` ~ string ~ `(forward!args)`);
+        // }
+    }
+
+    struct Should {
+
+        bool opEquals(U)(auto ref U other,
+                         in string file = __FILE__,
+                         in size_t line = __LINE__)
+        {
+            expr.shouldEqual(other, file, line);
+            return true;
+        }
+
+        void throw_(T : Throwable = Exception)
+                   (in string file = __FILE__, in size_t line = __LINE__)
+        {
+            shouldThrow!T(expr, file, line);
+        }
+
+        void throwExactly(T : Throwable = Exception)
+                         (in string file = __FILE__, in size_t line = __LINE__)
+        {
+            shouldThrowExactly!T(expr, file, line);
+        }
+
+        void throwWithMessage(T : Throwable = Exception)
+                             (in string file = __FILE__, in size_t line = __LINE__)
+        {
+            shouldThrowWithMessage!T(expr, file, line);
+        }
+
+        void opBinary(string op, R)(R range,
+                                    in string file = __FILE__,
+                                    in size_t line = __LINE__) const
+            if(op == "in")
+        {
+            shouldBeIn(expr, range, file, line);
+        }
+
+        void opBinary(string op, R)(R range) const if(op == "~" && isInputRange!R)
+        {
+            shouldBeSameSetAs(expr, range);
+        }
+
+        void opBinary(string op, E)
+                     (in E expected, string file = __FILE__, size_t line = __LINE__)
+            if (isFloatingPoint!E)
+            {
+                shouldApproxEqual(expr, expected, file, line);
+            }
+
+        auto not() {
+            return ShouldNot();
+        }
+    }
+
+    return Should();
+}
+
+///
+@safe pure unittest {
+    1.should == 1;
+    1.should.not == 2;
+    1.should in [1, 2, 3];
+    4.should.not in [1, 2, 3];
+
+    void funcThrows() { throw new Exception("oops"); }
+    funcThrows.should.throw_;
+}
+
+T be(T)(T sh) {
+    return sh;
+}
+
+///
+@safe pure unittest {
+    1.should.be == 1;
+    1.should.not.be == 2;
+    1.should.be in [1, 2, 3];
+    4.should.not.be in [1, 2, 3];
+}
