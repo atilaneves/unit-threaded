@@ -576,10 +576,10 @@ unittest {
 
 
 @safe pure unittest {
-    1.should.beIn([1, 2, 3]);
-    2.should.beIn([1, 2, 3]);
-    3.should.beIn([1, 2, 3]);
-    assertFail(4.should.beIn([1, 2, 3]));
+    1.should.be in [1, 2, 3];
+    2.should.be in [1, 2, 3];
+    3.should.be in [1, 2, 3];
+    assertFail(4.should.be in [1, 2, 3]);
 }
 
 @safe pure unittest {

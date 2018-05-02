@@ -912,10 +912,7 @@ auto should(E)(lazy E expr) {
             shouldThrowWithMessage!T(expr, file, line);
         }
 
-        void beIn(R)(in auto ref R range,
-                     in string file = __FILE__,
-                     in size_t line = __LINE__)
-        {
+        void opBinary(string op, R)(R range) const if(op == "in") {
             shouldBeIn(expr, range);
         }
 
