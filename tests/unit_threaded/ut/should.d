@@ -545,4 +545,14 @@ unittest {
     1.should == 1;
     2.should == 2;
     assertFail(1.should == 2);
+    assertExceptionMsg(1.should == 2,
+                       `    tests/unit_threaded/ut/should.d:123 - Expected: 2` ~ "\n" ~
+                       `    tests/unit_threaded/ut/should.d:123 -      Got: 1`);
+}
+
+@("should.be ==")
+@safe pure unittest {
+    1.should.be == 1;
+    2.should.be == 2;
+    assertFail(1.should.be == 2);
 }

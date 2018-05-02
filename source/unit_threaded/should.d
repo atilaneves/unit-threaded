@@ -887,11 +887,18 @@ auto should(T)(T value) {
     static struct Should {
         T value;
 
-        bool opEquals(U)(auto ref U other) {
-            value.shouldEqual(other);
+        bool opEquals(U)(auto ref U other,
+                         in string file = __FILE__,
+                         in size_t line = __LINE__)
+        {
+            value.shouldEqual(other, file, line);
             return true;
         }
     }
 
     return Should(value);
+}
+
+T be(T)(T sh) {
+    return sh;
 }
