@@ -556,3 +556,16 @@ unittest {
     2.should.be == 2;
     assertFail(1.should.be == 2);
 }
+
+@("should.throw")
+@safe pure unittest {
+
+    void funcOk() {}
+
+    void funcThrows() {
+        throw new Exception("oops");
+    }
+
+    assertFail(funcOk.should.throw_);
+    funcThrows.should.throw_;
+}

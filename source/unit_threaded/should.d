@@ -882,15 +882,34 @@ void shouldBeSameJsonAs(in string actual,
 
 
 
-auto should(T)(auto ref T value) {
+auto should(E)(lazy E expr) {
 
     struct Should {
+
         bool opEquals(U)(auto ref U other,
                          in string file = __FILE__,
                          in size_t line = __LINE__)
         {
-            value.shouldEqual(other, file, line);
+            expr.shouldEqual(other, file, line);
             return true;
+        }
+
+        void throw_(T : Throwable = Exception)
+                   (in string file = __FILE__, in size_t line = __LINE__)
+        {
+            shouldThrow!T(expr, file, line);
+        }
+
+        void throwExactly(T : Throwable = Exception)
+                         (in string file = __FILE__, in size_t line = __LINE__)
+        {
+            shouldThrowExactly!T(expr, file, line);
+        }
+
+        void throwWithMessage(T : Throwable = Exception)
+                             (in string file = __FILE__, in size_t line = __LINE__)
+        {
+            shouldThrowWithMessage!T(expr, file, line);
         }
     }
 
