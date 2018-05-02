@@ -937,11 +937,8 @@ auto should(E)(lazy E expr) {
             shouldBeIn(expr, range);
         }
 
-        void notBeIn(R)(in auto ref R range,
-                        in string file = __FILE__,
-                        in size_t line = __LINE__)
-        {
-            shouldNotBeIn(expr, range);
+        void opBinary(string op, R)(R range) const if(op == "~" && isInputRange!R) {
+            shouldBeSameSetAs(expr, range);
         }
 
         auto not() {

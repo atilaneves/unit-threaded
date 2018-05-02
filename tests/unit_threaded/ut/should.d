@@ -598,3 +598,8 @@ unittest {
     4.should.not.be in [1, 2, 3];
     assertFail(1.should.not.be in [1, 2, 3]);
 }
+
+@safe pure unittest {
+    [1, 2, 3].should ~ [3, 2, 1];
+    assertFail([1, 2, 3].should ~ [1, 2, 2]);
+}
