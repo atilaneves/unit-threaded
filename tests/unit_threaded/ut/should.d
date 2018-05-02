@@ -558,7 +558,18 @@ unittest {
     assertExceptionMsg(1.should.be == 2,
                        `    tests/unit_threaded/ut/should.d:123 - Expected: 2` ~ "\n" ~
                        `    tests/unit_threaded/ut/should.d:123 -      Got: 1`);
+}
 
+@("should.not ==")
+@safe pure unittest {
+    1.should.not == 2;
+    assertFail(2.should.not == 2);
+}
+
+@("should.not.be ==")
+@safe pure unittest {
+    1.should.not.be == 2;
+    assertFail(2.should.not.be == 2);
 }
 
 @("should.throw")
@@ -574,7 +585,7 @@ unittest {
     funcThrows.should.throw_;
 }
 
-
+@("should.be in")
 @safe pure unittest {
     1.should.be in [1, 2, 3];
     2.should.be in [1, 2, 3];
@@ -582,7 +593,8 @@ unittest {
     assertFail(4.should.be in [1, 2, 3]);
 }
 
+@("should.not.be in")
 @safe pure unittest {
-    4.should.notBeIn([1, 2, 3]);
-    assertFail(1.should.notBeIn([1, 2, 3]));
+    4.should.not.be in [1, 2, 3];
+    assertFail(1.should.not.be in [1, 2, 3]);
 }

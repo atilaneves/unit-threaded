@@ -884,6 +884,27 @@ void shouldBeSameJsonAs(in string actual,
 
 auto should(E)(lazy E expr) {
 
+    struct ShouldNot {
+
+        bool opEquals(U)(auto ref U other,
+                         in string file = __FILE__,
+                         in size_t line = __LINE__)
+        {
+            expr.shouldNotEqual(other, file, line);
+            return true;
+        }
+
+        void opBinary(string op, R)(R range) const if(op == "in") {
+            shouldNotBeIn(expr, range);
+        }
+
+        void opDispatch(string s, A...)(auto ref A args)
+        {
+            import std.functional: forward;
+            mixin(`Should().` ~ string ~ `(forward!args)`);
+        }
+    }
+
     struct Should {
 
         bool opEquals(U)(auto ref U other,
@@ -922,7 +943,12 @@ auto should(E)(lazy E expr) {
         {
             shouldNotBeIn(expr, range);
         }
+
+        auto not() {
+            return ShouldNot();
+        }
     }
+
 
     return Should();
 }
