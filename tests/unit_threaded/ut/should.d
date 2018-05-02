@@ -577,3 +577,8 @@ unittest {
     3.should.beIn([1, 2, 3]);
     assertFail(4.should.beIn([1, 2, 3]));
 }
+
+@safe pure unittest {
+    4.should.notBeIn([1, 2, 3]);
+    assertFail(1.should.notBeIn([1, 2, 3]));
+}
