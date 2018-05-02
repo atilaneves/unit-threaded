@@ -894,15 +894,17 @@ auto should(E)(lazy E expr) {
             return true;
         }
 
-        void opBinary(string op, R)(R range) const if(op == "in") {
-            shouldNotBeIn(expr, range);
+        void opBinary(string op, R)(R range,
+                                    in string file = __FILE__,
+                                    in size_t line = __LINE__) const if(op == "in") {
+            shouldNotBeIn(expr, range, file, line);
         }
 
-        void opDispatch(string s, A...)(auto ref A args)
-        {
-            import std.functional: forward;
-            mixin(`Should().` ~ string ~ `(forward!args)`);
-        }
+        // void opDispatch(string s, A...)(auto ref A args)
+        // {
+        //     import std.functional: forward;
+        //     mixin(`Should().` ~ string ~ `(forward!args)`);
+        // }
     }
 
     struct Should {
@@ -933,19 +935,30 @@ auto should(E)(lazy E expr) {
             shouldThrowWithMessage!T(expr, file, line);
         }
 
-        void opBinary(string op, R)(R range) const if(op == "in") {
-            shouldBeIn(expr, range);
+        void opBinary(string op, R)(R range,
+                                    in string file = __FILE__,
+                                    in size_t line = __LINE__) const
+            if(op == "in")
+        {
+            shouldBeIn(expr, range, file, line);
         }
 
-        void opBinary(string op, R)(R range) const if(op == "~" && isInputRange!R) {
+        void opBinary(string op, R)(R range) const if(op == "~" && isInputRange!R)
+        {
             shouldBeSameSetAs(expr, range);
         }
+
+        void opBinary(string op, E)
+                     (in E expected, string file = __FILE__, size_t line = __LINE__)
+            if (isFloatingPoint!E)
+            {
+                shouldApproxEqual(expr, expected, file, line);
+            }
 
         auto not() {
             return ShouldNot();
         }
     }
-
 
     return Should();
 }

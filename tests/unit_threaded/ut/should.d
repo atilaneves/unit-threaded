@@ -599,7 +599,14 @@ unittest {
     assertFail(1.should.not.be in [1, 2, 3]);
 }
 
+@("should ~ for range")
 @safe pure unittest {
     [1, 2, 3].should ~ [3, 2, 1];
     assertFail([1, 2, 3].should ~ [1, 2, 2]);
+}
+
+@("should ~ for float")
+@safe unittest {
+    1.0.should ~ 1.0001;
+    assertFail(2.0.should ~ 1.0001);
 }
