@@ -963,6 +963,25 @@ auto should(E)(lazy E expr) {
     return Should();
 }
 
+///
+@safe pure unittest {
+    1.should == 1;
+    1.should.not == 2;
+    1.should in [1, 2, 3];
+    4.should.not in [1, 2, 3];
+
+    void funcThrows() { throw new Exception("oops"); }
+    funcThrows.should.throw_;
+}
+
 T be(T)(T sh) {
     return sh;
+}
+
+///
+@safe pure unittest {
+    1.should.be == 1;
+    1.should.not.be == 2;
+    1.should.be in [1, 2, 3];
+    4.should.not.be in [1, 2, 3];
 }
