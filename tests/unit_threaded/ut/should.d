@@ -538,3 +538,11 @@ unittest {
 @safe unittest {
     shouldEqual(new Object, new Object);
 }
+
+
+@("should ==")
+@safe pure unittest {
+    1.should == 1;
+    2.should == 2;
+    assertFail(1.should == 2);
+}

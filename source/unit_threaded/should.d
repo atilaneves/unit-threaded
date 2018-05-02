@@ -879,3 +879,19 @@ void shouldBeSameJsonAs(in string actual,
     catch(Exception e)
         assert(e.msg == "Error parsing JSON: Unexpected character 'o'. (Line 1:1)");
 }
+
+
+
+auto should(T)(T value) {
+
+    static struct Should {
+        T value;
+
+        bool opEquals(U)(auto ref U other) {
+            value.shouldEqual(other);
+            return true;
+        }
+    }
+
+    return Should(value);
+}
