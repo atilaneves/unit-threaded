@@ -569,3 +569,11 @@ unittest {
     assertFail(funcOk.should.throw_);
     funcThrows.should.throw_;
 }
+
+
+@safe pure unittest {
+    1.should.beIn([1, 2, 3]);
+    2.should.beIn([1, 2, 3]);
+    3.should.beIn([1, 2, 3]);
+    assertFail(4.should.beIn([1, 2, 3]));
+}
