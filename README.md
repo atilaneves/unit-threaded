@@ -145,7 +145,13 @@ Code speaks louder than words:
     1.should.not.be == 2;
     1.should.be in [1, 2, 3];
     4.should.not.be in [1, 2, 3];
-```
+
+    // I know this is operator overload abuse. I still like it.
+    [1, 2, 3].should ~ [3, 2, 1];
+    [1, 2, 3].should.not ~ [1, 2, 2];
+    1.0.should ~ 1.0001;
+    1.0.should.not ~ 2.0;
+    ```
 
 See more in the `unit_threaded.should` module.
 

@@ -602,11 +602,13 @@ unittest {
 @("should ~ for range")
 @safe pure unittest {
     [1, 2, 3].should ~ [3, 2, 1];
+    [1, 2, 3].should.not ~ [1, 2, 2];
     assertFail([1, 2, 3].should ~ [1, 2, 2]);
 }
 
 @("should ~ for float")
 @safe unittest {
     1.0.should ~ 1.0001;
+    1.0.should.not ~ 2.0;
     assertFail(2.0.should ~ 1.0001);
 }

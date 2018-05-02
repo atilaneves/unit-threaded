@@ -900,6 +900,21 @@ auto should(E)(lazy E expr) {
             shouldNotBeIn(expr, range, file, line);
         }
 
+        void opBinary(string op, R)(R range,
+                                    in string file = __FILE__,
+                                    in size_t line = __LINE__) const
+            if(op == "~" && isInputRange!R)
+        {
+            shouldThrow!UnitTestException(shouldBeSameSetAs(expr, range), file, line);
+        }
+
+        void opBinary(string op, E)
+                     (in E expected, string file = __FILE__, size_t line = __LINE__)
+            if (isFloatingPoint!E)
+        {
+            shouldThrow!UnitTestException(shouldApproxEqual(expr, expected), file, line);
+        }
+
         // void opDispatch(string s, A...)(auto ref A args)
         // {
         //     import std.functional: forward;
@@ -943,17 +958,20 @@ auto should(E)(lazy E expr) {
             shouldBeIn(expr, range, file, line);
         }
 
-        void opBinary(string op, R)(R range) const if(op == "~" && isInputRange!R)
+        void opBinary(string op, R)(R range,
+                                    in string file = __FILE__,
+                                    in size_t line = __LINE__) const
+            if(op == "~" && isInputRange!R)
         {
-            shouldBeSameSetAs(expr, range);
+            shouldBeSameSetAs(expr, range, file, line);
         }
 
         void opBinary(string op, E)
                      (in E expected, string file = __FILE__, size_t line = __LINE__)
             if (isFloatingPoint!E)
-            {
-                shouldApproxEqual(expr, expected, file, line);
-            }
+        {
+            shouldApproxEqual(expr, expected, file, line);
+        }
 
         auto not() {
             return ShouldNot();
