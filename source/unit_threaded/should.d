@@ -882,11 +882,9 @@ void shouldBeSameJsonAs(in string actual,
 
 
 
-auto should(T)(T value) {
+auto should(T)(auto ref T value) {
 
-    static struct Should {
-        T value;
-
+    struct Should {
         bool opEquals(U)(auto ref U other,
                          in string file = __FILE__,
                          in size_t line = __LINE__)
@@ -896,7 +894,7 @@ auto should(T)(T value) {
         }
     }
 
-    return Should(value);
+    return Should();
 }
 
 T be(T)(T sh) {
