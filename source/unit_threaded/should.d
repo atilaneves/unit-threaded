@@ -620,16 +620,50 @@ bool isEqual(V, E)(V value, E expected)
     return true;
 }
 
+template IsField(A...) if(A.length == 1) {
+    enum IsField = __traits(compiles, A[0].init);
+}
+
 
 bool isEqual(V, E)(V value, E expected)
 if (isObject!V && isObject!E)
 {
+    import std.meta: staticMap, Filter;
+
     static assert(is(typeof(() { string s1 = value.toString; string s2 = expected.toString;})),
                   "Cannot compare instances of " ~ V.stringof ~
                   " or " ~ E.stringof ~ " unless toString is overridden for both");
 
-    return (value is null && expected is null) ||
-        (value !is null && expected !is null && value.tupleof == expected.tupleof);
+    if(value  is null && expected !is null) return false;
+    if(value !is null && expected  is null) return false;
+    if(value  is null && expected  is null) return true;
+
+    template IsFieldOf(T, string s) {
+        static if(__traits(compiles, IsField!(typeof(__traits(getMember, T.init, s)))))
+            enum IsFieldOf = IsField!(typeof(__traits(getMember, T.init, s)));
+        else
+            enum IsFieldOf = false;
+    }
+
+    auto members(T)(T obj) {
+        import std.typecons: Tuple;
+
+        alias Member(string name) = typeof(__traits(getMember, T, name));
+        alias IsFieldOfT(string s) = IsFieldOf!(T, s);
+        alias FieldNames = Filter!(IsFieldOfT, __traits(allMembers, T));
+        alias FieldTypes = staticMap!(Member, FieldNames);
+
+        Tuple!FieldTypes ret;
+        foreach(i, name; FieldNames)
+            ret[i] = __traits(getMember, obj, name);
+
+        return ret;
+    }
+
+    static if(is(V == interface))
+        return false;
+    else
+        return members(value) == members(expected);
 }
 
 
