@@ -16,7 +16,7 @@ install_headers(randomized_sources, subdir: 'd/unit_threaded/randomized')
 
 include_dirs = [include_directories('source/')]
 
-sharedlib = shared_library(
+lib = library(
     meson.project_name(),
     main_sources + randomized_sources,
     include_directories: include_dirs,
@@ -25,17 +25,10 @@ sharedlib = shared_library(
     install: true,
 )
 
-staticlib = static_library(
-    meson.project_name(),
-    main_sources + randomized_sources,
-    include_directories: include_dirs,
-    install: true,
-)
-
 pkgconfig = import('pkgconfig')
 pkgconfig.generate(
     name: meson.project_name(),
-    libraries: sharedlib,
+    libraries: lib,
     subdirs: 'd/',
     version: meson.project_version(),
     description: 'Advanced multi-threaded unit testing framework with minimal to no boilerplate using built-in unittest blocks.',
@@ -45,11 +38,11 @@ executable(
     'gen-ut-main',
     'gen/gen_ut_main.d',
     include_directories: include_dirs,
-    link_with: sharedlib,
+    link_with: lib,
     install: true,
 )
 
 unitthreaded_dep = declare_dependency(
-    link_with: sharedlib,
+    link_with: lib,
     include_directories: [include_dirs],
 )
