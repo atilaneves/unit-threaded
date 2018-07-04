@@ -34,21 +34,23 @@ string implMixinStr(T)() {
             static if(__traits(isVirtualMethod, member)) {
                 foreach(i, overload; __traits(getOverloads, T, memberName)) {
 
-                    static if(!(functionAttributes!member & FunctionAttribute.const_) &&
-                              !(functionAttributes!member & FunctionAttribute.const_)) {
+                    static if(!(functionAttributes!overload & FunctionAttribute.const_) &&
+                              !(functionAttributes!overload & FunctionAttribute.const_)) {
 
                         enum overloadName = text(memberName, "_", i);
 
                         enum overloadString = getOverload(memberName, i);
-                        lines ~= "private alias %s_parameters = Parameters!(%s);".format(overloadName, overloadString);
-                        lines ~= "private alias %s_returnType = ReturnType!(%s);".format(overloadName, overloadString);
+                        lines ~= "private alias %s_parameters = Parameters!(%s);".format(
+                            overloadName, overloadString);
+                        lines ~= "private alias %s_returnType = ReturnType!(%s);".format(
+                            overloadName, overloadString);
 
-                        static if(functionAttributes!member & FunctionAttribute.nothrow_)
+                        static if(functionAttributes!overload & FunctionAttribute.nothrow_)
                             enum tryIndent = "    ";
                         else
                             enum tryIndent = "";
 
-                        static if(is(ReturnType!member == void))
+                        static if(is(ReturnType!overload == void))
                             enum returnDefault = "";
                         else {
                             enum varName = overloadName ~ `_returnValues`;
@@ -59,20 +61,22 @@ string implMixinStr(T)() {
                                                   `        ` ~ varName ~ ` = ` ~ varName ~ `[1..$];`,
                                                   `        return ret;`,
                                                   `    } else`,
-                                                  `        return %s_returnType.init;`.format(overloadName)];
+                                                  `        return %s_returnType.init;`.format(
+                                                      overloadName)];
                         }
 
                         lines ~= `override ` ~ overloadName ~ "_returnType " ~ memberName ~
                             typeAndArgsParens!(Parameters!overload)(overloadName) ~ " " ~
-                            functionAttributesString!member ~ ` {`;
+                            functionAttributesString!overload ~ ` {`;
 
-                        static if(functionAttributes!member & FunctionAttribute.nothrow_)
+                        static if(functionAttributes!overload & FunctionAttribute.nothrow_)
                             lines ~= "try {";
 
                         lines ~= tryIndent ~ `    calledFuncs ~= "` ~ memberName ~ `";`;
-                        lines ~= tryIndent ~ `    calledValues ~= tuple` ~ argNamesParens(arity!member) ~ `.to!string;`;
+                        lines ~= tryIndent ~ `    calledValues ~= tuple` ~
+                            argNamesParens(arity!overload) ~ `.to!string;`;
 
-                        static if(functionAttributes!member & FunctionAttribute.nothrow_)
+                        static if(functionAttributes!overload & FunctionAttribute.nothrow_)
                             lines ~= "    } catch(Exception) {}";
 
                         lines ~= returnDefault;
@@ -137,6 +141,7 @@ private string functionAttributesString(alias F)() {
     // if(attrs & FunctionAttribute.const_) parts ~= "const";
     // if(attrs & FunctionAttribute.immutable_) parts ~= "immutable";
     if(attrs & FunctionAttribute.shared_) parts ~= "shared";
+    if(attrs & FunctionAttribute.property) parts ~= "@property";
 
     return parts.join(" ");
 }
@@ -209,6 +214,7 @@ struct Mock(T) {
         import std.traits: Parameters, ReturnType;
         import std.typecons: tuple;
 
+        //static if(__traits(identifier, T) == "foobarbaz")
         //pragma(msg, "\nimplMixinStr for ", T, "\n\n", implMixinStr!T, "\n\n");
         mixin(implMixinStr!T);
         mixin MockImplCommon;
