@@ -138,12 +138,16 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
             else
                 return prefix ~ strAttrs[0];
         } else {
-            string name;
-            try {
-                return prefix ~ "unittest" ~ (index).to!string;
-            } catch(Exception) {
+
+            // use the unittest name if available to allow for running unittests based
+            // on location
+            if(__traits(identifier, _theUnitTest).startsWith("__unittest_L"))
+                return prefix ~ __traits(identifier, _theUnitTest)[2 .. $];
+
+            try
+                return prefix ~ "unittest" ~ index.to!string;
+            catch(Exception)
                 assert(false, text("Error converting ", index, " to string"));
-            }
         }
     }
 

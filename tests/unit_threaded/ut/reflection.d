@@ -29,8 +29,12 @@ unittest {
 
 
 unittest {
-    const expected = addModPrefix(["unittest0", "unittest1", "myUnitTest",
-                                   "StructWithUnitTests.InStruct", "StructWithUnitTests.unittest1"]);
+    const expected = addModPrefix(
+        [
+            "unittest_L44_C1", "unittest_L49_C1", "myUnitTest",
+            "StructWithUnitTests.InStruct", "StructWithUnitTests.unittest_L66_C5"
+        ]
+    );
     const actual = moduleUnitTests!(unit_threaded.ut.modules.module_with_tests).
         map!(a => a.name).array;
     assertEqual(actual, expected);
@@ -125,10 +129,10 @@ unittest {
     const testData = allTestData!(unit_threaded.ut.modules.tags).array;
     auto testsNoTags = createTestCases(testData);
     assertEqual(testsNoTags.length, 4);
-    assertPass(testsNoTags[0]);
-    assertFail(testsNoTags.find!(a => a.getPath.canFind("unittest1")).front);
-    assertFail(testsNoTags[2]);
-    assertFail(testsNoTags[3]);
+    assertPass(testsNoTags.find!(a => a.getPath.canFind("unittest_L6_C1")).front);
+    assertFail(testsNoTags.find!(a => a.getPath.canFind("unittest_L8_C1")).front);
+    assertPass(testsNoTags.find!(a => a.getPath.canFind("testMake")).front);
+    assertFail(testsNoTags.find!(a => a.getPath.canFind("unittest_L22_C1")).front);
 
     auto testsNinja = createTestCases(testData, ["@ninja"]);
     assertEqual(testsNinja.length, 1);
@@ -137,16 +141,17 @@ unittest {
     auto testsMake = createTestCases(testData, ["@make"]);
     assertEqual(testsMake.length, 3);
     assertPass(testsMake.find!(a => a.getPath.canFind("testMake")).front);
-    assertPass(testsMake.find!(a => a.getPath.canFind("unittest0")).front);
-    assertFail(testsMake.find!(a => a.getPath.canFind("unittest2")).front);
+    assertPass(testsMake.find!(a => a.getPath.canFind("unittest_L6_C1")).front);
+    assertFail(testsMake.find!(a => a.getPath.canFind("unittest_L22_C1")).front);
 
     auto testsNotNinja = createTestCases(testData, ["~@ninja"]);
     assertEqual(testsNotNinja.length, 3);
     assertPass(testsNotNinja.find!(a => a.getPath.canFind("testMake")).front);
-    assertFail(testsNotNinja.find!(a => a.getPath.canFind("unittest1")).front);
-    assertFail(testsNotNinja.find!(a => a.getPath.canFind("unittest2")).front);
+    assertFail(testsNotNinja.find!(a => a.getPath.canFind("unittest_L8_C1")).front);
+    assertFail(testsNotNinja.find!(a => a.getPath.canFind("unittest_L22_C1")).front);
 
     assertEqual(createTestCases(testData, ["unit_threaded.ut.modules.tags.testMake", "@ninja"]).length, 0);
+
 }
 
 @("Parametrized built-in tests with @AutoTags get tagged by value")
