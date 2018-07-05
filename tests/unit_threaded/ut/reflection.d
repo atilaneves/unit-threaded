@@ -31,7 +31,7 @@ unittest {
 unittest {
     const expected = addModPrefix(
         [
-            "unittest_L44_C1", "unittest_L49_C1", "myUnitTest",
+            "unittest_L44", "unittest_L49", "myUnitTest",
             "StructWithUnitTests.InStruct", "StructWithUnitTests.unittest_L66_C5"
         ]
     );
@@ -129,10 +129,10 @@ unittest {
     const testData = allTestData!(unit_threaded.ut.modules.tags).array;
     auto testsNoTags = createTestCases(testData);
     assertEqual(testsNoTags.length, 4);
-    assertPass(testsNoTags.find!(a => a.getPath.canFind("unittest_L6_C1")).front);
-    assertFail(testsNoTags.find!(a => a.getPath.canFind("unittest_L8_C1")).front);
+    assertPass(testsNoTags.find!(a => a.getPath.canFind("unittest_L6")).front);
+    assertFail(testsNoTags.find!(a => a.getPath.canFind("unittest_L8")).front);
     assertPass(testsNoTags.find!(a => a.getPath.canFind("testMake")).front);
-    assertFail(testsNoTags.find!(a => a.getPath.canFind("unittest_L22_C1")).front);
+    assertFail(testsNoTags.find!(a => a.getPath.canFind("unittest_L22")).front);
 
     auto testsNinja = createTestCases(testData, ["@ninja"]);
     assertEqual(testsNinja.length, 1);
@@ -141,14 +141,14 @@ unittest {
     auto testsMake = createTestCases(testData, ["@make"]);
     assertEqual(testsMake.length, 3);
     assertPass(testsMake.find!(a => a.getPath.canFind("testMake")).front);
-    assertPass(testsMake.find!(a => a.getPath.canFind("unittest_L6_C1")).front);
-    assertFail(testsMake.find!(a => a.getPath.canFind("unittest_L22_C1")).front);
+    assertPass(testsMake.find!(a => a.getPath.canFind("unittest_L6")).front);
+    assertFail(testsMake.find!(a => a.getPath.canFind("unittest_L22")).front);
 
     auto testsNotNinja = createTestCases(testData, ["~@ninja"]);
     assertEqual(testsNotNinja.length, 3);
     assertPass(testsNotNinja.find!(a => a.getPath.canFind("testMake")).front);
-    assertFail(testsNotNinja.find!(a => a.getPath.canFind("unittest_L8_C1")).front);
-    assertFail(testsNotNinja.find!(a => a.getPath.canFind("unittest_L22_C1")).front);
+    assertFail(testsNotNinja.find!(a => a.getPath.canFind("unittest_L8")).front);
+    assertFail(testsNotNinja.find!(a => a.getPath.canFind("unittest_L22")).front);
 
     assertEqual(createTestCases(testData, ["unit_threaded.ut.modules.tags.testMake", "@ninja"]).length, 0);
 

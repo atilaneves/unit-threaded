@@ -118,15 +118,16 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
     // with a package name
     string unittestName(alias _theUnitTest, int index)() @safe nothrow {
         import std.conv: text, to;
-        import std.traits: fullyQualifiedName;
-        import std.traits: getUDAs;
+        import std.traits: fullyQualifiedName, getUDAs;
         import std.meta: Filter;
+        import std.algorithm: startsWith, endsWith;
         import unit_threaded.attrs: Name;
 
         mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
 
         enum nameAttrs = getUDAs!(_theUnitTest, Name);
-        static assert(nameAttrs.length == 0 || nameAttrs.length == 1, "Found multiple Name UDAs on unittest");
+        static assert(nameAttrs.length == 0 || nameAttrs.length == 1,
+                      "Found multiple Name UDAs on unittest");
 
         enum strAttrs = Filter!(isStringUDA, __traits(getAttributes, _theUnitTest));
         enum hasName = nameAttrs.length || strAttrs.length == 1;
@@ -141,8 +142,11 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
 
             // use the unittest name if available to allow for running unittests based
             // on location
-            if(__traits(identifier, _theUnitTest).startsWith("__unittest_L"))
-                return prefix ~ __traits(identifier, _theUnitTest)[2 .. $];
+            if(__traits(identifier, _theUnitTest).startsWith("__unittest_L")) {
+                const ret = prefix ~ __traits(identifier, _theUnitTest)[2 .. $];
+                const suffix = "_C1";
+                return ret.endsWith(suffix) ? ret[0 .. $ - suffix.length] : ret;
+            }
 
             try
                 return prefix ~ "unittest" ~ index.to!string;
