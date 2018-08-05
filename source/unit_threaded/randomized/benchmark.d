@@ -119,7 +119,7 @@ struct Benchmark
     Params:
         funcname = The name of the $(D benchmark) instance. The $(D funcname)
             will be used to associate the results with the function
-        founds = How many rounds.
+        rounds = How many rounds.
         filename = The $(D filename) will be used as a filename to store the
             results.
     */
@@ -244,9 +244,6 @@ Params:
         save the benchmark results.
     maxRuntime = The maximum time the benchmark is executed. The last run will
         not be interrupted.
-    rndSeed = The seed to the random number generator used to populate the
-        parameter passed to the function to benchmark.
-    rounds = The maximum number of times the callable $(D T) is called.
 */
 void benchmark(alias T)(const ref BenchmarkOptions opts)
 {
@@ -308,14 +305,6 @@ void benchmark(alias T)(from!"std.datetime".Duration maxRuntime, string filename
 }
 
 /// Ditto
-/*void benchmark(alias T)(string name, string filename = __FILE__)
-{
-    auto opt = BenchmarkOptions(name);
-    opt.filename = filename;
-    benchmark!(T)(opt);
-}*/
-
-/// Ditto
 void benchmark(alias T)(string name, from!"std.datetime".Duration maxRuntime,
     string filename = __FILE__)
 {
@@ -324,3 +313,11 @@ void benchmark(alias T)(string name, from!"std.datetime".Duration maxRuntime,
     opt.duration = maxRuntime;
     benchmark!(T)(opt);
 }
+
+/// Ditto
+/*void benchmark(alias T)(string name, string filename = __FILE__)
+{
+    auto opt = BenchmarkOptions(name);
+    opt.filename = filename;
+    benchmark!(T)(opt);
+}*/
