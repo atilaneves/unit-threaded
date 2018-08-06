@@ -9,7 +9,10 @@ import unit_threaded.from;
 
 /**
  * Runs all tests in passed-in modules. Modules can be symbols or
- * strings. Generates a main function and substitutes the default D
+ * strings but they can't mix and match - either all symbols or all
+ * strings. It's recommended to use strings since then the modules don't
+ * have to be imported first.
+ * Generates a main function and substitutes the default D
  * runtime unittest runner. This mixin should be used instead of
  * $(D runTests) if a shared library is used instead of an executable.
  */
@@ -17,7 +20,6 @@ mixin template runTestsMixin(Modules...) if(Modules.length > 0) {
 
     shared static this() {
         import unit_threaded.testsuite : replaceModuleUnitTester;
-
         replaceModuleUnitTester;
     }
 
@@ -27,8 +29,11 @@ mixin template runTestsMixin(Modules...) if(Modules.length > 0) {
 }
 
 /**
- * Runs all tests in passed-in modules. Modules can be symbols
- * or strings. Arguments are taken from the command-line.
+ * Runs all tests in passed-in modules. Modules can be symbols or
+ * strings but they can't mix and match - either all symbols or all
+ * strings. It's recommended to use strings since then the modules don't
+ * have to be imported first.
+ * Arguments are taken from the command-line.
  * -s Can be passed to run in single-threaded mode. The rest
  * of argv is considered to be test names to be run.
  * Params:
