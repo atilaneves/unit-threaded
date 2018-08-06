@@ -24,6 +24,7 @@ mixin template runTestsMain(Modules...) if(Modules.length > 0) {
     }
 
     int main(string[] args) {
+        import unit_threaded.runner: runTests;
         return runTests!Modules(args);
     }
 }
