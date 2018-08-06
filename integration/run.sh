@@ -24,4 +24,6 @@ dub test && issue121_status=0 || issue121_status=1
 if [[ $issue121_status -eq 0 ]]; then
     echo "ERROR: issue121 should have failed but didn't"
     exit 1
+else
+    printf "\\nDisregard the error messages for issue121, it's supposed to fail\\n"
 fi
