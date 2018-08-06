@@ -16,7 +16,7 @@ import unit_threaded.from;
  * runtime unittest runner. This mixin should be used instead of
  * $(D runTests) if a shared library is used instead of an executable.
  */
-mixin template runTestsMixin(Modules...) if(Modules.length > 0) {
+mixin template runTestsMain(Modules...) if(Modules.length > 0) {
 
     shared static this() {
         import unit_threaded.testsuite : replaceModuleUnitTester;
