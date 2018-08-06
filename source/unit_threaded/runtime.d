@@ -30,9 +30,9 @@ command-line options.
 
 Examples (assuming the generated file is called $(D ut.d)):
 -----
-rdmd -unittest ut.d # run all tests
-rdmd -unittest ut.d tests.foo tests.bar # run all tests from these packages
-rdmd ut.d -h # list command-line options
+rdmd -unittest ut.d // run all tests
+rdmd -unittest ut.d tests.foo tests.bar // run all tests from these packages
+rdmd ut.d -h // list command-line options
 -----
 */
 
