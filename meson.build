@@ -3,7 +3,7 @@
 project(
     'unit-threaded',
     'd',
-    version: '0.7.46',
+    version: '0.7.47',
     meson_version: '>=0.41',
     default_options: ['buildtype=release'],
 )
