@@ -17,12 +17,6 @@ import unit_threaded.from;
  * $(D runTests) if a shared library is used instead of an executable.
  */
 mixin template runTestsMain(Modules...) if(Modules.length > 0) {
-
-    shared static this() {
-        import unit_threaded.testsuite : replaceModuleUnitTester;
-        replaceModuleUnitTester;
-    }
-
     int main(string[] args) {
         import unit_threaded.runner: runTests;
         return runTests!Modules(args);
@@ -41,10 +35,20 @@ mixin template runTestsMain(Modules...) if(Modules.length > 0) {
  *   args = Arguments passed to main.
  * Returns: An integer suitable for the program's return code.
  */
-int runTests(Modules...)(string[] args) if(Modules.length > 0) {
-    import unit_threaded.reflection: allTestData;
-    return runTests(args, allTestData!Modules);
+template runTests(Modules...) if(Modules.length > 0) {
+
+    shared static this() {
+        import unit_threaded.runner: replaceModuleUnitTester;
+        replaceModuleUnitTester;
+    }
+
+    int runTests(string[] args) {
+        import unit_threaded.reflection: allTestData;
+        return runTests(args, allTestData!Modules);
+    }
 }
+
+
 
 /**
  * Runs all tests in passed-in testData. Arguments are taken from the
@@ -99,4 +103,73 @@ private void handleCmdLineOptions(in from!"unit_threaded.options".Options option
 
     if (options.stackTraces)
         enableStackTrace();
+}
+
+
+/**
+ * Replace the D runtime's normal unittest block tester. If this is not done,
+ * the tests will run twice.
+ */
+void replaceModuleUnitTester() {
+    import core.runtime: Runtime;
+    Runtime.moduleUnitTester = &moduleUnitTester;
+}
+
+version(unitThreadedLight) {
+
+    shared static this() {
+        import std.algorithm: canFind;
+        import std.parallelism: parallel;
+        import core.runtime: Runtime;
+
+        Runtime.moduleUnitTester = () {
+
+            // ModuleInfo has opApply, can't use parallel on that so we collect
+            // all the modules with unit tests first
+            ModuleInfo*[] modules;
+            foreach(module_; ModuleInfo) {
+                if(module_ && module_.unitTest)
+                    modules ~= module_;
+            }
+
+            version(unitUnthreaded)
+                enum singleThreaded = true;
+            else
+                const singleThreaded = Runtime.args.canFind("-s") || Runtime.args.canFind("--single");
+
+            if(singleThreaded)
+                foreach(module_; modules)
+                    module_.unitTest()();
+             else
+                foreach(module_; modules.parallel)
+                    module_.unitTest()();
+
+            return true;
+        };
+    }
+}
+
+/**
+ * Replacement for the usual unittest runner. Since unit_threaded
+ * runs the tests itself, the moduleUnitTester doesn't really have to do anything.
+ */
+private bool moduleUnitTester() {
+    //this is so unit-threaded's own tests run
+    import std.algorithm: startsWith;
+    foreach(module_; ModuleInfo) {
+        if(module_ && module_.unitTest &&
+           module_.name.startsWith("unit_threaded") && // we want to run the "normal" unit tests
+           //!module_.name.startsWith("unit_threaded.property") && // left here for fast iteration when developing
+           !module_.name.startsWith("unit_threaded.ut.modules")) //but not the ones from the test modules
+        {
+            version(testing_unit_threaded) {
+                import std.stdio: writeln;
+                writeln("Running unit-threaded UT for module " ~ module_.name);
+            }
+            module_.unitTest()();
+
+        }
+    }
+
+    return true;
 }
