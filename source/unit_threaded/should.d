@@ -554,7 +554,6 @@ private enum isObject(T) = is(T == class) || is(T == interface);
 
 bool isEqual(V, E)(in auto ref V value, in auto ref E expected)
  if (!isObject!V &&
-     (!isInputRange!V || !isInputRange!E) &&
      !isFloatingPoint!V && !isFloatingPoint!E &&
      is(typeof(value == expected) == bool))
 {

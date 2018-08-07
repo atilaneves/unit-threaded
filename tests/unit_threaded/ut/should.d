@@ -103,6 +103,11 @@ private void assertFail(E)(lazy E expression, in string file = __FILE__, in size
     shouldNotEqual([1 : 2.0, 2 : 4.0], [1 : 2.2, 2 : 4.0]) ;
 }
 
+@safe unittest {
+    import std.algorithm: map;
+    const constRange = [1, 2, 3].map!"a";
+    shouldEqual(constRange, constRange);
+}
 
 @safe pure unittest
 {
