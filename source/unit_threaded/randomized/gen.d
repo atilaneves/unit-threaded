@@ -1,9 +1,6 @@
 module unit_threaded.randomized.gen;
 
-template from(string moduleName) {
-    mixin("import from = " ~ moduleName ~ ";");
-}
-
+import unit_threaded.from;
 
 /* Return $(D true) if the passed $(D T) is a $(D Gen) struct.
 

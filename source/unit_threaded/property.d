@@ -3,11 +3,7 @@
  */
 module unit_threaded.property;
 
-
-template from(string moduleName) {
-    mixin("import from = " ~ moduleName ~ ";");
-}
-
+import unit_threaded.from;
 
 ///
 class PropertyException : Exception
