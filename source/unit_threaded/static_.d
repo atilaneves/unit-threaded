@@ -31,7 +31,7 @@ version(unitThreadedLight) {
                     module_.name.startsWith("unit_threaded.ut") &&
                     !module_.name.startsWith("unit_threaded.ut.modules");
                 } else
-                      enum shouldTest = false;
+                      enum shouldTest = true;
 
                 if(shouldTest)
                     module_.unitTest()();

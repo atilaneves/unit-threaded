@@ -19,6 +19,17 @@ module unit_threaded.light;
 
 alias UnitTestException = Exception;
 
+
+/**
+   Dummy version so "normal" code compiles
+ */
+mixin template runTestsMain(Modules...) if(Modules.length > 0) {
+    int main() {
+        import unit_threaded.light: runTestsImpl;
+        return runTestsImpl;
+    }
+}
+
 /**
    Dummy version of runTests so "normal" code compiles.
  */
@@ -35,22 +46,16 @@ int runTestsImpl() {
     import core.runtime: Runtime;
     import core.stdc.stdio: printf;
 
-    try {
+    version(Posix)
+        printf("\033[32;1mOk\033[0;;m");
+    else
+        printf("Ok");
 
-        Runtime.moduleUnitTester();
+    printf(": All tests passed\n\n");
 
-        printf("\n");
-        version(Posix)
-            printf("\033[32;1mOk\033[0;;m");
-        else
-            printf("Ok");
-
-        printf(": All tests passed\n\n");
-
-        return 0;
-    } catch(Throwable _)
-        return 1;
+    return 0;
 }
+
 
 /**
    Dummy version so "normal" code compiles
