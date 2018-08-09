@@ -4,15 +4,18 @@ import unit_threaded;
 
 
 interface ICalcView {
-   @property string total();
-   @property void total(string t);
+   @property string total() @safe;
+   @property void total(string t) @safe;
 }
 
 class CalcController {
     private ICalcView view;
-    this(ICalcView view) { this.view = view; }
 
-    void onClick(int number) {
+    this(ICalcView view) @safe {
+        this.view = view;
+    }
+
+    void onClick(int number) @safe {
         import std.conv: to;
         view.total = number.to!string;
     }
@@ -20,7 +23,7 @@ class CalcController {
 
 
 @("54")
-unittest {
+@safe unittest {
    auto m = mock!ICalcView;
    m.expect!"total"("42");
 
@@ -32,7 +35,7 @@ unittest {
 
 
 @("82")
-unittest {
+@safe unittest {
 
     import std.exception: assertThrown;
 
@@ -51,5 +54,6 @@ unittest {
 
     actual.x = "foo";
     expected.x = "bar";
+
     assertThrown(actual.shouldEqual(expected));
 }
