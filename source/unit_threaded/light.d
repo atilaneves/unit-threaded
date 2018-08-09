@@ -145,7 +145,8 @@ void shouldEqual(V, E)(auto ref V value, auto ref E expected, in string file = _
     enum isInputRange(T) = is(T: Elt[], Elt) || is(typeof(checkInputRange(T.init)));
 
     static if(is(V == class)) {
-        assert_(value.tupleof == expected.tupleof, file, line);
+        import unit_threaded.should: isEqual;
+        assert_(isEqual(value, expected), file, line);
     } else static if(isInputRange!V && isInputRange!E) {
         auto ref unqual(T)(auto ref const(T) obj) @trusted {
             static if(is(T == void[]))
@@ -159,6 +160,8 @@ void shouldEqual(V, E)(auto ref V value, auto ref E expected, in string file = _
         assert_(cast(const)value == cast(const)expected, file, line);
     }
 }
+
+
 
 /// Assert value is not equal to expected.
 void shouldNotEqual(V, E)(in auto ref V value, in auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {

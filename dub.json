@@ -50,7 +50,7 @@
             "sourcePaths": ["source", "tests/unit_threaded", "tests/examples/pass"],
             "sourceFiles": ["example/example_pass.d"],
             "mainSourceFile": "example/example_pass.d",
-            "versions": ["testing_unit_threaded", "unitThreadedLight"]
+            "versions": ["testing_unit_threaded", "unitThreadedLight", "unitUnthreaded"]
         },
 
         {

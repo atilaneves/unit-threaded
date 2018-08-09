@@ -21,16 +21,18 @@ void writelnUt(T...)(auto ref T args) {
 
 private shared(bool) _debugOutput = false; ///print debug msgs?
 private shared(bool) _forceEscCodes = false; ///use ANSI escape codes anyway?
-bool _useEscCodes;
+package bool _useEscCodes;
 enum _escCodes = ["\033[31;1m", "\033[32;1m", "\033[33;1m", "\033[0;;m"];
 
 
-static this() {
+
+package bool shouldUseEscCodes() {
     version (Posix) {
         import std.stdio: stdout;
         import core.sys.posix.unistd: isatty;
-        _useEscCodes = _forceEscCodes || isatty(stdout.fileno()) != 0;
-    }
+        return _forceEscCodes || isatty(stdout.fileno()) != 0;
+    } else
+          return false;
 }
 
 
