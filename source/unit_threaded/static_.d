@@ -6,7 +6,7 @@ module unit_threaded.static_;
 version(unitThreadedLight) {
 
     shared static this() {
-        import std.algorithm: canFind;
+        import std.algorithm: canFind, startsWith;
         import std.parallelism: parallel;
         import core.runtime: Runtime;
 
@@ -25,12 +25,24 @@ version(unitThreadedLight) {
             else
                 const singleThreaded = Runtime.args.canFind("-s") || Runtime.args.canFind("--single");
 
+            void runModuleTests(ModuleInfo* module_) {
+                version(testing_unit_threaded) {
+                    const shouldTest =
+                    module_.name.startsWith("unit_threaded.ut") &&
+                    !module_.name.startsWith("unit_threaded.ut.modules");
+                } else
+                      enum shouldTest = false;
+
+                if(shouldTest)
+                    module_.unitTest()();
+            }
+
             if(singleThreaded)
                 foreach(module_; modules)
-                    module_.unitTest()();
+                    runModuleTests(module_);
              else
                 foreach(module_; modules.parallel)
-                    module_.unitTest()();
+                    runModuleTests(module_);
 
             return true;
         };

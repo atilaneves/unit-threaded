@@ -21,7 +21,7 @@ template isGen(T)
 }
 
 ///
-unittest
+@safe pure unittest
 {
     static assert(!isGen!int);
     static assert(isGen!(Gen!(int, 0, 10)));
