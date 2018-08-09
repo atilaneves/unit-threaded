@@ -145,17 +145,44 @@ void shouldEqual(V, E)(auto ref V value, auto ref E expected, in string file = _
     enum isInputRange(T) = is(T: Elt[], Elt) || is(typeof(checkInputRange(T.init)));
 
     static if(is(V == class)) {
+
         import unit_threaded.should: isEqual;
         assert_(isEqual(value, expected), file, line);
+
     } else static if(isInputRange!V && isInputRange!E) {
-        auto ref unqual(T)(auto ref const(T) obj) @trusted {
-            static if(is(T == void[]))
-                return cast(ubyte[])obj;
-            else
-                return cast(T)obj;
+
+        auto ref unqual(OriginalType)(auto ref OriginalType obj) @trusted {
+
+            // copied from std.traits
+            template Unqual(T) {
+                     static if (is(T U ==          immutable U)) alias Unqual = U;
+                else static if (is(T U == shared inout const U)) alias Unqual = U;
+                else static if (is(T U == shared inout       U)) alias Unqual = U;
+                else static if (is(T U == shared       const U)) alias Unqual = U;
+                else static if (is(T U == shared             U)) alias Unqual = U;
+                else static if (is(T U ==        inout const U)) alias Unqual = U;
+                else static if (is(T U ==        inout       U)) alias Unqual = U;
+                else static if (is(T U ==              const U)) alias Unqual = U;
+                else                                             alias Unqual = T;
+            }
+
+            static if(__traits(compiles, obj[])) {
+                static if(!is(typeof(obj[]) == OriginalType)) {
+                    return unqual(obj[]);
+                } else static if(__traits(compiles, cast(Unqual!OriginalType) obj)) {
+                    return cast(Unqual!OriginalType) obj;
+                } else {
+                    return obj;
+                }
+            } else  static if(__traits(compiles, cast(Unqual!OriginalType) obj)) {
+                return cast(Unqual!OriginalType) obj;
+            } else
+                return obj;
         }
+
         import std.algorithm: equal;
         assert_(equal(unqual(value), unqual(expected)), file, line);
+
     } else {
         assert_(cast(const)value == cast(const)expected, file, line);
     }
