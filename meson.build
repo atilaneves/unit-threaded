@@ -39,6 +39,7 @@ executable(
     'gen/gen_ut_main.d',
     include_directories: include_dirs,
     link_with: lib,
+    link_args: ['-link-defaultlib-shared'],
     install: true,
 )
 
