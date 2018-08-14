@@ -21,7 +21,7 @@ lib = library(
     main_sources + randomized_sources,
     include_directories: include_dirs,
     version: meson.project_version(),
-    soversion: '0',
+    pic: true,
     install: true,
 )
 
