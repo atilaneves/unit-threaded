@@ -298,8 +298,6 @@ auto mock(T)() {
 ///
 @("mock interface positive test with params")
 @safe pure unittest {
-    import unit_threaded.asserts;
-
     interface Foo {
         int foo(int, string) @safe pure;
         void bar() @safe pure;
