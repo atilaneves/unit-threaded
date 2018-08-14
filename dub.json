@@ -34,7 +34,7 @@
             "targetType": "executable",
             "targetName": "ut_pass",
             "sourcePaths": ["source", "gen/source", "tests/unit_threaded", "tests/examples/pass"],
-            "importPaths": ["source", "gen/source", "runtime/source"],
+            "importPaths": ["source"],
             "sourceFiles": ["example/example_pass.d"],
             "mainSourceFile": "example/example_pass.d",
             "versions": ["testing_unit_threaded"]
