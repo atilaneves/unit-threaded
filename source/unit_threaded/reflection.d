@@ -190,7 +190,7 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
     void addMemberUnittests(alias composite)() pure nothrow {
 
         import unit_threaded.attrs;
-        import unit_threaded.uda: hasUtUDA;
+        import unit_threaded.traits: hasUtUDA;
         import std.traits: hasUDA;
         import std.meta: Filter, aliasSeqOf;
         import std.algorithm: map, cartesianProduct;
@@ -320,7 +320,7 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
 }
 
 private TypeInfo getExceptionTypeInfo(alias Test)() {
-    import unit_threaded.uda: hasUtUDA, getUtUDAs;
+    import unit_threaded.traits: hasUtUDA, getUtUDAs;
     import unit_threaded.attrs: ShouldFailWith;
 
     static if(hasUtUDA!(Test, ShouldFailWith)) {
@@ -373,7 +373,7 @@ private template isStringUDA(alias T) {
 }
 
 private template isPrivate(alias module_, string moduleMember) {
-    import unit_threaded.uda: HasTypes;
+    import unit_threaded.traits: HasTypes;
 
     alias ut_mmbr__ = Identity!(__traits(getMember, module_, moduleMember));
 
@@ -396,7 +396,7 @@ private template isPrivate(alias module_, string moduleMember) {
 private template PassesTestPred(alias module_, alias pred, string moduleMember) {
     import std.traits: fullyQualifiedName;
     import unit_threaded.meta: importMember;
-    import unit_threaded.uda: HasAttribute;
+    import unit_threaded.traits: HasAttribute;
     import unit_threaded.attrs: DontTest;
 
     //should be the line below instead but a compiler bug prevents it
@@ -477,7 +477,7 @@ TestData[] moduleTestClasses(alias module_)() pure nothrow {
 
     template isTestClass(alias module_, string moduleMember) {
         import unit_threaded.meta: importMember;
-        import unit_threaded.uda: HasAttribute;
+        import unit_threaded.traits: HasAttribute;
         import unit_threaded.attrs: UnitTest;
         import std.traits: isAggregateType;
 
@@ -509,12 +509,12 @@ TestData[] moduleTestClasses(alias module_)() pure nothrow {
  */
 TestData[] moduleTestFunctions(alias module_)() pure {
 
-    import unit_threaded.uda: isTypesAttr;
+    import unit_threaded.traits: isTypesAttr;
 
     template isTestFunction(alias module_, string moduleMember) {
         import unit_threaded.meta: importMember;
         import unit_threaded.attrs: UnitTest;
-        import unit_threaded.uda: HasAttribute, GetTypes;
+        import unit_threaded.traits: HasAttribute, GetTypes;
         import std.meta: AliasSeq;
         import std.traits: isSomeFunction;
 
@@ -562,7 +562,7 @@ TestData[] moduleTestFunctions(alias module_)() pure {
 
 private TestData[] createFuncTestData(alias module_, string moduleMember)() {
     import unit_threaded.meta: importMember;
-    import unit_threaded.uda: GetAttributes, HasAttribute, GetTypes, HasTypes;
+    import unit_threaded.traits: GetAttributes, HasAttribute, GetTypes, HasTypes;
     import unit_threaded.attrs;
     import std.meta: aliasSeqOf;
 
@@ -695,7 +695,7 @@ private TestData[] moduleTestData(alias module_, alias pred, alias createTestDat
 private TestData memberTestData(alias module_, string moduleMember, string[] extraTags = [])
     (TestFunction testFunction = null, string suffix = "") {
 
-    import unit_threaded.uda: HasAttribute, GetAttributes, hasUtUDA;
+    import unit_threaded.traits: HasAttribute, GetAttributes, hasUtUDA;
     import unit_threaded.attrs;
     import std.traits: fullyQualifiedName;
 

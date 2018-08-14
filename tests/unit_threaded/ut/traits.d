@@ -1,6 +1,6 @@
-module unit_threaded.ut.uda;
+module unit_threaded.ut.traits;
 
-import unit_threaded.uda;
+import unit_threaded.traits;
 
 unittest {
     import unit_threaded.attrs;

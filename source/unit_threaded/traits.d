@@ -2,7 +2,7 @@
    Helper functions for dealing with UDAs, written before hasUDA and
    others were added to Phobos.
  */
-module unit_threaded.uda;
+module unit_threaded.traits;
 
 private template Identity(T...) if(T.length > 0) {
     static if(__traits(compiles, { alias x = T[0]; }))
