@@ -12,10 +12,14 @@
     ],
     "-ddoxTool": "scod",
     "dependencies": {
-        "unit-threaded:assertions": "*"
+        "unit-threaded:from": "*",
+        "unit-threaded:assertions": "*",
+        "unit-threaded:mocks": "*"
     },
     "subPackages": [
-        "./assertions"
+        "./from",
+        "./assertions",
+        "./mocks"
     ],
     "configurations": [
 
