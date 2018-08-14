@@ -15,13 +15,15 @@
         "unit-threaded:from": "*",
         "unit-threaded:assertions": "*",
         "unit-threaded:mocks": "*",
-        "unit-threaded:integration": "*"
+        "unit-threaded:integration": "*",
+        "unit-threaded:property": "*"
     },
     "subPackages": [
         "./from",
         "./assertions",
         "./mocks",
-        "./integration"
+        "./integration",
+        "./property"
     ],
     "configurations": [
 
