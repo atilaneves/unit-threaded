@@ -11,6 +11,12 @@
         "--min-protection=Protected"
     ],
     "-ddoxTool": "scod",
+    "dependencies": {
+        "unit-threaded:assertions": "*"
+    },
+    "subPackages": [
+        "./assertions"
+    ],
     "configurations": [
 
         { "name": "library" },
