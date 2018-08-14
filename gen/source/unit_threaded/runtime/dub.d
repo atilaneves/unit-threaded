@@ -2,7 +2,7 @@
    Code to parse the output from `dub describe` and generate the main
    test file automatically.
  */
-module unit_threaded.dub;
+module unit_threaded.runtime.dub;
 
 import unit_threaded.from;
 
@@ -152,7 +152,7 @@ bool isDubProject() {
 
 
 // set import paths from dub information
-void dubify(ref from!"unit_threaded.runtime".Options options) {
+void dubify(ref from!"unit_threaded.runtime.runtime".Options options) {
 
     import std.path: buildPath;
     import std.algorithm: map, reduce;

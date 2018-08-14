@@ -1,6 +1,6 @@
 module unit_threaded.ut.runtime;
 
-import unit_threaded.runtime;
+import unit_threaded.runtime.runtime;
 
 @("issue 40")
 unittest {
