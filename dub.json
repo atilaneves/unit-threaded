@@ -14,12 +14,14 @@
     "dependencies": {
         "unit-threaded:from": "*",
         "unit-threaded:assertions": "*",
-        "unit-threaded:mocks": "*"
+        "unit-threaded:mocks": "*",
+        "unit-threaded:integration": "*"
     },
     "subPackages": [
         "./from",
         "./assertions",
-        "./mocks"
+        "./mocks",
+        "./integration"
     ],
     "configurations": [
 

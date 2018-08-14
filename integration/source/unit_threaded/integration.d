@@ -97,7 +97,7 @@ struct Sandbox {
     void shouldExist(string fileName, in string file = __FILE__, in size_t line = __LINE__) const {
         import std.file: exists;
         import std.path: buildPath;
-        import unit_threaded.should: fail;
+        import unit_threaded.assertions: fail;
 
         fileName = buildPath(testPath, fileName);
         if(!fileName.exists)
@@ -108,7 +108,7 @@ struct Sandbox {
     void shouldNotExist(string fileName, in string file = __FILE__, in size_t line = __LINE__) const {
         import std.file: exists;
         import std.path: buildPath;
-        import unit_threaded.should: fail;
+        import unit_threaded.assertions: fail;
 
         fileName = buildPath(testPath, fileName);
         if(fileName.exists)
@@ -122,7 +122,7 @@ struct Sandbox {
     {
         import std.file: readText;
         import std.string: chomp, splitLines;
-        import unit_threaded.should: shouldEqual;
+        import unit_threaded.assertions: shouldEqual;
 
         readText(buildPath(testPath, fileName)).shouldEqual(content, file, line);
     }
@@ -134,7 +134,7 @@ struct Sandbox {
     {
         import std.file: readText;
         import std.string: chomp, splitLines;
-        import unit_threaded.should: shouldEqual;
+        import unit_threaded.assertions: shouldEqual;
 
         readText(buildPath(testPath, fileName)).chomp.splitLines
             .shouldEqual(lines, file, line);
@@ -147,7 +147,7 @@ struct Sandbox {
                            in size_t line = __LINE__)
     {
         import std.file: readText;
-        import unit_threaded.should: shouldBeIn;
+        import unit_threaded.assertions: shouldBeIn;
         needle.shouldBeIn(readText(inSandboxPath(fileName)), file, line);
     }
 
@@ -167,7 +167,7 @@ struct Sandbox {
                       (in string[] args...)
         @safe const
     {
-        import unit_threaded.should: UnitTestException;
+        import unit_threaded.assertions: UnitTestException;
         import std.conv: text;
         import std.array: join;
 
@@ -186,7 +186,7 @@ struct Sandbox {
                    (in string[] args...)
         @safe const
     {
-        import unit_threaded.should: UnitTestException;
+        import unit_threaded.assertions: UnitTestException;
         import std.conv: text;
         import std.array: join;
 

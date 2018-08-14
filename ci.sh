@@ -3,4 +3,4 @@
 set -euo pipefail
 
 ./test.sh
-integration/run.sh
+integration_tests/run.sh
