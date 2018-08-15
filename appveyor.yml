@@ -9,10 +9,6 @@ environment:
     arch: x86
 
 skip_tags: true
-branches:
-  only:
-    - master
-    - stable
 
 install:
   - ps: function SetUpDCompiler
