@@ -1,6 +1,6 @@
 module unit_threaded.ut.modules.tags;
 
-import unit_threaded.attrs;
+import unit_threaded.runner.attrs;
 
 @Tags(["ninja", "make"])
 unittest { }

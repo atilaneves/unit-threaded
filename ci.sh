@@ -1,3 +1,6 @@
 #!/bin/bash
-./test.sh
-integration/run.sh
+
+set -euo pipefail
+
+./ut.sh
+integration_tests/run.sh

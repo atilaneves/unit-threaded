@@ -1,9 +1,9 @@
 module unit_threaded.ut.io;
 
-import unit_threaded.io;
+import unit_threaded.runner.io;
 
 unittest {
-    import unit_threaded.testcase: TestCase;
+    import unit_threaded.runner.testcase: TestCase;
     import unit_threaded.should;
     import std.string: splitLines;
 
@@ -42,9 +42,9 @@ unittest {
 
 unittest {
     import unit_threaded.should;
-    import unit_threaded.testcase: TestCase;
-    import unit_threaded.reflection: TestData;
-    import unit_threaded.factory: createTestCase;
+    import unit_threaded.runner.testcase: TestCase;
+    import unit_threaded.runner.reflection: TestData;
+    import unit_threaded.runner.factory: createTestCase;
     import std.traits: fullyQualifiedName;
     import std.string: splitLines;
 

@@ -1,5 +1,5 @@
-import unit_threaded.runtime;
-import unit_threaded.dub;
+import unit_threaded.runtime.runtime;
+import unit_threaded.runtime.dub;
 import std.algorithm;
 import std.array;
 import std.stdio;

@@ -1,10 +1,10 @@
 /**
    Creates test cases from compile-time information.
  */
-module unit_threaded.factory;
+module unit_threaded.runner.factory;
 
 import unit_threaded.from;
-import unit_threaded.testcase: CompositeTestCase;
+import unit_threaded.runner.testcase: CompositeTestCase;
 
 
 private CompositeTestCase[string] serialComposites;
@@ -13,11 +13,11 @@ private CompositeTestCase[string] serialComposites;
  * Creates tests cases from the given modules.
  * If testsToRun is empty, it means run all tests.
  */
-from!"unit_threaded.testcase".TestCase[] createTestCases(
-    in from!"unit_threaded.reflection".TestData[] testData,
+from!"unit_threaded.runner.testcase".TestCase[] createTestCases(
+    in from!"unit_threaded.runner.reflection".TestData[] testData,
     in string[] testsToRun = [])
 {
-    import unit_threaded.testcase: TestCase;
+    import unit_threaded.runner.testcase: TestCase;
     import std.algorithm: sort;
     import std.array: array;
 
@@ -33,15 +33,15 @@ from!"unit_threaded.testcase".TestCase[] createTestCases(
 }
 
 
-package from!"unit_threaded.testcase".TestCase createTestCase(
-    in from!"unit_threaded.reflection".TestData testData)
+from!"unit_threaded.runner.testcase".TestCase createTestCase(
+    in from!"unit_threaded.runner.reflection".TestData testData)
 {
-    import unit_threaded.testcase: TestCase;
+    import unit_threaded.runner.testcase: TestCase;
     import std.algorithm: splitter, reduce;
     import std.array: array;
 
     TestCase createImpl() {
-        import unit_threaded.testcase:
+        import unit_threaded.runner.testcase:
             BuiltinTestCase, FunctionTestCase, ShouldFailTestCase, FlakyTestCase;
         import std.conv: text;
 
@@ -99,7 +99,7 @@ package from!"unit_threaded.testcase".TestCase createTestCase(
 
 
 
-private bool isWantedTest(in from!"unit_threaded.reflection".TestData testData,
+private bool isWantedTest(in from!"unit_threaded.runner.reflection".TestData testData,
                           in string[] testsToRun)
 {
 
@@ -121,7 +121,7 @@ private bool isWantedTest(in from!"unit_threaded.reflection".TestData testData,
         (tagsToRun.empty || tagsToRun.all!(t => matchesTags(t)));
 }
 
-private bool isWantedNonTagTest(in from!"unit_threaded.reflection".TestData testData,
+private bool isWantedNonTagTest(in from!"unit_threaded.runner.reflection".TestData testData,
                                 in string[] testsToRun)
 {
 
@@ -143,7 +143,7 @@ private bool isWantedNonTagTest(in from!"unit_threaded.reflection".TestData test
 
 
 unittest {
-    import unit_threaded.reflection: TestData;
+    import unit_threaded.runner.reflection: TestData;
     //existing, wanted
     assert(isWantedTest(TestData("tests.server.testSubscribe"), ["tests"]));
     assert(isWantedTest(TestData("tests.server.testSubscribe"), ["tests."]));

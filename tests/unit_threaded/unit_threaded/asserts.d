@@ -18,7 +18,7 @@ void assertExceptionMsg(E)(lazy E expr, string expected,
                            in string file = __FILE__,
                            in size_t line = __LINE__)
 {
-    import unit_threaded.should: UnitTestException;
+    import unit_threaded.exception: UnitTestException;
     import std.string: stripLeft, replace, split;
     import std.path: dirSeparator;
     import std.algorithm: map, all, endsWith;

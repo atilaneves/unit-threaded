@@ -11,6 +11,24 @@
         "--min-protection=Protected"
     ],
     "-ddoxTool": "scod",
+    "dependencies": {
+        "unit-threaded:from": "*",
+        "unit-threaded:exception": "*",
+        "unit-threaded:assertions": "*",
+        "unit-threaded:runner": "*",
+        "unit-threaded:mocks": "*",
+        "unit-threaded:integration": "*",
+        "unit-threaded:property": "*"
+    },
+    "subPackages": [
+        "./from",
+        "./exception",
+        "./assertions",
+        "./runner",
+        "./mocks",
+        "./integration",
+        "./property"
+    ],
     "configurations": [
 
         { "name": "library" },
@@ -19,25 +37,17 @@
             "name": "unittest",
             "targetType": "executable",
             "targetName": "ut_pass",
-            "sourcePaths": ["source", "tests/unit_threaded", "tests/examples/pass"],
+            "sourcePaths": ["source", "gen/source", "tests/unit_threaded", "tests/examples/pass"],
+            "importPaths": ["source"],
             "sourceFiles": ["example/example_pass.d"],
             "mainSourceFile": "example/example_pass.d",
             "versions": ["testing_unit_threaded"]
         },
-
-        {
-            "name": "unittest-only",
-            "targetType": "executable",
-            "importPaths": ["source"],
-            "sourcePaths": ["source", "tests/unit_threaded"],
-            "versions": ["testing_unit_threaded"]
-        },
-
         {
             "name": "unittest-unthreaded",
             "targetType": "executable",
             "targetName": "ut_pass",
-            "sourcePaths": ["source", "tests/unit_threaded", "tests/examples/pass"],
+            "sourcePaths": ["source", "gen/source", "tests/unit_threaded", "tests/examples/pass"],
             "sourceFiles": ["example/example_pass.d"],
             "mainSourceFile": "example/example_pass.d",
             "versions": ["testing_unit_threaded", "unitUnthreaded"]
@@ -47,7 +57,7 @@
             "name": "unittest-light",
             "targetType": "executable",
             "targetName": "ut_pass",
-            "sourcePaths": ["source", "tests/unit_threaded", "tests/examples/pass"],
+            "sourcePaths": ["source", "gen/source", "tests/unit_threaded", "tests/examples/pass"],
             "sourceFiles": ["example/example_pass.d"],
             "mainSourceFile": "example/example_pass.d",
             "versions": ["testing_unit_threaded", "unitThreadedLight", "unitUnthreaded"]
@@ -67,6 +77,8 @@
             "name": "gen_ut_main",
             "targetType": "executable",
             "targetName": "gen_ut_main",
+            "sourcePaths": ["gen/source"],
+            "importPaths": ["gen/source"],
             "mainSourceFile": "gen/gen_ut_main.d"
         }
 
