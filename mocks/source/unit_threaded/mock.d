@@ -173,7 +173,7 @@ mixin template MockImplCommon() {
     void verify(string file = __FILE__, size_t line = __LINE__) @safe pure {
         import std.range: repeat, take, join;
         import std.conv: to;
-        import unit_threaded.should: fail, UnitTestException;
+        import unit_threaded.exception: fail, UnitTestException;
 
         if(_verified)
             fail("Mock already _verified", file, line);
@@ -579,7 +579,7 @@ auto throwStruct(E = from!"unit_threaded.should".UnitTestException, R = void)() 
 @("throwStruct default")
 @safe pure unittest {
     import std.exception: assertThrown;
-    import unit_threaded.should: UnitTestException;
+    import unit_threaded.exception: UnitTestException;
     auto m = throwStruct;
     assertThrown!UnitTestException(m.foo);
     assertThrown!UnitTestException(m.bar(1, "foo"));

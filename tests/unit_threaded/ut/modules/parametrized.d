@@ -4,7 +4,7 @@
 
 module unit_threaded.ut.modules.parametrized;
 
-import unit_threaded.attrs;
+import unit_threaded.runner.attrs;
 
 version(unittest) {
 

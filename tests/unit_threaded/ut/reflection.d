@@ -1,6 +1,6 @@
 module unit_threaded.ut.reflection;
 
-import unit_threaded.reflection;
+import unit_threaded.runner.reflection;
 import unit_threaded.ut.modules.module_with_tests; //defines tests and non-tests
 import unit_threaded.asserts;
 import std.algorithm;
@@ -41,7 +41,7 @@ unittest {
 }
 
 version(unittest) {
-    import unit_threaded.testcase: TestCase;
+    import unit_threaded.runner.testcase: TestCase;
     private void assertFail(TestCase test, string file = __FILE__, size_t line = __LINE__) {
         import core.exception;
         import std.conv;
@@ -61,8 +61,8 @@ version(unittest) {
 
 @("Test that parametrized value tests work")
 unittest {
-    import unit_threaded.factory;
-    import unit_threaded.testcase;
+    import unit_threaded.runner.factory;
+    import unit_threaded.runner.testcase;
     import unit_threaded.ut.modules.parametrized;
 
     const testData = allTestData!(unit_threaded.ut.modules.parametrized).
@@ -81,8 +81,8 @@ unittest {
 
 @("Test that parametrized type tests work")
 unittest {
-    import unit_threaded.factory;
-    import unit_threaded.testcase;
+    import unit_threaded.runner.factory;
+    import unit_threaded.runner.testcase;
     import unit_threaded.ut.modules.parametrized;
 
     const testData = allTestData!(unit_threaded.ut.modules.parametrized).
@@ -101,8 +101,8 @@ unittest {
 
 @("Value parametrized built-in unittests")
 unittest {
-    import unit_threaded.factory;
-    import unit_threaded.testcase;
+    import unit_threaded.runner.factory;
+    import unit_threaded.runner.testcase;
     import unit_threaded.ut.modules.parametrized;
 
     const testData = allTestData!(unit_threaded.ut.modules.parametrized).
@@ -122,8 +122,8 @@ unittest {
 
 
 @("Tests can be selected by tags") unittest {
-    import unit_threaded.factory;
-    import unit_threaded.testcase;
+    import unit_threaded.runner.factory;
+    import unit_threaded.runner.testcase;
     import unit_threaded.ut.modules.tags;
 
     const testData = allTestData!(unit_threaded.ut.modules.tags).array;
@@ -156,8 +156,8 @@ unittest {
 
 @("Parametrized built-in tests with @AutoTags get tagged by value")
 unittest {
-    import unit_threaded.factory;
-    import unit_threaded.testcase;
+    import unit_threaded.runner.factory;
+    import unit_threaded.runner.testcase;
     import unit_threaded.ut.modules.parametrized;
 
     const testData = allTestData!(unit_threaded.ut.modules.parametrized).
@@ -175,8 +175,8 @@ unittest {
 
 @("Value parametrized function tests with @AutoTags get tagged by value")
 unittest {
-    import unit_threaded.factory;
-    import unit_threaded.testcase;
+    import unit_threaded.runner.factory;
+    import unit_threaded.runner.testcase;
     import unit_threaded.ut.modules.parametrized;
 
     const testData = allTestData!(unit_threaded.ut.modules.parametrized).
@@ -189,8 +189,8 @@ unittest {
 
 @("Type parameterized tests with @AutoTags get tagged by type")
 unittest {
-    import unit_threaded.factory;
-    import unit_threaded.testcase;
+    import unit_threaded.runner.factory;
+    import unit_threaded.runner.testcase;
     import unit_threaded.ut.modules.parametrized;
 
     const testData = allTestData!(unit_threaded.ut.modules.parametrized).
@@ -202,11 +202,11 @@ unittest {
 }
 
 @("Cartesian parameterized built-in values") unittest {
-    import unit_threaded.factory;
-    import unit_threaded.testcase;
+    import unit_threaded.runner.factory;
+    import unit_threaded.runner.testcase;
     import unit_threaded.should: shouldBeSameSetAs;
     import unit_threaded.ut.modules.parametrized;
-    import unit_threaded.attrs: getValue;
+    import unit_threaded.runner.attrs: getValue;
 
     const testData = allTestData!(unit_threaded.ut.modules.parametrized).
         filter!(a => a.name.canFind("cartesianBuiltinNoAutoTags")).array;
@@ -237,8 +237,8 @@ unittest {
 }
 
 @("Cartesian parameterized function values") unittest {
-    import unit_threaded.factory;
-    import unit_threaded.testcase;
+    import unit_threaded.runner.factory;
+    import unit_threaded.runner.testcase;
     import unit_threaded.should: shouldBeSameSetAs;
 
     const testData = allTestData!(unit_threaded.ut.modules.parametrized).
@@ -263,8 +263,8 @@ unittest {
 
 @("module setup and shutdown")
 unittest {
-    import unit_threaded.testcase;
-    import unit_threaded.factory;
+    import unit_threaded.runner.testcase;
+    import unit_threaded.runner.factory;
     import unit_threaded.ut.modules.module_with_setup: gNumBefore, gNumAfter;
 
     const testData = allTestData!"unit_threaded.ut.modules.module_with_setup".array;
@@ -281,15 +281,15 @@ unittest {
 }
 
 @("issue 33") unittest {
-    import unit_threaded.factory;
-    import unit_threaded.testcase;
+    import unit_threaded.runner.factory;
+    import unit_threaded.runner.testcase;
 
     const testData = allTestData!"unit_threaded.ut.modules.issue33";
     assertEqual(testData.length, 1);
 }
 
 @("issue 43") unittest {
-    import unit_threaded.factory;
+    import unit_threaded.runner.factory;
     import unit_threaded.asserts;
     import unit_threaded.ut.modules.module_with_tests;
     import std.algorithm: canFind;
@@ -305,7 +305,7 @@ unittest {
 }
 
 @("@DontTest should work for unittest blocks") unittest {
-    import unit_threaded.factory;
+    import unit_threaded.runner.factory;
     import unit_threaded.asserts;
     import unit_threaded.ut.modules.module_with_tests;
     import std.algorithm: canFind;
@@ -316,7 +316,7 @@ unittest {
 }
 
 @("@ShouldFail") unittest {
-    import unit_threaded.factory;
+    import unit_threaded.runner.factory;
     import unit_threaded.asserts;
     import unit_threaded.ut.modules.module_with_tests;
     import std.algorithm: find, canFind;
@@ -333,7 +333,7 @@ unittest {
 
 
 @("@ShouldFailWith") unittest {
-    import unit_threaded.factory;
+    import unit_threaded.runner.factory;
     import unit_threaded.asserts;
     import unit_threaded.ut.modules.module_with_attrs;
     import std.algorithm: find, canFind;
@@ -368,7 +368,7 @@ unittest {
 }
 
 @("@Flaky") unittest {
-    import unit_threaded.factory;
+    import unit_threaded.runner.factory;
     import unit_threaded.asserts;
     import unit_threaded.ut.modules.module_with_attrs;
     import std.algorithm: find, canFind;

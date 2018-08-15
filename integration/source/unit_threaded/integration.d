@@ -97,7 +97,7 @@ struct Sandbox {
     void shouldExist(string fileName, in string file = __FILE__, in size_t line = __LINE__) const {
         import std.file: exists;
         import std.path: buildPath;
-        import unit_threaded.assertions: fail;
+        import unit_threaded.exception: fail;
 
         fileName = buildPath(testPath, fileName);
         if(!fileName.exists)
@@ -108,7 +108,7 @@ struct Sandbox {
     void shouldNotExist(string fileName, in string file = __FILE__, in size_t line = __LINE__) const {
         import std.file: exists;
         import std.path: buildPath;
-        import unit_threaded.assertions: fail;
+        import unit_threaded.exception: fail;
 
         fileName = buildPath(testPath, fileName);
         if(fileName.exists)

@@ -170,7 +170,7 @@ private class FooException: Exception {
 @("throwStruct return value type")
 @safe pure unittest {
     import unit_threaded.asserts;
-    import unit_threaded.should: UnitTestException;
+    import unit_threaded.exception: UnitTestException;
     auto m = throwStruct!(UnitTestException, int);
     int i;
     assertExceptionMsg(i = m.foo,

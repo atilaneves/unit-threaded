@@ -3,14 +3,14 @@
  * objects to run all tests.
  */
 
-module unit_threaded.testsuite;
+module unit_threaded.runner.testsuite;
 
 import unit_threaded.from;
 
 /*
  * taskPool.amap only works with public functions, not closures.
  */
-auto runTest(from!"unit_threaded.testcase".TestCase test)
+auto runTest(from!"unit_threaded.runner.testcase".TestCase test)
 {
     return test();
 }
@@ -20,18 +20,23 @@ auto runTest(from!"unit_threaded.testcase".TestCase test)
  */
 struct TestSuite
 {
-    import unit_threaded.io: Output;
-    import unit_threaded.options: Options;
-    import unit_threaded.reflection: TestData;
-    import unit_threaded.testcase: TestCase;
+    import unit_threaded.runner.io: Output;
+    import unit_threaded.runner.options: Options;
+    import unit_threaded.runner.reflection: TestData;
+    import unit_threaded.runner.testcase: TestCase;
     import std.datetime: Duration;
     static if(__VERSION__ >= 2077)
         import std.datetime.stopwatch: StopWatch;
     else
         import std.datetime: StopWatch;
 
+    /**
+     * Params:
+     * options = The options to run tests with.
+     * testData = The information about the tests to run.
+     */
     this(in Options options, in TestData[] testData) {
-        import unit_threaded.io: WriterThread;
+        import unit_threaded.runner.io: WriterThread;
         this(options, testData, WriterThread.get);
     }
 
@@ -42,7 +47,7 @@ struct TestSuite
      * output = Where to send text output.
      */
     this(in Options options, in TestData[] testData, Output output) {
-        import unit_threaded.factory: createTestCases;
+        import unit_threaded.runner.factory: createTestCases;
 
         _options = options;
         _testData = testData;
@@ -56,7 +61,7 @@ struct TestSuite
      */
     bool run() {
 
-        import unit_threaded.io: writelnRed, writeln, writeRed, write, writeYellow, writelnGreen;
+        import unit_threaded.runner.io: writelnRed, writeln, writeRed, write, writeYellow, writelnGreen;
         import std.algorithm: filter, count;
         import std.conv: text;
 
@@ -135,7 +140,7 @@ private:
     Output _output;
 
     /**
-     * Runs the tests with the given options.
+     * Runs the tests.
      * Returns: how long it took to run.
      */
     Duration doRun() {
@@ -166,9 +171,10 @@ private:
     }
 
     auto getTests() {
-        import unit_threaded.io: writeln;
+        import unit_threaded.runner.io: writeln;
 
         auto tests = _testCases.dup;
+
         if (_options.random) {
             import std.random;
 
@@ -177,11 +183,12 @@ private:
             _output.writeln("Running tests in random order. ",
                 "To repeat this run, use --seed ", _options.seed);
         }
+
         return tests;
     }
 
     void handleFailures() {
-        import unit_threaded.io: writeln, writeRed, write;
+        import unit_threaded.runner.io: writeln, writeRed, write;
         import std.array: empty;
         import std.algorithm: canFind;
 

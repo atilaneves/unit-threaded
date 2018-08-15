@@ -48,12 +48,3 @@ version(unitThreadedLight) {
         };
     }
 }
-
-static this() {
-    import unit_threaded.io: _useEscCodes, shouldUseEscCodes;
-    version (Posix) {
-        import std.stdio: stdout;
-        import core.sys.posix.unistd: isatty;
-        _useEscCodes = shouldUseEscCodes;
-    }
-}

@@ -1,9 +1,9 @@
 module unit_threaded.ut.traits;
 
-import unit_threaded.traits;
+import unit_threaded.runner.traits;
 
 unittest {
-    import unit_threaded.attrs;
+    import unit_threaded.runner.attrs;
     import unit_threaded.ut.modules.module_with_attrs;
     import std.traits: hasUDA;
 
@@ -20,7 +20,7 @@ unittest {
 }
 
 unittest {
-    import unit_threaded.attrs;
+    import unit_threaded.runner.attrs;
     import std.meta;
 
     @Types!(int, float) int i;
@@ -30,7 +30,7 @@ unittest {
 }
 
 unittest {
-    import unit_threaded.attrs;
+    import unit_threaded.runner.attrs;
     import unit_threaded.ut.modules.module_with_attrs;
     import std.traits: hasUDA;
 

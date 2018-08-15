@@ -2,5 +2,5 @@
 
 set -euo pipefail
 
-./test.sh
+./ut.sh
 integration_tests/run.sh

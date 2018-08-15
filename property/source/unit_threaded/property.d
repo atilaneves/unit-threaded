@@ -26,7 +26,7 @@ void check(alias F, int numFuncCalls = 100)
 {
 
     import unit_threaded.randomized.random: RndValueGen;
-    import unit_threaded.should: UnitTestException;
+    import unit_threaded.exception: UnitTestException;
     import std.conv: text;
     import std.traits: ReturnType, Parameters, isSomeString;
     import std.array: join;
@@ -88,7 +88,7 @@ void check(alias F, int numFuncCalls = 100)
 void checkCustom(alias Generator, alias Predicate)
                 (int numFuncCalls = 100, in string file = __FILE__, in size_t line = __LINE__) @trusted {
 
-    import unit_threaded.should: UnitTestException;
+    import unit_threaded.exception: UnitTestException;
     import std.conv: text;
     import std.traits: ReturnType;
 
@@ -160,7 +160,7 @@ private auto shrinkOne(alias F, int index, T)(T values) {
 @("Explicit Gen")
 @safe unittest {
     import unit_threaded.randomized.gen;
-    import unit_threaded.should: UnitTestException;
+    import unit_threaded.exception: UnitTestException;
     import std.exception: assertThrown;
 
     check!((Gen!(int, 1, 1) a) => a == 1);

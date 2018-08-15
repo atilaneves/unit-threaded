@@ -3,7 +3,7 @@
  * command-line options.
  */
 
-module unit_threaded.runner;
+module unit_threaded.runner.runner;
 
 import unit_threaded.from;
 
@@ -18,7 +18,7 @@ import unit_threaded.from;
  */
 mixin template runTestsMain(Modules...) if(Modules.length > 0) {
     int main(string[] args) {
-        import unit_threaded.runner: runTests;
+        import unit_threaded.runner.runner: runTests;
         return runTests!Modules(args);
     }
 }
@@ -38,12 +38,12 @@ mixin template runTestsMain(Modules...) if(Modules.length > 0) {
 template runTests(Modules...) if(Modules.length > 0) {
 
     shared static this() {
-        import unit_threaded.runner: replaceModuleUnitTester;
+        import unit_threaded.runner.runner: replaceModuleUnitTester;
         replaceModuleUnitTester;
     }
 
     int runTests(string[] args) {
-        import unit_threaded.reflection: allTestData;
+        import unit_threaded.runner.reflection: allTestData;
         return runTests(args, allTestData!Modules);
     }
 }
@@ -59,15 +59,15 @@ template runTests(Modules...) if(Modules.length > 0) {
  *   testData = Data about the tests to run.
  * Returns: An integer suitable for the program's return code.
  */
-int runTests(string[] args, in from!"unit_threaded.reflection".TestData[] testData) {
-    import unit_threaded.options: getOptions;
+int runTests(string[] args, in from!"unit_threaded.runner.reflection".TestData[] testData) {
+    import unit_threaded.runner.options: getOptions;
     return runTests(getOptions(args), testData);
 }
 
-int runTests(in from!"unit_threaded.options".Options options,
-             in from!"unit_threaded.reflection".TestData[] testData)
+int runTests(in from!"unit_threaded.runner.options".Options options,
+             in from!"unit_threaded.runner.reflection".TestData[] testData)
 {
-    import unit_threaded.testsuite: TestSuite;
+    import unit_threaded.runner.testsuite: TestSuite;
 
     handleCmdLineOptions(options, testData);
     if (options.exit)
@@ -78,12 +78,12 @@ int runTests(in from!"unit_threaded.options".Options options,
 }
 
 
-private void handleCmdLineOptions(in from!"unit_threaded.options".Options options,
-                                  in from!"unit_threaded.reflection".TestData[] testData)
+private void handleCmdLineOptions(in from!"unit_threaded.runner.options".Options options,
+                                  in from!"unit_threaded.runner.reflection".TestData[] testData)
 {
 
-    import unit_threaded.io: enableDebugOutput, forceEscCodes;
-    import unit_threaded.testcase: enableStackTrace;
+    import unit_threaded.runner.io: enableDebugOutput, forceEscCodes;
+    import unit_threaded.runner.testcase: enableStackTrace;
     import std.algorithm: map;
 
     if (options.list) {

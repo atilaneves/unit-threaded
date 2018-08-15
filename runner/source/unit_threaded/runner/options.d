@@ -1,7 +1,7 @@
 /**
    Run-time options.
  */
-module unit_threaded.options;
+module unit_threaded.runner.options;
 
 
 ///
