@@ -83,7 +83,8 @@ void shouldBeFalse(E)(lazy E condition, in string file = __FILE__, in size_t lin
  * Floating point values are compared using $(D std.math.approxEqual).
  * Throws: UnitTestException on failure
  */
-void shouldEqual(V, E)(auto ref V value, auto ref E expected, in string file = __FILE__, in size_t line = __LINE__)
+void shouldEqual(V, E)
+                (scope auto ref V value, scope auto ref E expected, in string file = __FILE__, in size_t line = __LINE__)
 {
     if (!isEqual(value, expected))
     {
@@ -495,7 +496,7 @@ void fail(in string[] lines, in string file, in size_t line) @safe pure
 
 
 // Formats output in different lines
-private string[] formatValueInItsOwnLine(T)(in string prefix, auto ref T value) {
+private string[] formatValueInItsOwnLine(T)(in string prefix, scope auto ref T value) {
 
     import std.conv: to;
 
@@ -511,7 +512,7 @@ private string[] formatValueInItsOwnLine(T)(in string prefix, auto ref T value) 
 }
 
 // helper function for non-copyable types
-string convertToString(T)(in auto ref T value) { // std.conv.to sometimes is @system
+string convertToString(T)(scope auto ref T value) { // std.conv.to sometimes is @system
     import std.conv: to;
     import std.traits: Unqual;
 
@@ -527,7 +528,7 @@ string convertToString(T)(in auto ref T value) { // std.conv.to sometimes is @sy
 }
 
 
-private string[] formatRange(T)(in string prefix, T value) {
+private string[] formatRange(T)(in string prefix, scope auto ref T value) {
     import std.conv: to;
     import std.range: ElementType;
     import std.algorithm: map, reduce, max;
