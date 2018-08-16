@@ -1,0 +1,6 @@
+name "property"
+description "Property-based testing facilities"
+authors "Atila Neves"
+license "BSD 3-clause"
+targetType "library"
+dependency "unit-threaded:from" path="../from"

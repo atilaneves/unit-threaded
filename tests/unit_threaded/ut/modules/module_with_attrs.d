@@ -1,6 +1,6 @@
 module unit_threaded.ut.modules.module_with_attrs;
 
-import unit_threaded.attrs;
+import unit_threaded.runner.attrs;
 import std.exception;
 
 @HiddenTest("foo")

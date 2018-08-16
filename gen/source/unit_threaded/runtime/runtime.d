@@ -36,7 +36,7 @@ rdmd ut.d -h // list command-line options
 -----
 */
 
-module unit_threaded.runtime;
+module unit_threaded.runtime.runtime;
 
 import unit_threaded.from;
 

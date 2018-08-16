@@ -2,7 +2,7 @@
    Helper functions for dealing with UDAs, written before hasUDA and
    others were added to Phobos.
  */
-module unit_threaded.uda;
+module unit_threaded.runner.traits;
 
 private template Identity(T...) if(T.length > 0) {
     static if(__traits(compiles, { alias x = T[0]; }))
@@ -17,7 +17,7 @@ private template Identity(T...) if(T.length > 0) {
  * the given UDA. UDAs can be types or values.
  */
 template HasAttribute(alias module_, string moduleMember, alias attribute) {
-    import unit_threaded.meta: importMember;
+    import unit_threaded.runner.meta: importMember;
     import std.meta: Filter;
 
     alias member = Identity!(__traits(getMember, module_, moduleMember));
@@ -44,7 +44,7 @@ template HasAttribute(alias module_, string moduleMember, alias attribute) {
  * the given UDA. UDAs can be types or values.
  */
 template GetAttributes(alias module_, string member, A) {
-    import unit_threaded.meta: importMember;
+    import unit_threaded.runner.meta: importMember;
     import std.meta: Filter;
 
     mixin(importMember!module_(member));
@@ -67,7 +67,7 @@ private template TypeOf(alias T) {
 
 
 template isTypesAttr(alias T) {
-    import unit_threaded.attrs;
+    import unit_threaded.runner.attrs;
     enum isTypesAttr = is(T) && is(T:Types!U, U...);
 }
 

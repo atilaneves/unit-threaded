@@ -1,7 +1,7 @@
 /**
    Meta-programming helper functions.
  */
-module unit_threaded.meta;
+module unit_threaded.runner.meta;
 
 
 /// Import moduleMember from module_
