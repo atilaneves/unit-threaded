@@ -81,4 +81,5 @@ test_script:
  - echo %DC%
  - echo %PATH%
  - '%DC% --version'
+ - cd build
  - ci.bat

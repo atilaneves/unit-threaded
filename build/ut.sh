@@ -7,7 +7,7 @@ DC="${DC:-dmd}"
 
 clear
 
-cd "$SCRIPT_DIR"
+cd "$SCRIPT_DIR"/..
 
 printf 'Regular tests\n--------------------\n\n'
 dub test -q --build=unittest-cov --compiler="$DC"
