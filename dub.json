@@ -21,13 +21,13 @@
         "unit-threaded:property": "*"
     },
     "subPackages": [
-        "./from",
-        "./exception",
-        "./assertions",
-        "./runner",
-        "./mocks",
-        "./integration",
-        "./property"
+        "./subpackages/from",
+        "./subpackages/exception",
+        "./subpackages/assertions",
+        "./subpackages/runner",
+        "./subpackages/mocks",
+        "./subpackages/integration",
+        "./subpackages/property"
     ],
     "configurations": [
 

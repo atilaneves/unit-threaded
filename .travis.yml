@@ -16,7 +16,7 @@ addons:
       - libevent-dev
 
 script:
-  - ./ci.sh
+  - build/ci.sh
   # - dub build -b ddox
 
 after_success:
