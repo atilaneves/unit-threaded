@@ -8,7 +8,7 @@
     "mainSourceFile": "main.d",
     "targetType": "executable",
     "dependencies": {
-        "unit-threaded": {"path": "../../"}
+        "unit-threaded": {"path": "../../.."}
     },
     "description": "A minimal D application.",
     "copyright": "Copyright © 2017-2018, Atila Neves",

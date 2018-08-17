@@ -5,6 +5,8 @@ set -euo pipefail
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 DC="${DC:-dmd}"
 
+clear
+
 cd "$SCRIPT_DIR"
 
 printf 'Regular tests\n--------------------\n\n'
