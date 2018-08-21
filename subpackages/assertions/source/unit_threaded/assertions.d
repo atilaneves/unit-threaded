@@ -547,7 +547,7 @@ void shouldApproxEqual(V, E)(in V value, in E expected, string file = __FILE__, 
 }
 
 
-bool isEqual(V, E)(V value, E expected)
+bool isEqual(V, E)(scope V value, scope E expected)
     if (!isObject!V && isInputRange!V && isInputRange!E && !isSomeString!V &&
         is(typeof(isEqual(value.front, expected.front))))
 {
@@ -561,7 +561,7 @@ bool isEqual(V, E)(V value, E expected)
     return value.empty && expected.empty;
 }
 
-bool isEqual(V, E)(V value, E expected)
+bool isEqual(V, E)(scope V value, scope E expected)
     if (!isObject!V && isInputRange!V && isInputRange!E && isSomeString!V && isSomeString!E &&
         is(typeof(isEqual(value.front, expected.front))))
 {
@@ -578,7 +578,7 @@ template IsField(A...) if(A.length == 1) {
 }
 
 
-bool isEqual(V, E)(V value, E expected)
+bool isEqual(V, E)(scope V value, scope E expected)
 if (isObject!V && isObject!E)
 {
     import std.meta: staticMap, Filter;
