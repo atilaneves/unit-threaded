@@ -10,7 +10,6 @@ import std.traits; // too many to list
 import std.range; // also
 
 
-
 /**
  * Verify that the condition is `true`.
  * Throws: UnitTestException on failure.
@@ -465,7 +464,7 @@ private string[] formatValueInItsOwnLine(T)(in string prefix, scope auto ref T v
 }
 
 // helper function for non-copyable types
-string convertToString(T)(scope auto ref T value) { // std.conv.to sometimes is @system
+string convertToString(T)(scope auto ref T value) @trusted { // std.conv.to sometimes is @system
     import std.conv: to;
     import std.traits: Unqual;
 
