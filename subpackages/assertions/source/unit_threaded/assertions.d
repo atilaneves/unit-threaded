@@ -10,7 +10,6 @@ import std.traits; // too many to list
 import std.range; // also
 
 
-
 /**
  * Verify that the condition is `true`.
  * Throws: UnitTestException on failure.
@@ -465,7 +464,7 @@ private string[] formatValueInItsOwnLine(T)(in string prefix, scope auto ref T v
 }
 
 // helper function for non-copyable types
-string convertToString(T)(scope auto ref T value) { // std.conv.to sometimes is @system
+string convertToString(T)(scope auto ref T value) @trusted { // std.conv.to sometimes is @system
     import std.conv: to;
     import std.traits: Unqual;
 
@@ -547,7 +546,7 @@ void shouldApproxEqual(V, E)(in V value, in E expected, string file = __FILE__, 
 }
 
 
-bool isEqual(V, E)(V value, E expected)
+bool isEqual(V, E)(scope V value, scope E expected)
     if (!isObject!V && isInputRange!V && isInputRange!E && !isSomeString!V &&
         is(typeof(isEqual(value.front, expected.front))))
 {
@@ -561,7 +560,7 @@ bool isEqual(V, E)(V value, E expected)
     return value.empty && expected.empty;
 }
 
-bool isEqual(V, E)(V value, E expected)
+bool isEqual(V, E)(scope V value, scope E expected)
     if (!isObject!V && isInputRange!V && isInputRange!E && isSomeString!V && isSomeString!E &&
         is(typeof(isEqual(value.front, expected.front))))
 {
@@ -578,7 +577,7 @@ template IsField(A...) if(A.length == 1) {
 }
 
 
-bool isEqual(V, E)(V value, E expected)
+bool isEqual(V, E)(scope V value, scope E expected)
 if (isObject!V && isObject!E)
 {
     import std.meta: staticMap, Filter;
