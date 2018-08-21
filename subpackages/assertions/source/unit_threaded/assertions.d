@@ -451,6 +451,8 @@ private auto threw(T : Throwable, E)(lazy E expr) @trusted
 private string[] formatValueInItsOwnLine(T)(in string prefix, scope auto ref T value) {
 
     import std.conv: to;
+    import std.traits: isSomeString;
+    import std.range.primitives: isInputRange;
 
     static if(isSomeString!T) {
         // isSomeString is true for wstring and dstring,
@@ -464,11 +466,11 @@ private string[] formatValueInItsOwnLine(T)(in string prefix, scope auto ref T v
 }
 
 // helper function for non-copyable types
-string convertToString(T)(scope auto ref T value) @trusted { // std.conv.to sometimes is @system
+string convertToString(T)(scope auto ref T value) { // std.conv.to sometimes is @system
     import std.conv: to;
     import std.traits: Unqual;
 
-    static if(__traits(compiles, value.to!string))
+    static if(__traits(compiles, () @trusted { return value.to!string; }()))
         return () @trusted { return value.to!string; }();
     else static if(__traits(compiles, value.toString)) {
         static if(isObject!T)
