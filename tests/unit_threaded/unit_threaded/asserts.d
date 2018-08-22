@@ -3,20 +3,23 @@
  */
 module unit_threaded.asserts;
 
-@safe:
-
 /**
  * Helper to call the standard assert
  */
-void assertEqual(T, U)(T t, U u, string file = __FILE__, size_t line = __LINE__) @trusted /* std.conv.to */ {
-    import std.conv: to;
-    assert(t == u, "\n" ~ file ~ ":" ~ line.to!string ~ "\nExp: " ~ u.to!string ~ "\nGot: " ~ t.to!string);
+void assertEqual(T, U)
+                (scope auto ref T t, scope auto ref U u, string file = __FILE__, size_t line = __LINE__)
+    @trusted
+{
+    import std.conv: text;
+    assert(t == u,
+           text("\n", file, ":", line, "\nExp: ", u, "\nGot: ", t));
 }
 
 
 void assertExceptionMsg(E)(lazy E expr, string expected,
                            in string file = __FILE__,
                            in size_t line = __LINE__)
+    @safe
 {
     import unit_threaded.exception: UnitTestException;
     import std.string: stripLeft, replace, split;
@@ -28,13 +31,10 @@ void assertExceptionMsg(E)(lazy E expr, string expected,
 
     string getExceptionMsg(E)(lazy E expr) {
         try
-        {
             expr();
-        }
         catch(UnitTestException ex)
-        {
             return ex.toString;
-        }
+
         assert(0, "Expression did not throw UnitTestException");
     }
 

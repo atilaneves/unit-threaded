@@ -32,7 +32,7 @@ class UnitTestException : Exception
         this.msgLines = msgLines;
     }
 
-    override string toString() @safe const pure
+    override string toString() @safe const pure scope
     {
         import std.algorithm: map;
         import std.array: join;

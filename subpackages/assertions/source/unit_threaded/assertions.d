@@ -10,7 +10,6 @@ import std.traits; // too many to list
 import std.range; // also
 
 
-
 /**
  * Verify that the condition is `true`.
  * Throws: UnitTestException on failure.
@@ -452,6 +451,8 @@ private auto threw(T : Throwable, E)(lazy E expr) @trusted
 private string[] formatValueInItsOwnLine(T)(in string prefix, scope auto ref T value) {
 
     import std.conv: to;
+    import std.traits: isSomeString;
+    import std.range.primitives: isInputRange;
 
     static if(isSomeString!T) {
         // isSomeString is true for wstring and dstring,
@@ -469,7 +470,7 @@ string convertToString(T)(scope auto ref T value) { // std.conv.to sometimes is 
     import std.conv: to;
     import std.traits: Unqual;
 
-    static if(__traits(compiles, value.to!string))
+    static if(__traits(compiles, () @trusted { return value.to!string; }()))
         return () @trusted { return value.to!string; }();
     else static if(__traits(compiles, value.toString)) {
         static if(isObject!T)
@@ -547,7 +548,7 @@ void shouldApproxEqual(V, E)(in V value, in E expected, string file = __FILE__, 
 }
 
 
-bool isEqual(V, E)(V value, E expected)
+bool isEqual(V, E)(scope V value, scope E expected)
     if (!isObject!V && isInputRange!V && isInputRange!E && !isSomeString!V &&
         is(typeof(isEqual(value.front, expected.front))))
 {
@@ -561,7 +562,7 @@ bool isEqual(V, E)(V value, E expected)
     return value.empty && expected.empty;
 }
 
-bool isEqual(V, E)(V value, E expected)
+bool isEqual(V, E)(scope V value, scope E expected)
     if (!isObject!V && isInputRange!V && isInputRange!E && isSomeString!V && isSomeString!E &&
         is(typeof(isEqual(value.front, expected.front))))
 {
@@ -578,7 +579,7 @@ template IsField(A...) if(A.length == 1) {
 }
 
 
-bool isEqual(V, E)(V value, E expected)
+bool isEqual(V, E)(scope V value, scope E expected)
 if (isObject!V && isObject!E)
 {
     import std.meta: staticMap, Filter;
