@@ -39,7 +39,6 @@
             "targetName": "ut_pass",
             "sourcePaths": ["source", "gen/source", "tests/unit_threaded", "tests/examples/pass"],
             "importPaths": ["source"],
-            "sourceFiles": ["example/example_pass.d"],
             "mainSourceFile": "example/example_pass.d",
             "dflags": ["-dip25", "-dip1000", "-dip1008"],
             "versions": ["testing_unit_threaded"]
@@ -49,7 +48,6 @@
             "targetType": "executable",
             "targetName": "ut_pass",
             "sourcePaths": ["source", "gen/source", "tests/unit_threaded", "tests/examples/pass"],
-            "sourceFiles": ["example/example_pass.d"],
             "mainSourceFile": "example/example_pass.d",
             "versions": ["testing_unit_threaded", "unitUnthreaded"]
         },
@@ -59,7 +57,6 @@
             "targetType": "executable",
             "targetName": "ut_pass",
             "sourcePaths": ["source", "gen/source", "tests/unit_threaded", "tests/examples/pass"],
-            "sourceFiles": ["example/example_pass.d"],
             "mainSourceFile": "example/example_pass.d",
             "dflags": ["-dip25", "-dip1000", "-dip1008"],
             "versions": ["testing_unit_threaded", "unitThreadedLight", "unitUnthreaded"]
@@ -70,7 +67,6 @@
             "targetType": "executable",
             "targetName": "ut_fail",
             "sourcePaths": ["tests/examples/pass", "tests/examples/fail/"],
-            "sourceFiles": ["example/example_fail.d"],
             "mainSourceFile": "example/example_fail.d",
             "versions": ["testing_unit_threaded"]
         },
