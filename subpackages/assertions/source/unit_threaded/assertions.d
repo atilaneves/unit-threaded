@@ -522,18 +522,18 @@ bool isEqual(V, E)(in V value, in E expected)
 }
 
 
-bool isApproxEqual(V, E)(in V value, in E expected)
+bool isApproxEqual(V, E)(in V value, in E expected, double maxRelDiff = 1e-2, double maxAbsDiff = 1e-5)
  if (!isObject!V && (isFloatingPoint!V || isFloatingPoint!E) && is(typeof(value == expected) == bool))
 {
     import std.math;
-    return approxEqual(value, expected);
+    return approxEqual(value, expected, maxRelDiff, maxAbsDiff);
 }
 
 
-void shouldApproxEqual(V, E)(in V value, in E expected, string file = __FILE__, size_t line = __LINE__)
+void shouldApproxEqual(V, E)(in V value, in E expected, double maxRelDiff = 1e-2, double maxAbsDiff = 1e-5, string file = __FILE__, size_t line = __LINE__)
  if (!isObject!V && (isFloatingPoint!V || isFloatingPoint!E) && is(typeof(value == expected) == bool))
 {
-    if (!isApproxEqual(value, expected))
+    if (!isApproxEqual(value, expected, maxRelDiff, maxAbsDiff))
     {
         const msg =
             formatValueInItsOwnLine("Expected approx: ", expected) ~
@@ -958,7 +958,7 @@ auto should(E)(lazy E expr) {
                      (in E expected, string file = __FILE__, size_t line = __LINE__)
             if (isFloatingPoint!E)
         {
-            shouldApproxEqual(expr, expected, file, line);
+            shouldApproxEqual(expr, expected, 1e-2, 1e-5, file, line);
         }
 
         auto not() {
