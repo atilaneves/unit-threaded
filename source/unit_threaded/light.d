@@ -313,9 +313,9 @@ void shouldThrowWithMessage(T : Throwable = Exception, E)(lazy E expr,
 }
 
 /// Assert that value is approximately equal to expected.
-void shouldApproxEqual(V, E)(in V value, in E expected, string file = __FILE__, size_t line = __LINE__) {
+void shouldApproxEqual(V, E)(in V value, in E expected, double maxRelDiff = 1e-2, double maxAbsDiff = 1e-5, string file = __FILE__, size_t line = __LINE__) {
     import std.math: approxEqual;
-    assert_(approxEqual(value, expected), file, line);
+    assert_(approxEqual(value, expected, maxRelDiff, maxAbsDiff), file, line);
 }
 
 /// assert that rng is empty.

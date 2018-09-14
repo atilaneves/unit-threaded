@@ -32,6 +32,7 @@ private void assertFail(E)(lazy E expression, in string file = __FILE__, in size
 @safe unittest {
     //impure comparisons
     shouldEqual(1.0, 1.0) ;
+    shouldNotEqual(1.0, 1.0001);
 }
 
 @safe pure unittest {
@@ -384,6 +385,7 @@ unittest {
 
 @safe unittest {
     1.0.shouldApproxEqual(1.0001);
+    1.0.shouldApproxEqual(1.0001, 1e-2, 1e-5);
     assertFail(2.0.shouldApproxEqual(1.0));
 }
 
