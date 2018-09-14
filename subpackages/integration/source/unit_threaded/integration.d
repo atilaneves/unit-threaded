@@ -167,7 +167,7 @@ struct Sandbox {
                       (in string[] args...)
         @safe const
     {
-        import unit_threaded.assertions: UnitTestException;
+        import unit_threaded.exception: UnitTestException;
         import std.conv: text;
         import std.array: join;
 
@@ -186,7 +186,7 @@ struct Sandbox {
                    (in string[] args...)
         @safe const
     {
-        import unit_threaded.assertions: UnitTestException;
+        import unit_threaded.exception: UnitTestException;
         import std.conv: text;
         import std.array: join;
 
