@@ -5,6 +5,7 @@
 module unit_threaded.ut.modules.module_with_tests;
 
 import unit_threaded.runner.attrs;
+import unit_threaded.runner.reflection: Test;
 
 version(unittest) {
     import std.meta;
@@ -79,3 +80,18 @@ class Issue83: TestCase {
     this() {}
     override void test() {}
 }
+
+
+mixin Test!(
+    "this is my successful test name",
+    {
+
+    }
+);
+
+mixin Test!(
+    "this is my unsuccessful test name",
+    {
+        assert(false);
+    }
+);

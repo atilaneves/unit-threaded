@@ -31,8 +31,13 @@ unittest {
 unittest {
     const expected = addModPrefix(
         [
-            "unittest_L44", "unittest_L49", "myUnitTest",
-            "StructWithUnitTests.InStruct", "StructWithUnitTests.unittest_L66_C5"
+            "unittest_L45",
+            "unittest_L50",
+            "myUnitTest",
+            "StructWithUnitTests.InStruct",
+            "StructWithUnitTests.unittest_L67_C5",
+            "this is my successful test name",
+            "this is my unsuccesful test name"
         ]
     );
     const actual = moduleUnitTests!(unit_threaded.ut.modules.module_with_tests).
@@ -387,4 +392,20 @@ unittest {
         .array
         .createTestCases[0];
     assertFail(flakyFails);
+}
+
+@("mixin") unittest {
+    import unit_threaded.runner.factory;
+    import unit_threaded.asserts;
+    import unit_threaded.ut.modules.module_with_tests;
+    import std.algorithm: canFind;
+    import std.array: array;
+
+    const testData = allTestData!"unit_threaded.ut.modules.module_with_tests";
+
+    auto failingMixinTest = testData
+        .find!(a => a.getPath.canFind("this is my unsuccessful test name"))
+        .array
+        .createTestCases[0];
+    assertFail(failingMixinTest);
 }

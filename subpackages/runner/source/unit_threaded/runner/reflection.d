@@ -13,6 +13,14 @@ import std.algorithm;
 import std.array;
 
 
+/**
+   An alternative to writing test functions by hand to avoid compile-time
+   performance penalties by using -unittest.
+ */
+mixin template Test(string name, alias Body) {
+
+}
+
 ///
 alias void delegate() TestFunction;
 
