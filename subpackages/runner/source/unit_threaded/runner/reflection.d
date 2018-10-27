@@ -17,8 +17,27 @@ import std.array;
    An alternative to writing test functions by hand to avoid compile-time
    performance penalties by using -unittest.
  */
-mixin template Test(string name, alias Body) {
+mixin template Test(string testName, alias Body, string file = __FILE__, size_t line = __LINE__) {
+    import std.conv: text;
+    import std.format: format;
+    import std.array: replace;
 
+    enum functionName =
+        ("test_" ~ file ~ "_" ~ line.text)
+        .replace("/", "_")
+        .replace("\\", "_")
+        .replace(".", "_")
+        ;
+
+    enum code = q{
+        @Name("%s")
+        void test%s() {
+
+        }
+    }.format(testName, functionName);
+
+    pragma(msg, code);
+    mixin(code);
 }
 
 ///

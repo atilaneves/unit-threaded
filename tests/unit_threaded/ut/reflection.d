@@ -29,7 +29,9 @@ unittest {
 
 
 unittest {
-    const expected = addModPrefix(
+    import std.algorithm: sorted = sort;
+
+    auto expected = addModPrefix(
         [
             "unittest_L45",
             "unittest_L50",
@@ -40,9 +42,10 @@ unittest {
             "this is my unsuccesful test name"
         ]
     );
-    const actual = moduleUnitTests!(unit_threaded.ut.modules.module_with_tests).
+    auto actual = moduleUnitTests!(unit_threaded.ut.modules.module_with_tests).
         map!(a => a.name).array;
-    assertEqual(actual, expected);
+
+    assertEqual(actual.sorted, expected.sorted);
 }
 
 version(unittest) {
