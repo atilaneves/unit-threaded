@@ -110,8 +110,11 @@ library, and `dub test` runs with the unit-threaded test runner.
 To use unit-threaded's assertions or UDA-based features, you must import the library:
 
 ```d
-version(unittest) { import unit_threaded; }
-else              { enum ShouldFail; } // so production builds compile
+// Don't use `version(unittest)` here - if anyone depends on your code and
+// doesn't depend on unit-threaded they won't be able to test their own
+// code!
+version(TestingMyCode) { import unit_threaded; }
+else                   { enum ShouldFail; }  // so production builds compile
 
 int adder(int i, int j) { return i + j; }
 
