@@ -483,12 +483,12 @@ string convertToString(T)(scope auto ref T value) { // std.conv.to sometimes is 
 
 
 private string[] formatRange(T)(in string prefix, scope auto ref T value) {
-    import std.conv: to;
+    import std.conv: text;
     import std.range: ElementType;
     import std.algorithm: map, reduce, max;
 
-    //some versions of `to` are @system
-    auto defaultLines = () @trusted { return [prefix ~ value.to!string]; }();
+    //some versions of `text` are @system
+    auto defaultLines = () @trusted { return [prefix ~ value.text]; }();
 
     static if (!isInputRange!(ElementType!T))
         return defaultLines;

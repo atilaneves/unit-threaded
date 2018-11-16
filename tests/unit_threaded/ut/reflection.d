@@ -21,9 +21,20 @@ unittest {
 }
 
 unittest {
-    const expected = addModPrefix([ "testFoo", "testBar", "funcThatShouldShowUpCosOfAttr"]);
+    import std.algorithm: sorted = sort;
+
+    const expected = addModPrefix(
+        [
+            "testFoo",
+            "testBar",
+            "funcThatShouldShowUpCosOfAttr",
+            "this is my successful test name",
+            "this is my unsuccessful test name",
+        ]
+    ).sorted.array;
     const actual = moduleTestFunctions!(unit_threaded.ut.modules.module_with_tests).
-        map!(a => a.getPath).array;
+        map!(a => a.getPath).array.sorted.array;
+
     assertEqual(actual, expected);
 }
 
@@ -31,21 +42,19 @@ unittest {
 unittest {
     import std.algorithm: sorted = sort;
 
-    auto expected = addModPrefix(
+    const expected = addModPrefix(
         [
-            "unittest_L45",
-            "unittest_L50",
             "myUnitTest",
             "StructWithUnitTests.InStruct",
-            "StructWithUnitTests.unittest_L67_C5",
-            "this is my successful test name",
-            "this is my unsuccesful test name"
+            "StructWithUnitTests.unittest_L65_C5",
+            "unittest_L43",
+            "unittest_L48",
         ]
-    );
-    auto actual = moduleUnitTests!(unit_threaded.ut.modules.module_with_tests).
-        map!(a => a.name).array;
+    ).sorted.array;
+    const actual = moduleUnitTests!(unit_threaded.ut.modules.module_with_tests).
+        map!(a => a.name).array.sorted.array;
 
-    assertEqual(actual.sorted, expected.sorted);
+    assertEqual(actual, expected);
 }
 
 version(unittest) {

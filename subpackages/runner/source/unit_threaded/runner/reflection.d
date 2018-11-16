@@ -23,20 +23,21 @@ mixin template Test(string testName, alias Body, string file = __FILE__, size_t 
     import std.array: replace;
 
     enum functionName =
-        ("test_" ~ file ~ "_" ~ line.text)
+        ("unittest_L" ~ line.text)
         .replace("/", "_")
         .replace("\\", "_")
         .replace(".", "_")
         ;
 
     enum code = q{
+        @UnitTest
         @Name("%s")
-        void test%s() {
+        void %s() {
 
         }
     }.format(testName, functionName);
 
-    pragma(msg, code);
+    //pragma(msg, code);
     mixin(code);
 }
 
@@ -563,7 +564,6 @@ TestData[] moduleTestFunctions(alias module_)() pure {
         } else {
             enum isTestFunction = false;
         }
-
     }
 
     template hasTestPrefix(alias module_, string memberName) {
@@ -594,6 +594,8 @@ private TestData[] createFuncTestData(alias module_, string moduleMember)() {
     import std.meta: aliasSeqOf;
 
     mixin(importMember!module_(moduleMember));
+    alias testFunction = Identity!(mixin(moduleMember));
+
     /*
       Get all the test functions for this module member. There might be more than one
       when using parametrized unit tests.
@@ -674,8 +676,8 @@ private TestData[] createFuncTestData(alias module_, string moduleMember)() {
                 return testData;
             }
         }
-    } else static if(HasTypes!(mixin(moduleMember))) { //template function with @Types
-        alias types = GetTypes!(mixin(moduleMember));
+    } else static if(HasTypes!(testFunction)) { //template function with @Types
+        alias types = GetTypes!(testFunction);
         TestData[] testData;
         foreach(type; types) {
 
@@ -684,7 +686,7 @@ private TestData[] createFuncTestData(alias module_, string moduleMember)() {
             else
                 enum string[] extraTags = [];
 
-            alias member = Identity!(mixin(moduleMember));
+            alias member = Identity!(testFunction);
 
             testData ~= memberTestData!(module_, moduleMember, extraTags)(
                 () { member!type(); },
@@ -718,26 +720,37 @@ private TestData[] moduleTestData(alias module_, alias pred, alias createTestDat
 
 }
 
-// TestData for a member of a module (either a test function or test class)
-private TestData memberTestData(alias module_, string moduleMember, string[] extraTags = [])
-    (TestFunction testFunction = null, string suffix = "") {
-
+// TestData for a member of a module (either a test function or a test class)
+private TestData memberTestData
+    (alias module_, string moduleMember, string[] extraTags = [])
+    (TestFunction testFunction = null, string suffix = "")
+{
     import unit_threaded.runner.traits: HasAttribute, GetAttributes, hasUtUDA;
     import unit_threaded.runner.attrs;
-    import std.traits: fullyQualifiedName;
+    import std.traits: fullyQualifiedName, getUDAs, hasUDA;
 
     mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
+    alias member = Identity!(mixin(moduleMember));
 
     immutable singleThreaded = HasAttribute!(module_, moduleMember, Serial);
     enum builtin = false;
     enum tags = tagsFromAttrs!(GetAttributes!(module_, moduleMember, Tags));
-    enum exceptionTypeInfo = getExceptionTypeInfo!(mixin(moduleMember));
+    enum exceptionTypeInfo = getExceptionTypeInfo!member;
     enum shouldFail =
         HasAttribute!(module_, moduleMember, ShouldFail) ||
-        hasUtUDA!(mixin(moduleMember), ShouldFailWith);
-    enum flakyRetries = getFlakyRetries!(mixin(moduleMember));
+        hasUtUDA!(member, ShouldFailWith);
+    enum flakyRetries = getFlakyRetries!member;
 
-    return TestData(fullyQualifiedName!module_~ "." ~ moduleMember,
+    // change names if explicitly asked to with a @Name UDA
+    static if(hasUDA!(member, Name)) {
+        alias nameUDAs = getUDAs!(member, Name);
+        static assert(nameUDAs.length == 1, "Only one @Name allowed");
+        enum name = nameUDAs[0].value;
+    }
+        else
+            enum name = moduleMember;
+
+    return TestData(fullyQualifiedName!module_~ "." ~ name,
                     testFunction,
                     HasAttribute!(module_, moduleMember, HiddenTest),
                     shouldFail,
