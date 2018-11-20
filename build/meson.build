@@ -16,7 +16,7 @@ integration_subpackage_source = run_command('sh', '-c', 'cd $MESON_SOURCE_ROOT &
 mocks_subpackage_source = run_command('sh', '-c', 'cd $MESON_SOURCE_ROOT && ls ../subpackages/mocks/source/unit_threaded/*.d').stdout().split()
 property_subpackage_source = run_command('sh', '-c', 'cd $MESON_SOURCE_ROOT && ls ../subpackages/property/source/unit_threaded/*.d').stdout().split()
 property_subpackage_randomized_source = run_command('sh', '-c', 'cd $MESON_SOURCE_ROOT && ls ../subpackages/property/source/unit_threaded/randomized/*.d').stdout().split()
-runner_subpackage_source = run_command('sh', '-c', 'cd $MESON_SOURCE_ROOT && ls ../subpackages/runner/source/unit_threaded/runner*.d').stdout().split()
+runner_subpackage_source = run_command('sh', '-c', 'cd $MESON_SOURCE_ROOT && ls ../subpackages/runner/source/unit_threaded/runner/*.d').stdout().split()
 
 install_headers(main_source, subdir: 'd/unit_threaded')
 install_headers(assertions_subpackage_source, subdir: 'd/unit_threaded/assertions')
