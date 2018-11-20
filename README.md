@@ -154,7 +154,7 @@ Code speaks louder than words:
     [1, 2, 3].should.not ~ [1, 2, 2];
     1.0.should ~ 1.0001;
     1.0.should.not ~ 2.0;
-    ```
+```
 
 See more in the `unit_threaded.should` module.
 
