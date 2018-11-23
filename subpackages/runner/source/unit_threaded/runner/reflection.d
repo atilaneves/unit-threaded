@@ -3,7 +3,9 @@
  */
 module unit_threaded.runner.reflection;
 
+
 import unit_threaded.from;
+
 /*
    These standard library imports contain something important for the code below.
    Unfortunately I don't know what they are so they're to prevent breakage.
@@ -18,21 +20,26 @@ import std.array;
    performance penalties by using -unittest.
  */
 mixin template Test(string testName, alias Body, size_t line = __LINE__) {
-    import std.conv: text;
     import std.format: format;
+    import unit_threaded.runner.attrs: Name, UnitTest;
+    import unit_threaded.runner.reflection: unittestFunctionName;
 
-    enum functionName = "unittest_L" ~ line.text;
-
-    enum code = q{
+    enum unitTestCode = q{
         @UnitTest
         @Name("%s")
         void %s() {
 
         }
-    }.format(testName, functionName);
+    }.format(testName, unittestFunctionName(line));
 
-    //pragma(msg, code);
-    mixin(code);
+    //pragma(msg, unitTestCode);
+    mixin(unitTestCode);
+}
+
+
+string unittestFunctionName(size_t line = __LINE__) {
+    import std.conv: text;
+    return "unittest_L" ~ line.text;
 }
 
 ///
@@ -573,8 +580,10 @@ TestData[] moduleTestFunctions(alias module_)() pure {
             // in this case we handle the possibility of a template function with
             // the @Types UDA attached to it
             alias types = GetTypes!member;
-            enum isTestFunction = hasTestPrefix!(module_, moduleMember) &&
-                                  types.length > 0;
+            enum hasTestName =
+                hasTestPrefix!(module_, moduleMember) ||
+                HasAttribute!(module_, moduleMember, UnitTest);
+            enum isTestFunction = hasTestName && types.length > 0;
         } else {
             enum isTestFunction = false;
         }
