@@ -99,8 +99,8 @@ struct TestSuite
         }
 
         void printShouldFail() {
-            const total = numTestsWithAttr!"shouldFail";
-            ulong num = total;
+            const total = _testCases.filter!(a => a.shouldFail).count;
+            long num = total;
 
             foreach(f; _failures) {
                 const data = _testData.filter!(a => a.getPath == f).front;

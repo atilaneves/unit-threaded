@@ -60,6 +60,8 @@ class TestCase {
     void showChrono() @safe pure nothrow { _showChrono = true; }
     void setOutput(Output output) @safe pure nothrow { _output = output; }
     void silence() @safe pure nothrow { _silent = true; }
+    bool shouldFail() @safe @nogc pure nothrow { return false; }
+
 
 package:
 
@@ -71,11 +73,13 @@ package:
         return _output is null ? WriterThread.get : _output;
     }
 
+
 protected:
 
     abstract void test();
     void setup() { } ///override to run before test()
     void shutdown() { } ///override to run after test()
+
 
 private:
 
@@ -170,6 +174,10 @@ class ShouldFailTestCase: TestCase {
     this(TestCase testCase, in TypeInfo exceptionTypeInfo) {
         this.testCase = testCase;
         this.exceptionTypeInfo = exceptionTypeInfo;
+    }
+
+    override bool shouldFail() @safe @nogc pure nothrow {
+        return true;
     }
 
     override string getPath() const pure nothrow {
