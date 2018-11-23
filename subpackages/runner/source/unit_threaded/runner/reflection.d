@@ -13,6 +13,28 @@ import std.algorithm;
 import std.array;
 
 
+/**
+   An alternative to writing test functions by hand to avoid compile-time
+   performance penalties by using -unittest.
+ */
+mixin template Test(string testName, alias Body, size_t line = __LINE__) {
+    import std.conv: text;
+    import std.format: format;
+
+    enum functionName = "unittest_L" ~ line.text;
+
+    enum code = q{
+        @UnitTest
+        @Name("%s")
+        void %s() {
+
+        }
+    }.format(testName, functionName);
+
+    //pragma(msg, code);
+    mixin(code);
+}
+
 ///
 alias void delegate() TestFunction;
 
@@ -105,6 +127,34 @@ private template Identity(T...) if(T.length > 0) {
 
 
 /**
+   Names a test function / built-in unittest based on @Name or string UDAs
+   on it. If none are found, "returns" an empty string
+ */
+template TestNameFromAttr(alias testFunction) {
+    import unit_threaded.runner.attrs: Name;
+    import std.traits: getUDAs;
+    import std.meta: Filter;
+
+    // i.e. if @("this is my name") appears
+    enum strAttrs = Filter!(isStringUDA, __traits(getAttributes, testFunction));
+
+    enum nameAttrs = getUDAs!(testFunction, Name);
+    static assert(nameAttrs.length < 2, "Only one @Name UDA allowed");
+
+    // strAttrs might be values to pass so only if the length is 1 is it a name
+    enum hasName = nameAttrs.length || strAttrs.length == 1;
+
+    static if(hasName) {
+        static if(nameAttrs.length == 1)
+            enum TestNameFromAttr = nameAttrs[0].value;
+        else
+            enum TestNameFromAttr = strAttrs[0];
+    } else
+        enum TestNameFromAttr = "";
+}
+
+
+/**
  * Finds all built-in unittest blocks in the given module.
  * Recurses into structs, classes, and unions of the module.
  *
@@ -117,42 +167,34 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
     // the weird name for the first template parameter is so that it doesn't clash
     // with a package name
     string unittestName(alias _theUnitTest, int index)() @safe nothrow {
-        import std.conv: text, to;
-        import std.traits: fullyQualifiedName, getUDAs;
-        import std.meta: Filter;
+        import std.conv: text;
         import std.algorithm: startsWith, endsWith;
-        import unit_threaded.runner.attrs: Name;
 
         mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
 
-        enum nameAttrs = getUDAs!(_theUnitTest, Name);
-        static assert(nameAttrs.length == 0 || nameAttrs.length == 1,
-                      "Found multiple Name UDAs on unittest");
-
-        enum strAttrs = Filter!(isStringUDA, __traits(getAttributes, _theUnitTest));
-        enum hasName = nameAttrs.length || strAttrs.length == 1;
         enum prefix = fullyQualifiedName!(__traits(parent, _theUnitTest)) ~ ".";
+        enum nameFromAttr = TestNameFromAttr!_theUnitTest;
 
-        static if(hasName) {
-            static if(nameAttrs.length == 1)
-                return prefix ~ nameAttrs[0].value;
-            else
-                return prefix ~ strAttrs[0];
-        } else {
-
+        // Establish a unique name for a unittest with no name
+        static if(nameFromAttr == "") {
             // use the unittest name if available to allow for running unittests based
             // on location
             if(__traits(identifier, _theUnitTest).startsWith("__unittest_L")) {
                 const ret = prefix ~ __traits(identifier, _theUnitTest)[2 .. $];
                 const suffix = "_C1";
+                // simplify names for the common case where there's only one
+                // unittest per line
+
                 return ret.endsWith(suffix) ? ret[0 .. $ - suffix.length] : ret;
             }
 
             try
-                return prefix ~ "unittest" ~ index.to!string;
+                return prefix ~ "unittest" ~ index.text;
             catch(Exception)
                 assert(false, text("Error converting ", index, " to string"));
-        }
+
+        } else
+            return prefix ~ nameFromAttr;
     }
 
     void function() getUDAFunction(alias composite, alias uda)() pure nothrow {
@@ -536,7 +578,6 @@ TestData[] moduleTestFunctions(alias module_)() pure {
         } else {
             enum isTestFunction = false;
         }
-
     }
 
     template hasTestPrefix(alias module_, string memberName) {
@@ -567,6 +608,8 @@ private TestData[] createFuncTestData(alias module_, string moduleMember)() {
     import std.meta: aliasSeqOf;
 
     mixin(importMember!module_(moduleMember));
+    alias testFunction = Identity!(mixin(moduleMember));
+
     /*
       Get all the test functions for this module member. There might be more than one
       when using parametrized unit tests.
@@ -647,8 +690,8 @@ private TestData[] createFuncTestData(alias module_, string moduleMember)() {
                 return testData;
             }
         }
-    } else static if(HasTypes!(mixin(moduleMember))) { //template function with @Types
-        alias types = GetTypes!(mixin(moduleMember));
+    } else static if(HasTypes!(testFunction)) { //template function with @Types
+        alias types = GetTypes!(testFunction);
         TestData[] testData;
         foreach(type; types) {
 
@@ -657,7 +700,7 @@ private TestData[] createFuncTestData(alias module_, string moduleMember)() {
             else
                 enum string[] extraTags = [];
 
-            alias member = Identity!(mixin(moduleMember));
+            alias member = Identity!(testFunction);
 
             testData ~= memberTestData!(module_, moduleMember, extraTags)(
                 () { member!type(); },
@@ -691,26 +734,35 @@ private TestData[] moduleTestData(alias module_, alias pred, alias createTestDat
 
 }
 
-// TestData for a member of a module (either a test function or test class)
-private TestData memberTestData(alias module_, string moduleMember, string[] extraTags = [])
-    (TestFunction testFunction = null, string suffix = "") {
-
+// TestData for a member of a module (either a test function or a test class)
+private TestData memberTestData
+    (alias module_, string moduleMember, string[] extraTags = [])
+    (TestFunction testFunction = null, string suffix = "")
+{
     import unit_threaded.runner.traits: HasAttribute, GetAttributes, hasUtUDA;
     import unit_threaded.runner.attrs;
     import std.traits: fullyQualifiedName;
 
     mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
+    alias member = Identity!(mixin(moduleMember));
 
     immutable singleThreaded = HasAttribute!(module_, moduleMember, Serial);
     enum builtin = false;
     enum tags = tagsFromAttrs!(GetAttributes!(module_, moduleMember, Tags));
-    enum exceptionTypeInfo = getExceptionTypeInfo!(mixin(moduleMember));
+    enum exceptionTypeInfo = getExceptionTypeInfo!member;
     enum shouldFail =
         HasAttribute!(module_, moduleMember, ShouldFail) ||
-        hasUtUDA!(mixin(moduleMember), ShouldFailWith);
-    enum flakyRetries = getFlakyRetries!(mixin(moduleMember));
+        hasUtUDA!(member, ShouldFailWith);
+    enum flakyRetries = getFlakyRetries!member;
+    // change names if explicitly asked to with a @Name UDA
+    enum nameFromAttr = TestNameFromAttr!member;
 
-    return TestData(fullyQualifiedName!module_~ "." ~ moduleMember,
+    static if(nameFromAttr == "")
+        enum name = moduleMember;
+    else
+        enum name = nameFromAttr;
+
+    return TestData(fullyQualifiedName!module_~ "." ~ name,
                     testFunction,
                     HasAttribute!(module_, moduleMember, HiddenTest),
                     shouldFail,

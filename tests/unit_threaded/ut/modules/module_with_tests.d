@@ -5,40 +5,39 @@
 module unit_threaded.ut.modules.module_with_tests;
 
 import unit_threaded.runner.attrs;
+import unit_threaded.runner.reflection: Test;
 
-version(unittest) {
-    import std.meta;
-    import unit_threaded.should;
+import std.meta;
+import unit_threaded.should;
 
-    //test functions
-    void testFoo() {}
-    void testBar() {}
-    private void testPrivate() { } //should not show up
-    @UnitTest void funcThatShouldShowUpCosOfAttr() { }
+//test functions
+void testFoo() {}
+void testBar() {}
+private void testPrivate() { } //should not show up
+@UnitTest void funcThatShouldShowUpCosOfAttr() { }
 
-    //non-test functions
-    private void someFun() {}
-    private void testosterone() {}
-    private void tes() {}
+//non-test functions
+private void someFun() {}
+private void testosterone() {}
+private void tes() {}
 
-    //non-test non-functions
-    int testInt;
+//non-test non-functions
+int testInt;
 
-    //test classes
-    class FooTest { void test() { } }
-    class BarTest { void test() { } }
-    @UnitTest class Blergh { }
+//test classes
+class FooTest { void test() { } }
+class BarTest { void test() { } }
+@UnitTest class Blergh { }
 
-    //non-test classes
-    class NotATest { void tes() { } }
-    class AlsoNotATest { void testosterone() { } }
+//non-test classes
+class NotATest { void tes() { } }
+class AlsoNotATest { void testosterone() { } }
 
-    @HiddenTest void withHidden() {}
-    void withoutHidden() { }
+@HiddenTest void withHidden() {}
+void withoutHidden() { }
 
-    //other non-test members
-    alias seq = AliasSeq!(int, float, string);
-}
+//other non-test members
+alias seq = AliasSeq!(int, float, string);
 
 
 unittest {
@@ -79,3 +78,18 @@ class Issue83: TestCase {
     this() {}
     override void test() {}
 }
+
+
+mixin Test!(
+    "this is my successful test name",
+    {
+
+    }
+);
+
+mixin Test!(
+    "this is my unsuccessful test name",
+    {
+        assert(false);
+    }
+);

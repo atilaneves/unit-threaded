@@ -21,22 +21,39 @@ unittest {
 }
 
 unittest {
-    const expected = addModPrefix([ "testFoo", "testBar", "funcThatShouldShowUpCosOfAttr"]);
+    import std.algorithm: sorted = sort;
+
+    const expected = addModPrefix(
+        [
+            "testFoo",
+            "testBar",
+            "funcThatShouldShowUpCosOfAttr",
+            "this is my successful test name",
+            "this is my unsuccessful test name",
+        ]
+    ).sorted.array;
     const actual = moduleTestFunctions!(unit_threaded.ut.modules.module_with_tests).
-        map!(a => a.getPath).array;
+        map!(a => a.getPath).array.sorted.array;
+
     assertEqual(actual, expected);
 }
 
 
 unittest {
+    import std.algorithm: sorted = sort;
+
     const expected = addModPrefix(
         [
-            "unittest_L44", "unittest_L49", "myUnitTest",
-            "StructWithUnitTests.InStruct", "StructWithUnitTests.unittest_L66_C5"
+            "myUnitTest",
+            "StructWithUnitTests.InStruct",
+            "StructWithUnitTests.unittest_L65_C5",
+            "unittest_L43",
+            "unittest_L48",
         ]
-    );
+    ).sorted.array;
     const actual = moduleUnitTests!(unit_threaded.ut.modules.module_with_tests).
-        map!(a => a.name).array;
+        map!(a => a.name).array.sorted.array;
+
     assertEqual(actual, expected);
 }
 
@@ -387,4 +404,20 @@ unittest {
         .array
         .createTestCases[0];
     assertFail(flakyFails);
+}
+
+@("mixin") unittest {
+    import unit_threaded.runner.factory;
+    import unit_threaded.asserts;
+    import unit_threaded.ut.modules.module_with_tests;
+    import std.algorithm: canFind;
+    import std.array: array;
+
+    const testData = allTestData!"unit_threaded.ut.modules.module_with_tests";
+
+    auto failingMixinTest = testData
+        .find!(a => a.getPath.canFind("this is my unsuccessful test name"))
+        .array
+        .createTestCases[0];
+    assertFail(failingMixinTest);
 }
