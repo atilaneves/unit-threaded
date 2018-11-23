@@ -36,7 +36,7 @@ mixin template Test(string testName, alias Body, size_t line = __LINE__) {
 }
 
 ///
-alias void delegate() TestFunction;
+alias TestFunction = void delegate();
 
 /**
  * Common data for test functions and test classes
@@ -601,6 +601,18 @@ TestData[] moduleTestFunctions(alias module_)() pure {
     return moduleTestData!(module_, isTestFunction, createFuncTestData);
 }
 
+
+/**
+   Get all the test functions for this module member. There might be more than one
+   when using parametrized unit tests.
+
+   Examples:
+   ------
+   void testFoo() {} // -> the array contains one element, testFoo
+   @(1, 2, 3) void testBar(int) {} // The array contains 3 elements, one for each UDA value
+   @Types!(int, float) void testBaz(T)() {} //The array contains 2 elements, one for each type
+   ------
+*/
 private TestData[] createFuncTestData(alias module_, string moduleMember)() {
     import unit_threaded.runner.meta: importMember;
     import unit_threaded.runner.traits: GetAttributes, HasAttribute, GetTypes, HasTypes;
@@ -610,108 +622,115 @@ private TestData[] createFuncTestData(alias module_, string moduleMember)() {
     mixin(importMember!module_(moduleMember));
     alias testFunction = Identity!(mixin(moduleMember));
 
-    /*
-      Get all the test functions for this module member. There might be more than one
-      when using parametrized unit tests.
-
-      Examples:
-      ------
-      void testFoo() {} // -> the array contains one element, testFoo
-      @(1, 2, 3) void testBar(int) {} // The array contains 3 elements, one for each UDA value
-      @Types!(int, float) void testBaz(T)() {} //The array contains 2 elements, one for each type
-      ------
-    */
-    // if the predicate returned true (which is always the case here), then it's either
-    // a regular function or a templated one. If regular we can get a pointer to it
     enum isRegularFunction = __traits(compiles, &__traits(getMember, module_, moduleMember));
 
     static if(isRegularFunction) {
 
-        enum func = &__traits(getMember, module_, moduleMember);
-        enum arity = arity!func;
+        static if(arity!testFunction == 0)
+            return createRegularFuncTestData!(module_, moduleMember);
+        else
+            return createValueParamFuncTestData!(module_, moduleMember, testFunction);
 
-        static if(arity == 0)
-            // the reason we're creating a lambda to call the function is that test functions
-            // are ordinary functions, but we're storing delegates
-            return [ memberTestData!(module_, moduleMember)(() { func(); }) ]; //simple case, just call the function
-        else {
-
-            // the function has parameters, check if it has UDAs for value parameters to be passed to it
-            alias params = Parameters!func;
-
-            import std.range: iota;
-            import std.algorithm: any;
-            import std.typecons: tuple, Tuple;
-
-            bool hasAttributesForAllParams() {
-                auto ret = true;
-                foreach(p; params) {
-                    if(tuple(GetAttributes!(module_, moduleMember, p)).length == 0) {
-                        ret = false;
-                    }
-                }
-                return ret;
-            }
-
-            static if(!hasAttributesForAllParams) {
-                import std.conv: text;
-                pragma(msg, text("Warning: ", moduleMember, " passes the criteria for a value-parameterized test function",
-                                 " but doesn't have the appropriate value UDAs.\n",
-                                 "         Consider changing its name or annotating it with @DontTest"));
-                return [];
-            } else {
-
-                static if(arity == 1) {
-                    // bind a range of tuples to prod just as cartesianProduct returns
-                    enum prod = [GetAttributes!(module_, moduleMember, params[0])].map!(a => tuple(a));
-                } else {
-                    import std.conv: text;
-
-                    mixin(`enum prod = cartesianProduct(` ~ params.length.iota.map!
-                          (a => `[GetAttributes!(module_, moduleMember, params[` ~ guaranteedToString(a) ~ `])]`).join(", ") ~ `);`);
-                }
-
-                TestData[] testData;
-                foreach(comb; aliasSeqOf!prod) {
-                    enum valuesName = valuesName(comb);
-
-                    static if(HasAttribute!(module_, moduleMember, AutoTags))
-                        enum extraTags = valuesName.split(".").array;
-                    else
-                        enum string[] extraTags = [];
-
-
-                    testData ~= memberTestData!(module_, moduleMember, extraTags)(
-                        // func(value0, value1, ...)
-                        () { func(comb.expand); },
-                        valuesName);
-                }
-
-                return testData;
-            }
-        }
-    } else static if(HasTypes!(testFunction)) { //template function with @Types
-        alias types = GetTypes!(testFunction);
-        TestData[] testData;
-        foreach(type; types) {
-
-            static if(HasAttribute!(module_, moduleMember, AutoTags))
-                enum extraTags = [type.stringof];
-            else
-                enum string[] extraTags = [];
-
-            alias member = Identity!(testFunction);
-
-            testData ~= memberTestData!(module_, moduleMember, extraTags)(
-                () { member!type(); },
-                type.stringof);
-        }
-        return testData;
+    } else static if(HasTypes!(testFunction)) { // template function with @Types
+        return createTypeParamFuncTestData!(module_, moduleMember, testFunction);
     } else {
         return [];
     }
 }
 
+private TestData[] createRegularFuncTestData(alias module_, string moduleMember)() {
+    enum func = &__traits(getMember, module_, moduleMember);
+
+    // the reason we're creating a lambda to call the function is that test functions
+    // are ordinary functions, but we're storing delegates
+
+    return [ memberTestData!(module_, moduleMember)(() { func(); }) ]; //simple case, just call the function
+}
+
+// for value parameterised tests
+private TestData[] createValueParamFuncTestData(alias module_, string moduleMember, alias testFunction)() {
+
+    import unit_threaded.runner.traits: GetAttributes, HasAttribute;
+    import unit_threaded.runner.attrs: AutoTags;
+    import std.traits: Parameters;
+    import std.range: iota;
+    import std.algorithm: map;
+    import std.typecons: tuple;
+    import std.traits: arity;
+    import std.meta: aliasSeqOf;
+
+    alias params = Parameters!testFunction;
+
+    bool hasAttributesForAllParams() {
+        auto ret = true;
+        foreach(P; params) {
+            if(tuple(GetAttributes!(module_, moduleMember, P)).length == 0) ret = false;
+        }
+        return ret;
+    }
+
+    static if(!hasAttributesForAllParams) {
+        import std.conv: text;
+        pragma(msg, text("Warning: ", __traits(identifier, testFunction),
+                         " passes the criteria for a value-parameterized test function",
+                         " but doesn't have the appropriate value UDAs.\n",
+                         "         Consider changing its name or annotating it with @DontTest"));
+        return [];
+    } else {
+
+        static if(arity!testFunction == 1) {
+            // bind a range of tuples to prod just as cartesianProduct returns
+            enum prod = [GetAttributes!(module_, moduleMember, params[0])].map!(a => tuple(a));
+        } else {
+            import std.conv: text;
+
+            mixin(`enum prod = cartesianProduct(` ~ params.length.iota.map!
+                  (a => `[GetAttributes!(module_, moduleMember, params[` ~ guaranteedToString(a) ~ `])]`).join(", ") ~ `);`);
+        }
+
+        TestData[] testData;
+        foreach(comb; aliasSeqOf!prod) {
+            enum valuesName = valuesName(comb);
+
+            static if(HasAttribute!(module_, moduleMember, AutoTags))
+                enum extraTags = valuesName.split(".").array;
+            else
+                enum string[] extraTags = [];
+
+
+            testData ~= memberTestData!(module_, moduleMember, extraTags)(
+                // testFunction(value0, value1, ...)
+                () { testFunction(comb.expand); },
+                valuesName);
+        }
+
+        return testData;
+    }
+}
+
+// template function with @Types
+private TestData[] createTypeParamFuncTestData(alias module_, string moduleMember, alias testFunction)() {
+
+    import unit_threaded.runner.traits: HasAttribute, GetTypes, HasTypes;
+    import unit_threaded.runner.attrs: AutoTags;
+
+    alias types = GetTypes!(testFunction);
+    TestData[] testData;
+
+    foreach(type; types) {
+
+        static if(HasAttribute!(module_, moduleMember, AutoTags))
+            enum extraTags = [type.stringof];
+        else
+            enum string[] extraTags = [];
+
+        testData ~= memberTestData!(module_, moduleMember, extraTags)(
+            () { testFunction!type(); },
+            type.stringof);
+    }
+
+    return testData;
+}
 
 
 // this funtion returns TestData for either classes or test functions
