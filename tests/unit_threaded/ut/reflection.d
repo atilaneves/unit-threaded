@@ -116,6 +116,28 @@ unittest {
     assertFail(tests[0]);
 }
 
+
+@("Test that parametrized type tests work with @Name")
+unittest {
+    import unit_threaded.runner.factory;
+    import unit_threaded.runner.testcase;
+    import unit_threaded.ut.modules.parametrized;
+
+    const testData = allTestData!(unit_threaded.ut.modules.parametrized).
+        filter!(a => a.name.canFind("my_name_is_test")).array;
+    const expected = addModPrefix(["my_name_is_test.float", "my_name_is_test.int"],
+                                  "unit_threaded.ut.modules.parametrized");
+    const actual = testData.map!(a => a.getPath).array;
+    assertEqual(actual, expected);
+
+    auto tests = createTestCases(testData);
+    assertEqual(tests.map!(a => a.getPath).array, expected);
+
+    assertPass(tests[1]);
+    assertFail(tests[0]);
+}
+
+
 @("Value parametrized built-in unittests")
 unittest {
     import unit_threaded.runner.factory;

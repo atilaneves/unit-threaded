@@ -19,6 +19,13 @@ version(unittest) {
     void testTypes(T)() {
         assert(T.init == 0);
     }
+
+    @Name("my_name_is_test")
+    @UnitTest
+    @Types!(float, int)
+    void typesWithName(T)() {
+        assert(T.init == 0);
+    }
 }
 
 @("builtinIntValues")
