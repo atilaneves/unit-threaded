@@ -406,19 +406,26 @@ auto mockStruct(T...)(auto ref T returns) {
 
             mixin MockImplCommon;
 
-            auto opDispatch(string funcName, V...)(auto ref V values) {
+            auto opDispatch(string funcName, this This, V...)
+                           (auto ref V values)
+            {
 
                 import std.conv: to;
                 import std.typecons: tuple;
 
-                calledFuncs ~= funcName;
-                calledValues ~= tuple(values).to!string;
+                enum isMutable = !is(This == const) && !is(This == immutable);
+
+                static if(isMutable) {
+                    calledFuncs ~= funcName;
+                    calledValues ~= tuple(values).to!string;
+                }
 
                 static if(T.length > 0) {
 
                     if(_returnValues.length == 0) return typeof(_returnValues[0]).init;
                     auto ret = _returnValues[0];
-                    _returnValues = _returnValues[1..$];
+                    static if(isMutable)
+                        _returnValues = _returnValues[1..$];
                     return ret;
                 }
             }
@@ -447,7 +454,9 @@ auto mockStruct(T...)() if(T.length > 0 && from!"std.meta".allSatisfy!(isReturnV
 
         int[string] _retIndices;
 
-        auto opDispatch(string funcName, V...)(auto ref V values) {
+        auto opDispatch(string funcName, this This, V...)
+                       (auto ref V values)
+        {
 
             import std.conv: to;
             import std.typecons: tuple;

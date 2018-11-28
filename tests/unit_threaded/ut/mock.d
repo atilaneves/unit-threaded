@@ -1,6 +1,9 @@
 module unit_threaded.ut.mock;
 
+
 import unit_threaded.mock;
+import unit_threaded.asserts;
+
 
 @("mock interface verify fails")
 @safe pure unittest {
@@ -219,4 +222,105 @@ unittest {
     cMock.returnValue!(1, "over")("baz");
     cMock.over.shouldEqual("bar");
     cMock.over("zing").shouldEqual("baz");
+}
+
+
+///
+@("mock struct positive")
+@safe pure unittest {
+    void fun(T)(T t) {
+        t.foobar;
+    }
+    auto m = mockStruct;
+    m.expect!"foobar";
+    fun(m);
+    m.verify;
+}
+
+
+///
+@("mock struct values positive")
+@safe pure unittest {
+    void fun(T)(T t) {
+        t.foobar(2, "quux");
+    }
+
+    auto m = mockStruct;
+    m.expect!"foobar"(2, "quux");
+    fun(m);
+    m.verify;
+}
+
+
+///
+@("struct return value")
+@safe pure unittest {
+
+    int fun(T)(T f) {
+        return f.timesN(3) * 2;
+    }
+
+    auto m = mockStruct(42, 12);
+    assert(fun(m) == 84);
+    assert(fun(m) == 24);
+    assert(fun(m) == 0);
+    m.expectCalled!"timesN";
+}
+
+///
+@("struct expectCalled")
+@safe pure unittest {
+    void fun(T)(T t) {
+        t.foobar(2, "quux");
+    }
+
+    auto m = mockStruct;
+    fun(m);
+    m.expectCalled!"foobar"(2, "quux");
+}
+
+///
+@("mockStruct different return types for different functions")
+@safe pure unittest {
+    auto m = mockStruct!(ReturnValues!("length", 5),
+                         ReturnValues!("greet", "hello"));
+    assert(m.length == 5);
+    assert(m.greet("bar") == "hello");
+    m.expectCalled!"length";
+    m.expectCalled!"greet"("bar");
+}
+
+///
+@("mockStruct different return types for different functions and multiple return values")
+@safe pure unittest {
+    auto m = mockStruct!(ReturnValues!("length", 5, 3),
+                         ReturnValues!("greet", "hello", "g'day"));
+    assert(m.length == 5);
+    m.expectCalled!"length";
+    assert(m.length == 3);
+    m.expectCalled!"length";
+
+    assert(m.greet("bar") == "hello");
+    m.expectCalled!"greet"("bar");
+    assert(m.greet("quux") == "g'day");
+    m.expectCalled!"greet"("quux");
+}
+
+
+///
+@("throwStruct default")
+@safe pure unittest {
+    import std.exception: assertThrown;
+    import unit_threaded.exception: UnitTestException;
+    auto m = throwStruct;
+    assertThrown!UnitTestException(m.foo);
+    assertThrown!UnitTestException(m.bar(1, "foo"));
+}
+
+
+@("const mockStruct")
+@safe pure unittest {
+    const  m = mockStruct(42);
+    assertEqual(m.length, 42);
+    assertEqual(m.length, 42);
 }
