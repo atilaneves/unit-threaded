@@ -185,7 +185,7 @@ private mixin template MockImplCommon() {
         for(int i = 0; i < expectedFuncs.length; ++i) {
 
             if(i >= calledFuncs.length)
-                fail("Expected nth " ~ i.text ~ " call to `" ~ expectedFuncs[i] ~ "` did not happen ", file, line);
+                fail("Expected nth " ~ i.text ~ " call to `" ~ expectedFuncs[i] ~ "` did not happen", file, line);
 
             if(expectedFuncs[i] != calledFuncs[i])
                 fail("Expected nth " ~ i.text ~ " call to `" ~ expectedFuncs[i] ~ "` but got `" ~ calledFuncs[i] ~

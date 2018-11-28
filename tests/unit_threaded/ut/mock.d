@@ -37,19 +37,18 @@ import unit_threaded.asserts;
     }
 }
 
-// FIXME
-// @("mock interface negative test")
-// @safe pure unittest {
-//     import unit_threaded.should;
+@("mock interface negative test")
+@safe pure unittest {
+    import unit_threaded.should;
 
-//     interface Foo {
-//         int foo(int, string) @safe pure;
-//     }
+    interface Foo {
+        int foo(int, string) @safe pure;
+    }
 
-//     auto m = mock!Foo;
-//     m.expect!"foo";
-//     m.verify.shouldThrowWithMessage("Expected nth 0 call to `foo` did not happen");
-// }
+    auto m = mock!Foo;
+    m.expect!"foo";
+    m.verify.shouldThrowWithMessage("Expected nth 0 call to `foo` did not happen");
+}
 
 
 // can't be in the unit test itself
@@ -95,16 +94,15 @@ private class Class {
 }
 
 
-// FIXME
-// @("mock struct negative")
-// @safe pure unittest {
-//     import unit_threaded.asserts;
+@("mock struct negative")
+@safe pure unittest {
+    import unit_threaded.asserts;
 
-//     auto m = mockStruct;
-//     m.expect!"foobar";
-//     assertExceptionMsg(m.verify,
-//                        "    tests/unit_threaded/ut/mock.d:123 - Expected nth 0 call to `foobar` did not happen\n");
-// }
+    auto m = mockStruct;
+    m.expect!"foobar";
+    assertExceptionMsg(m.verify,
+                       "    tests/unit_threaded/ut/mock.d:123 - Expected nth 0 call to `foobar` did not happen\n");
+}
 
 @("mock struct values negative")
 @safe pure unittest {
