@@ -363,3 +363,64 @@ unittest {
 
     assertEqual(m.list, [1, 2, 3]);
 }
+
+
+@safe pure unittest {
+
+    static struct Cursor {
+        enum Kind {
+            StructDecl,
+            FieldDecl,
+        }
+    }
+
+    static struct Type {
+        enum Kind {
+            Int,
+            Double,
+        }
+    }
+
+    const cursor = mockStruct(
+        mockReturn!"kind"(Cursor.Kind.StructDecl),
+        mockReturn!"spelling"("Foo"),
+        mockReturn!"children"(
+            [
+                mockStruct(mockReturn!("kind")(Cursor.Kind.FieldDecl),
+                           mockReturn!"spelling"("i"),
+                           mockReturn!("type")(
+                               mockStruct(
+                                   mockReturn!"kind"(Type.Kind.Int),
+                                   mockReturn!"spelling"("int"),
+                               )
+                           )
+                ),
+                mockStruct(mockReturn!("kind")(Cursor.Kind.FieldDecl),
+                           mockReturn!"spelling"("d"),
+                           mockReturn!("type")(
+                               mockStruct(
+                                   mockReturn!"kind"(Type.Kind.Double),
+                                   mockReturn!"spelling"("double"),
+                               )
+                           )
+                ),
+            ],
+        ),
+    );
+
+    assertEqual(cursor.kind, Cursor.Kind.StructDecl);
+    assertEqual(cursor.spelling, "Foo");
+    assertEqual(cursor.children.length, 2);
+
+    const i = cursor.children[0];
+    assertEqual(i.kind, Cursor.Kind.FieldDecl);
+    assertEqual(i.spelling, "i");
+    assertEqual(i.type.kind, Type.Kind.Int);
+    assertEqual(i.type.spelling, "int");
+
+    const d = cursor.children[1];
+    assertEqual(d.kind, Cursor.Kind.FieldDecl);
+    assertEqual(d.spelling, "d");
+    assertEqual(d.type.kind, Type.Kind.Double);
+    assertEqual(d.type.spelling, "double");
+}
