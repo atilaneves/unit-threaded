@@ -341,3 +341,25 @@ unittest {
     assertEqual(m.length, 42);
     assertEqual(m.length, 42);
 }
+
+
+@("mockReturn")
+@safe pure unittest {
+    auto m = mockStruct(
+        mockReturn!"length"(5, 3),
+        mockReturn!"greet"("hello", "g'day"),
+        mockReturn!"list"([1, 2, 3]),
+    );
+
+    assert(m.length == 5);
+    m.expectCalled!"length";
+    assertEqual(m.length, 3);
+    m.expectCalled!"length";
+
+    assertEqual(m.greet("bar"), "hello");
+    m.expectCalled!"greet"("bar");
+    assertEqual(m.greet("quux"), "g'day");
+    m.expectCalled!"greet"("quux");
+
+    assertEqual(m.list, [1, 2, 3]);
+}
