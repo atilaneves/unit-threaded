@@ -133,9 +133,15 @@ private bool isWantedNonTagTest(in from!"unit_threaded.runner.reflection".TestDa
     }
 
     bool matchesPackage(in string t) { //runs all tests in package if it matches
-        with(testData) return !hidden && name.length > t.length &&
-                           name.startsWith(t) && name[t.length .. $].canFind(".");
+        with(testData)
+            return !hidden && getPath.length > t.length &&
+                           getPath.startsWith(t) && getPath[t.length .. $].canFind(".");
     }
 
     return testsToRun.any!(a => matchesExactly(a) || matchesPackage(a));
+}
+
+
+unittest {
+    assert(false);
 }
