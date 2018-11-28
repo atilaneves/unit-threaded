@@ -458,15 +458,22 @@ auto mockStruct(T...)() if(T.length > 0 && from!"std.meta".allSatisfy!(isReturnV
                        (auto ref V values)
         {
 
-            import std.conv: to;
+            import std.conv: text;
             import std.typecons: tuple;
 
-            calledFuncs ~= funcName;
-            calledValues ~= tuple(values).to!string;
+            enum isMutable = !is(This == const) && !is(This == immutable);
+
+            static if(isMutable) {
+                calledFuncs ~= funcName;
+                calledValues ~= tuple(values).text;
+            }
 
             foreach(retVal; T) {
                 static if(retVal.funcName == funcName) {
-                    return retVal.values[_retIndices[funcName]++];
+                    auto ret = retVal.values[_retIndices[funcName]];
+                    static if(isMutable)
+                        ++_retIndices[funcName];
+                    return ret;
                 }
             }
         }

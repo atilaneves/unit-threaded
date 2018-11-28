@@ -318,9 +318,17 @@ unittest {
 }
 
 
-@("const mockStruct")
+@("const mockStruct values")
 @safe pure unittest {
-    const  m = mockStruct(42);
+    const m = mockStruct(42);
+    assertEqual(m.length, 42);
+    assertEqual(m.length, 42);
+}
+
+
+@("const mockStruct ReturnValues")
+@safe pure unittest {
+    const m = mockStruct!(ReturnValues!("length", 42));
     assertEqual(m.length, 42);
     assertEqual(m.length, 42);
 }
