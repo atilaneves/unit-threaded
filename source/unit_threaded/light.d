@@ -185,8 +185,15 @@ void shouldEqual(V, E)(auto ref V value, auto ref E expected, in string file = _
                 return obj;
         }
 
+        auto ref unvoid(OriginalType)(auto ref OriginalType obj) @trusted {
+            static if(is(OriginalType == void[]))
+                return cast(ubyte[]) obj;
+            else
+                return obj;
+        }
+
         import std.algorithm: equal;
-        assert_(equal(unqual(value), unqual(expected)), file, line);
+        assert_(equal(unvoid(unqual(value)), unvoid(unqual(expected))), file, line);
 
     } else {
         assert_(cast(const)value == cast(const)expected, file, line);
@@ -420,4 +427,21 @@ private void assert_(bool value, in string message, in string file, in size_t li
 
 void fail(in string output, in string file, in size_t line) @safe pure {
     assert_(false, output, file, line);
+}
+
+
+auto should(E)(lazy E expr) {
+
+    struct Should {
+
+        bool opEquals(U)(auto ref U other,
+                         in string file = __FILE__,
+                         in size_t line = __LINE__)
+        {
+            expr.shouldEqual(other, file, line);
+            return true;
+        }
+    }
+
+    return Should();
 }
