@@ -87,3 +87,25 @@ class CalcController {
     }
 
 }
+
+
+@("138")
+@safe unittest {
+    import std.exception: assertThrown;
+
+    static class Class {
+        private string foo;
+        override bool opEquals(scope Object b) @safe @nogc pure nothrow scope const {
+            return foo == (cast(Class)b).foo;
+        }
+    }
+
+    auto a = new Class;
+    auto b = new Class;
+
+    a.foo = "1";
+    b.foo = "2";
+
+    // Object.opEquals isn't scope and therefore not @safe
+    assertThrown(() @trusted { a.should == b; }());
+}

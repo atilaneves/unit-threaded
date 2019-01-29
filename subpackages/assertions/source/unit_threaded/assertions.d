@@ -580,9 +580,9 @@ template IsField(A...) if(A.length == 1) {
 
 
 bool isEqual(V, E)(scope V value, scope E expected)
-if (isObject!V && isObject!E)
+    if (isObject!V && isObject!E)
 {
-    import std.meta: staticMap, Filter;
+    import std.meta: staticMap, Filter, staticIndexOf;
 
     static assert(is(typeof(() { string s1 = value.toString; string s2 = expected.toString;})),
                   "Cannot compare instances of " ~ V.stringof ~
@@ -592,32 +592,39 @@ if (isObject!V && isObject!E)
     if(value !is null && expected  is null) return false;
     if(value  is null && expected  is null) return true;
 
-    template IsFieldOf(T, string s) {
-        static if(__traits(compiles, IsField!(typeof(__traits(getMember, T.init, s)))))
-            enum IsFieldOf = IsField!(typeof(__traits(getMember, T.init, s)));
+    // If it has opEquals, use it
+    static if(staticIndexOf!("opEquals", __traits(derivedMembers, V)) != -1) {
+        pragma(msg, "Using opEquals for ", V, " and ", E);
+        return value.opEquals(expected);
+    } else {
+
+        template IsFieldOf(T, string s) {
+            static if(__traits(compiles, IsField!(typeof(__traits(getMember, T.init, s)))))
+                enum IsFieldOf = IsField!(typeof(__traits(getMember, T.init, s)));
+            else
+                enum IsFieldOf = false;
+        }
+
+        auto members(T)(T obj) {
+            import std.typecons: Tuple;
+
+            alias Member(string name) = typeof(__traits(getMember, T, name));
+            alias IsFieldOfT(string s) = IsFieldOf!(T, s);
+            alias FieldNames = Filter!(IsFieldOfT, __traits(allMembers, T));
+            alias FieldTypes = staticMap!(Member, FieldNames);
+
+            Tuple!FieldTypes ret;
+            foreach(i, name; FieldNames)
+                ret[i] = __traits(getMember, obj, name);
+
+            return ret;
+        }
+
+        static if(is(V == interface))
+            return false;
         else
-            enum IsFieldOf = false;
+            return members(value) == members(expected);
     }
-
-    auto members(T)(T obj) {
-        import std.typecons: Tuple;
-
-        alias Member(string name) = typeof(__traits(getMember, T, name));
-        alias IsFieldOfT(string s) = IsFieldOf!(T, s);
-        alias FieldNames = Filter!(IsFieldOfT, __traits(allMembers, T));
-        alias FieldTypes = staticMap!(Member, FieldNames);
-
-        Tuple!FieldTypes ret;
-        foreach(i, name; FieldNames)
-            ret[i] = __traits(getMember, obj, name);
-
-        return ret;
-    }
-
-    static if(is(V == interface))
-        return false;
-    else
-        return members(value) == members(expected);
 }
 
 

@@ -543,7 +543,10 @@ unittest {
 }
 
 @safe unittest {
-    shouldEqual(new Object, new Object);
+    // Object.opEquals isn't scope and therefore not @safe
+    () @trusted {
+        shouldNotEqual(new Object, new Object);
+    }();
 }
 
 
