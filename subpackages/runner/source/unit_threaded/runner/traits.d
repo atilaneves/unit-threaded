@@ -4,14 +4,6 @@
  */
 module unit_threaded.runner.traits;
 
-private template Identity(T...) if(T.length > 0) {
-    static if(__traits(compiles, { alias x = T[0]; }))
-        alias Identity = T[0];
-    else
-        enum Identity = T[0];
-}
-
-
 /**
  * For the given module, return true if this module's member has
  * the given UDA. UDAs can be types or values.
