@@ -19,15 +19,6 @@ unittest {
     static assert(HasAttribute!(unit_threaded.ut.modules.module_with_attrs, "testValues", ShouldFail));
 }
 
-unittest {
-    import unit_threaded.runner.attrs;
-    import std.meta;
-
-    @Types!(int, float) int i;
-    static assert(HasTypes!i);
-    static assert(is(GetTypes!i == AliasSeq!(Types!(int, float))));
-
-}
 
 unittest {
     import unit_threaded.runner.attrs;

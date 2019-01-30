@@ -72,49 +72,6 @@ template isTypesAttr(alias T) {
 }
 
 
-/*
- @Types is different from the other UDAs since it's a templated struct
- None of the templates above work so we special case it here
-*/
-
-/// If a test has the @Types UDA
-enum HasTypes(alias T) = GetTypes!T.length > 0;
-
-// /// Returns the types in the @Types UDA associated to a test
-// template GetTypes(alias T) {
-//     import std.meta: Filter, AliasSeq;
-//     import std.traits: TemplateArgsOf;
-
-//     static if(!__traits(compiles, __traits(getAttributes, T))) {
-//         alias GetTypes = AliasSeq!();
-//     } else {
-//         alias types = Filter!(isTypesAttr, __traits(getAttributes, T));
-//         static if(types.length > 0)
-//             alias GetTypes = TemplateArgsOf!(types[0]);
-//         else
-//             alias GetTypes = AliasSeq!();
-//     }
-// }
-
-
-/// gets all types associated with a test by the @Types UDA
-template GetTypes(alias F) {
-    import unit_threaded.runner.attrs: Types;
-    import std.traits: getUDAs;
-
-    static if(__traits(compiles, getUDAs!(F, Types))) {
-        alias GetTypes = getUDAs!(F, Types);
-    } else {
-        import std.meta: AliasSeq;
-        alias GetTypes = AliasSeq!();
-    }
-}
-
-
-
-
-
-
 // copy of recent hasUDA from Phobos here because old
 // compilers will fail otherwise
 

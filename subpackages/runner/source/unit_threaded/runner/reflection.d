@@ -423,7 +423,8 @@ private template isStringUDA(alias T) {
 }
 
 private template isPrivate(alias module_, string moduleMember) {
-    import unit_threaded.runner.traits: HasTypes;
+    import unit_threaded.runner.attrs: Types;
+    import std.traits: hasUDA;
 
     alias ut_mmbr__ = Identity!(__traits(getMember, module_, moduleMember));
 
@@ -432,8 +433,8 @@ private template isPrivate(alias module_, string moduleMember) {
             enum isPrivate = false;
         else static if(__traits(compiles, new ut_mmbr__))
             enum isPrivate = false;
-        else static if(__traits(compiles, HasTypes!ut_mmbr__))
-            enum isPrivate = !HasTypes!ut_mmbr__;
+        else static if(__traits(compiles, hasUDA!(ut_mmbr__, Types)))
+            enum isPrivate = !hasUDA!(ut_mmbr__, Types);
         else
             enum isPrivate = true;
     } else {
@@ -563,10 +564,10 @@ TestData[] moduleTestFunctions(alias module_)() pure {
 
     template isTestFunction(alias module_, string moduleMember) {
         import unit_threaded.runner.meta: importMember;
-        import unit_threaded.runner.attrs: UnitTest;
-        import unit_threaded.runner.traits: HasAttribute, GetTypes;
+        import unit_threaded.runner.attrs: UnitTest, Types;
+        import unit_threaded.runner.traits: HasAttribute;
         import std.meta: AliasSeq;
-        import std.traits: isSomeFunction;
+        import std.traits: isSomeFunction, hasUDA;
 
         alias member = Identity!(__traits(getMember, module_, moduleMember));
 
@@ -580,11 +581,10 @@ TestData[] moduleTestFunctions(alias module_)() pure {
         } else static if(__traits(compiles, __traits(getAttributes, member))) {
             // in this case we handle the possibility of a template function with
             // the @Types UDA attached to it
-            alias types = GetTypes!member;
             enum hasTestName =
                 hasTestPrefix!(module_, moduleMember) ||
                 HasAttribute!(module_, moduleMember, UnitTest);
-            enum isTestFunction = hasTestName && types.length > 0;
+            enum isTestFunction = hasTestName && hasUDA!(member, Types);
         } else {
             enum isTestFunction = false;
         }
@@ -625,9 +625,10 @@ TestData[] moduleTestFunctions(alias module_)() pure {
 */
 private TestData[] createFuncTestData(alias module_, string moduleMember)() {
     import unit_threaded.runner.meta: importMember;
-    import unit_threaded.runner.traits: GetAttributes, HasAttribute, GetTypes, HasTypes;
+    import unit_threaded.runner.traits: GetAttributes, HasAttribute;
     import unit_threaded.runner.attrs;
     import std.meta: aliasSeqOf;
+    import std.traits: hasUDA;
 
     mixin(importMember!module_(moduleMember));
     alias testFunction = Identity!(mixin(moduleMember));
@@ -641,7 +642,7 @@ private TestData[] createFuncTestData(alias module_, string moduleMember)() {
         else
             return createValueParamFuncTestData!(module_, moduleMember, testFunction);
 
-    } else static if(HasTypes!(testFunction)) { // template function with @Types
+    } else static if(hasUDA!(testFunction, Types)) { // template function with @Types
         return createTypeParamFuncTestData!(module_, moduleMember, testFunction);
     } else {
         return [];
