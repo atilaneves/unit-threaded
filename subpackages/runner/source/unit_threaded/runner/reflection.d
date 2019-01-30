@@ -108,20 +108,10 @@ const(TestData)[] allTestData(MOD_STRINGS...)()
 const(TestData)[] allTestData(MOD_SYMBOLS...)()
     if(!from!"std.meta".anySatisfy!(from!"std.traits".isSomeString, typeof(MOD_SYMBOLS)))
 {
-    auto allTestsWithFunc(string expr)() pure {
-        import std.traits: ReturnType;
-        import std.meta: AliasSeq;
-        //tests is whatever type expr returns
-        ReturnType!(mixin(expr ~ q{!(MOD_SYMBOLS[0])})) tests;
-        foreach(module_; AliasSeq!MOD_SYMBOLS) {
-            tests ~= mixin(expr ~ q{!module_()}); //e.g. tests ~= moduleTestClasses!module_
-        }
-        return tests;
-    }
-
-    return allTestsWithFunc!"moduleTestClasses" ~
-           allTestsWithFunc!"moduleTestFunctions" ~
-           allTestsWithFunc!"moduleUnitTests";
+    return
+        moduleTestClasses!MOD_SYMBOLS ~
+        moduleTestFunctions!MOD_SYMBOLS ~
+        moduleUnitTests!MOD_SYMBOLS;
 }
 
 
@@ -160,6 +150,19 @@ template TestNameFromAttr(alias testFunction) {
         enum TestNameFromAttr = "";
 }
 
+/**
+ * Finds all built-in unittest blocks in the given modules.
+ * Recurses into structs, classes, and unions of the modules.
+ *
+ * @return An array of TestData structs
+ */
+TestData[] moduleUnitTests(modules...)() {
+    TestData[] ret;
+    static foreach(module_; modules) {
+        ret ~= moduleUnitTests_!module_;
+    }
+    return ret;
+}
 
 /**
  * Finds all built-in unittest blocks in the given module.
@@ -167,7 +170,7 @@ template TestNameFromAttr(alias testFunction) {
  *
  * @return An array of TestData structs
  */
-TestData[] moduleUnitTests(alias module_)() pure nothrow {
+private TestData[] moduleUnitTests_(alias module_)() {
 
     // Return a name for a unittest block. If no @Name UDA is found a name is
     // created automatically, else the UDA is used.
@@ -526,7 +529,7 @@ private template PassesTestPred(alias module_, alias pred, string moduleMember) 
  * Finds all test classes (classes implementing a test() function)
  * in the given module
  */
-TestData[] moduleTestClasses(alias module_)() pure nothrow {
+TestData[] moduleTestClasses(modules...)() pure nothrow {
 
     template isTestClass(alias module_, string moduleMember) {
         import unit_threaded.runner.attrs: UnitTest;
@@ -550,7 +553,13 @@ TestData[] moduleTestClasses(alias module_)() pure nothrow {
         }
     }
 
-    return moduleTestData!(module_, isTestClass, memberTestData);
+    TestData[] ret;
+
+    static foreach(module_; modules) {
+        ret ~= moduleTestData!(module_, isTestClass, memberTestData);
+    }
+
+    return ret;
 }
 
 
@@ -558,7 +567,7 @@ TestData[] moduleTestClasses(alias module_)() pure nothrow {
  * Finds all test functions in the given module.
  * Returns an array of TestData structs
  */
-TestData[] moduleTestFunctions(alias module_)() pure {
+TestData[] moduleTestFunctions(modules...)() {
 
     template isTestFunction(alias module_, string moduleMember) {
         import unit_threaded.runner.attrs: UnitTest, Types;
@@ -604,7 +613,13 @@ TestData[] moduleTestFunctions(alias module_)() pure {
         }
     }
 
-    return moduleTestData!(module_, isTestFunction, createFuncTestData);
+    TestData[] ret;
+
+    static foreach(module_; modules) {
+        ret ~= moduleTestData!(module_, isTestFunction, createFuncTestData);
+    }
+
+    return ret;
 }
 
 
