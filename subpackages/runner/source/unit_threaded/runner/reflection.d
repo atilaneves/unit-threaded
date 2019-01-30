@@ -679,7 +679,7 @@ private TestData[] createValueParamFuncTestData(alias module_, string moduleMemb
     bool hasAttributesForAllParams() {
         auto ret = true;
         static foreach(P; params) {
-            static if(GetAttributes!(module_, moduleMember, P).length == 0) ret = false;
+            static if(GetAttributes!(member, P).length == 0) ret = false;
         }
         return ret;
     }
@@ -695,12 +695,12 @@ private TestData[] createValueParamFuncTestData(alias module_, string moduleMemb
 
         static if(arity!testFunction == 1) {
             // bind a range of tuples to prod just as cartesianProduct returns
-            enum prod = [GetAttributes!(module_, moduleMember, params[0])].map!(a => tuple(a));
+            enum prod = [GetAttributes!(member, params[0])].map!(a => tuple(a));
         } else {
             import std.conv: text;
 
             mixin(`enum prod = cartesianProduct(` ~ params.length.iota.map!
-                  (a => `[GetAttributes!(module_, moduleMember, params[` ~ guaranteedToString(a) ~ `])]`).join(", ") ~ `);`);
+                  (a => `[GetAttributes!(member, params[` ~ guaranteedToString(a) ~ `])]`).join(", ") ~ `);`);
         }
 
         TestData[] testData;
