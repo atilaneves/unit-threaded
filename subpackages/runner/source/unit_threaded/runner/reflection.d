@@ -564,8 +564,6 @@ TestData[] moduleTestClasses(alias module_)() pure nothrow {
  */
 TestData[] moduleTestFunctions(alias module_)() pure {
 
-    import unit_threaded.runner.traits: isTypesAttr;
-
     template isTestFunction(alias module_, string moduleMember) {
         import unit_threaded.runner.meta: importMember;
         import unit_threaded.runner.attrs: UnitTest, Types;
