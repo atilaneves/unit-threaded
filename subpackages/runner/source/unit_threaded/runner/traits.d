@@ -70,39 +70,3 @@ template isTypesAttr(alias T) {
     import unit_threaded.runner.attrs;
     enum isTypesAttr = is(T) && is(T:Types!U, U...);
 }
-
-
-// copy of recent hasUDA from Phobos here because old
-// compilers will fail otherwise
-
-enum hasUtUDA(alias symbol, alias attribute) = getUtUDAs!(symbol, attribute).length > 0;
-
-template getUtUDAs(alias symbol, alias attribute)
-{
-    import std.meta : Filter;
-    import std.traits: isInstanceOf;
-
-    template isDesiredUDA(alias toCheck)
-    {
-        static if (is(typeof(attribute)) && !__traits(isTemplate, attribute))
-        {
-            static if (__traits(compiles, toCheck == attribute))
-                enum isDesiredUDA = toCheck == attribute;
-            else
-                enum isDesiredUDA = false;
-        }
-        else static if (is(typeof(toCheck)))
-        {
-            static if (__traits(isTemplate, attribute))
-                enum isDesiredUDA =  isInstanceOf!(attribute, typeof(toCheck));
-            else
-                enum isDesiredUDA = is(typeof(toCheck) == attribute);
-        }
-        else static if (__traits(isTemplate, attribute))
-            enum isDesiredUDA = isInstanceOf!(attribute, toCheck);
-        else
-            enum isDesiredUDA = is(toCheck == attribute);
-    }
-
-    alias getUtUDAs = Filter!(isDesiredUDA, __traits(getAttributes, symbol));
-}

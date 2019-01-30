@@ -18,14 +18,3 @@ unittest {
 
     static assert(HasAttribute!(unit_threaded.ut.modules.module_with_attrs, "testValues", ShouldFail));
 }
-
-
-unittest {
-    import unit_threaded.runner.attrs;
-    import unit_threaded.ut.modules.module_with_attrs;
-    import std.traits: hasUDA;
-
-    static assert(hasUtUDA!(unit_threaded.ut.modules.module_with_attrs.testOtherAttrs, ShouldFailWith));
-    static assert(hasUtUDA!(unit_threaded.ut.modules.module_with_attrs.testOtherAttrs, ShouldFailWith!Exception));
-    static assert(!hasUtUDA!(unit_threaded.ut.modules.module_with_attrs.testOtherAttrs, ShouldFailWith!Throwable));
-}

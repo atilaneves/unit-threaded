@@ -239,7 +239,6 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
     void addMemberUnittests(alias composite)() pure nothrow {
 
         import unit_threaded.runner.attrs;
-        import unit_threaded.runner.traits: hasUtUDA;
         import std.traits: hasUDA;
         import std.meta: Filter, aliasSeqOf;
         import std.algorithm: map, cartesianProduct;
@@ -253,7 +252,7 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
 
                 enum name = unittestName!(eLtEstO, index);
                 enum hidden = hasUDA!(eLtEstO, HiddenTest);
-                enum shouldFail = hasUDA!(eLtEstO, ShouldFail) || hasUtUDA!(eLtEstO, ShouldFailWith);
+                enum shouldFail = hasUDA!(eLtEstO, ShouldFail) || hasUDA!(eLtEstO, ShouldFailWith);
                 enum singleThreaded = hasUDA!(eLtEstO, Serial);
                 enum builtin = true;
                 enum suffix = "";
@@ -370,11 +369,11 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
 }
 
 private TypeInfo getExceptionTypeInfo(alias Test)() {
-    import unit_threaded.runner.traits: hasUtUDA, getUtUDAs;
     import unit_threaded.runner.attrs: ShouldFailWith;
+    import std.traits: hasUDA, getUDAs;
 
-    static if(hasUtUDA!(Test, ShouldFailWith)) {
-        alias uda = getUtUDAs!(Test, ShouldFailWith)[0];
+    static if(hasUDA!(Test, ShouldFailWith)) {
+        alias uda = getUDAs!(Test, ShouldFailWith)[0];
         return typeid(uda.Type);
     } else
         return null;
