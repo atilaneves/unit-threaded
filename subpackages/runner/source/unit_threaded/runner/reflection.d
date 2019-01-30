@@ -330,8 +330,9 @@ private TestData[] moduleUnitTests_(alias module_)() {
         visitedMembers[composite.mangleof] = true;
         addMemberUnittests!composite();
 
-        foreach(member; __traits(allMembers, composite)){
+        foreach(member; __traits(allMembers, composite)) {
 
+            // isPrivate can't be used here. I don't know why.
             static if(__traits(compiles, __traits(getProtection, __traits(getMember, module_, member))))
                 enum notPrivate = __traits(getProtection, __traits(getMember, module_, member)) != "private";
             else
@@ -352,7 +353,6 @@ private TestData[] moduleUnitTests_(alias module_)() {
     }
 
     void recurse(child)() pure nothrow {
-        enum notPrivate = __traits(compiles, child.init); //only way I know to check if private
         static if (is(child == class) || is(child == struct) || is(child == union)) {
             addUnitTestsRecursively!child;
         }
@@ -416,23 +416,12 @@ private template isStringUDA(alias T) {
 }
 
 private template isPrivate(alias module_, string moduleMember) {
-    import unit_threaded.runner.attrs: Types;
-    import std.traits: hasUDA;
-
     alias ut_mmbr__ = Identity!(__traits(getMember, module_, moduleMember));
 
-    static if(__traits(compiles, isSomeFunction!(ut_mmbr__))) {
-        static if(__traits(compiles, &ut_mmbr__))
-            enum isPrivate = false;
-        else static if(__traits(compiles, new ut_mmbr__))
-            enum isPrivate = false;
-        else static if(__traits(compiles, hasUDA!(ut_mmbr__, Types)))
-            enum isPrivate = !hasUDA!(ut_mmbr__, Types);
-        else
-            enum isPrivate = true;
-    } else {
+    static if(__traits(compiles, __traits(getProtection, ut_mmbr__)))
+        enum isPrivate = __traits(getProtection, ut_mmbr__) == "private";
+    else
         enum isPrivate = true;
-    }
 }
 
 
@@ -451,13 +440,8 @@ private template PassesTestPred(alias module_, alias pred, string moduleMember) 
         else
             enum hasDontTest = false;
 
-        static if(__traits(compiles, __traits(getProtection, member)))
-            enum notPrivate = __traits(getProtection, member) != "private";
-        else
-            enum notPrivate = false;
-
         enum PassesTestPred =
-            notPrivate &&
+            !isPrivate!(module_, moduleMember) &&
             pred!(module_, moduleMember) &&
             !hasDontTest;
 
