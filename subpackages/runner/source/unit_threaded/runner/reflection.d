@@ -680,8 +680,8 @@ private TestData[] createValueParamFuncTestData(alias module_, string moduleMemb
 
     bool hasAttributesForAllParams() {
         auto ret = true;
-        foreach(P; params) {
-            if(tuple(GetAttributes!(module_, moduleMember, P)).length == 0) ret = false;
+        static foreach(P; params) {
+            static if(GetAttributes!(module_, moduleMember, P).length == 0) ret = false;
         }
         return ret;
     }
