@@ -773,9 +773,10 @@ private TestData[] createTypeParamFuncTestData(alias module_, string moduleMembe
                 else
                     enum string[] extraTags = [];
 
-                testData ~= memberTestData!(module_, moduleMember, extraTags)(
+                testData ~= memberTestData!testFunction(
                     () { testFunction!(%s)(); },
                     %s,
+                    extraTags
                 );
             }
         }.format(typeVars, typeIds);
@@ -853,6 +854,41 @@ private TestData memberTestData
     return TestData(fullyQualifiedName!module_~ "." ~ name,
                     testFunction,
                     HasAttribute!(module_, moduleMember, HiddenTest),
+                    shouldFail,
+                    singleThreaded,
+                    builtin,
+                    suffix,
+                    tags ~ extraTags,
+                    exceptionTypeInfo,
+                    flakyRetries);
+}
+
+private TestData memberTestData(alias member)
+                               (TestFunction testFunction, string suffix = "", string[] extraTags = [])
+{
+    import unit_threaded.runner.attrs;
+    import std.traits: hasUDA, getUDAs;
+    import std.meta: Alias;
+
+    enum singleThreaded = hasUDA!(member, Serial);
+    enum builtin = false;
+    enum tags = tagsFromAttrs!(getUDAs!(member, Tags));
+    enum exceptionTypeInfo = getExceptionTypeInfo!member;
+    enum shouldFail = hasUDA!(member, ShouldFail) || hasUDA!(member, ShouldFailWith);
+    enum flakyRetries = getFlakyRetries!member;
+    // change names if explicitly asked to with a @Name UDA
+    enum nameFromAttr = TestNameFromAttr!member;
+
+    static if(nameFromAttr == "")
+        enum name = __traits(identifier, member);
+    else
+        enum name = nameFromAttr;
+
+    alias module_ = Alias!(__traits(parent, member));
+
+    return TestData(fullyQualifiedName!module_~ "." ~ name,
+                    testFunction,
+                    hasUDA!(member, HiddenTest),
                     shouldFail,
                     singleThreaded,
                     builtin,
