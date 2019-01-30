@@ -179,8 +179,7 @@ private TestData[] moduleUnitTests_(alias module_)() {
     string unittestName(alias _theUnitTest, int index)() @safe nothrow {
         import std.conv: text;
         import std.algorithm: startsWith, endsWith;
-
-        mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
+        import std.traits: fullyQualifiedName;
 
         enum prefix = fullyQualifiedName!(__traits(parent, _theUnitTest)) ~ ".";
         enum nameFromAttr = TestNameFromAttr!_theUnitTest;
@@ -208,19 +207,7 @@ private TestData[] moduleUnitTests_(alias module_)() {
     }
 
     void function() getUDAFunction(alias composite, alias uda)() pure nothrow {
-        import std.traits: fullyQualifiedName, moduleName, isSomeFunction, hasUDA;
-
-        // Due to:
-        // https://issues.dlang.org/show_bug.cgi?id=17441
-        // moduleName!composite might fail, so we try to import that only if
-        // if compiles, then try again with fullyQualifiedName
-        enum moduleNameStr = `import ` ~ moduleName!composite ~ `;`;
-        enum fullyQualifiedStr = `import ` ~ fullyQualifiedName!composite ~ `;`;
-
-        static if(__traits(compiles, mixin(moduleNameStr)))
-            mixin(moduleNameStr);
-        else static if(__traits(compiles, mixin(fullyQualifiedStr)))
-            mixin(fullyQualifiedStr);
+        import std.traits: isSomeFunction, hasUDA;
 
         void function()[] ret;
         foreach(memberStr; __traits(allMembers, composite)) {
@@ -336,16 +323,20 @@ private TestData[] moduleUnitTests_(alias module_)() {
     bool[string] visitedMembers;
 
     void addUnitTestsRecursively(alias composite)() pure nothrow {
-        import std.traits: fullyQualifiedName;
-
-        mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
 
         if (composite.mangleof in visitedMembers)
             return;
+
         visitedMembers[composite.mangleof] = true;
         addMemberUnittests!composite();
+
         foreach(member; __traits(allMembers, composite)){
-            enum notPrivate = __traits(compiles, mixin(member)); //only way I know to check if private
+
+            static if(__traits(compiles, __traits(getProtection, __traits(getMember, module_, member))))
+                enum notPrivate = __traits(getProtection, __traits(getMember, module_, member)) != "private";
+            else
+                enum notPrivate = false;
+
             static if (
                 notPrivate &&
                 // If visibility of the member is deprecated, the next line still returns true
@@ -636,16 +627,10 @@ TestData[] moduleTestFunctions(modules...)() {
 */
 private TestData[] createFuncTestData(alias module_, string moduleMember)() {
     import unit_threaded.runner.attrs;
-    import std.meta: aliasSeqOf;
+    import std.meta: aliasSeqOf, Alias;
     import std.traits: hasUDA;
 
-    string importMember(alias module_)(string moduleMember) {
-        import std.traits: fullyQualifiedName;
-        return "import " ~ fullyQualifiedName!module_ ~ `: ` ~ moduleMember ~ ";";
-    }
-
-    mixin(importMember!module_(moduleMember));
-    alias testFunction = Identity!(mixin(moduleMember));
+    alias testFunction = Alias!(__traits(getMember, module_, moduleMember));
 
     enum isRegularFunction = __traits(compiles, &__traits(getMember, module_, moduleMember));
 
