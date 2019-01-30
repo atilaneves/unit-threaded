@@ -438,81 +438,31 @@ private template isPrivate(alias module_, string moduleMember) {
 
 // if this member is a test function or class, given the predicate
 private template PassesTestPred(alias module_, alias pred, string moduleMember) {
-    import unit_threaded.runner.attrs: DontTest;
-    import std.traits: fullyQualifiedName, hasUDA;
 
-    mixin("import " ~ fullyQualifiedName!module_ ~ ";");
-    alias I(T...) = T;
-    static if(!__traits(compiles, I!(__traits(getMember, module_, moduleMember)))) {
-        enum PassesTestPred = false;
-    } else {
+    static if(__traits(compiles, Identity!(__traits(getMember, module_, moduleMember)))) {
+
+        import unit_threaded.runner.attrs: DontTest;
+        import std.traits: hasUDA;
+
         alias member = Identity!(__traits(getMember, module_, moduleMember));
-
-        template canCheckIfSomeFunction(T...) {
-            enum canCheckIfSomeFunction = T.length == 1 && __traits(compiles, isSomeFunction!(T[0]));
-        }
-
-        private string funcCallMixin(alias T)() {
-            import std.conv: to;
-            string[] args;
-            foreach(i, ParamType; Parameters!T) {
-                args ~= `arg` ~ i.to!string;
-            }
-
-            return moduleMember ~ `(` ~ args.join(`,`) ~ `);`;
-        }
-
-        private string argsMixin(alias T)() {
-            import std.conv: to;
-            string[] args;
-            foreach(i, ParamType; Parameters!T) {
-                args ~= ParamType.stringof ~ ` arg` ~ i.to!string ~ `;`;
-            }
-
-            return args.join("\n");
-        }
-
-        template canCallMember() {
-            void _f() {
-                mixin(argsMixin!member);
-                mixin(funcCallMixin!member);
-            }
-        }
-
-        template canInstantiate() {
-            void _f() {
-                mixin(`auto _ = new ` ~ moduleMember ~ `;`);
-            }
-        }
-
-        template isPrivate() {
-            static if(!canCheckIfSomeFunction!member) {
-                enum isPrivate = !__traits(compiles, __traits(getMember, module_, moduleMember));
-            } else {
-                static if(isSomeFunction!member) {
-                    enum isPrivate = !__traits(compiles, canCallMember!());
-                } else static if(is(member)) {
-                    static if(isAggregateType!member)
-                        enum isPrivate = !__traits(compiles, canInstantiate!());
-                    else
-                        enum isPrivate = !__traits(compiles, __traits(getMember, module_, moduleMember));
-                } else {
-                    enum isPrivate = !__traits(compiles, __traits(getMember, module_, moduleMember));
-                }
-            }
-        }
 
         static if(__traits(compiles, hasUDA!(member, DontTest)))
             enum hasDontTest = hasUDA!(member, DontTest);
         else
             enum hasDontTest = false;
 
-        enum notPrivate = !isPrivate!();
+        static if(__traits(compiles, __traits(getProtection, member)))
+            enum notPrivate = __traits(getProtection, member) != "private";
+        else
+            enum notPrivate = false;
+
         enum PassesTestPred =
-            !isPrivate!() &&
+            notPrivate &&
             pred!(module_, moduleMember) &&
             !hasDontTest;
-    }
+
+    } else
+        enum PassesTestPred = false;
 }
 
 
