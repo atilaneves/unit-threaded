@@ -63,7 +63,10 @@ enum AutoTags;
     Normally this would be a template but I don't know how to write
  *  the UDA code to filter a template out
  */
-struct Types(T...) {}
+struct Types(T...) {
+    alias types = T;
+    enum length = T.length;
+}
 
 
 /**

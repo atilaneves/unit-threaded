@@ -25,7 +25,7 @@ unittest {
 
     @Types!(int, float) int i;
     static assert(HasTypes!i);
-    static assert(is(GetTypes!i == AliasSeq!(int, float)));
+    static assert(is(GetTypes!i == AliasSeq!(Types!(int, float))));
 
 }
 

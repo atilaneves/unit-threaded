@@ -297,8 +297,34 @@ unittest {
 
     assertEqual(testData.find!(a => a.getPath.canFind("2.bar")).front.tags,
                 ["2", "bar"]);
-
 }
+
+
+@("Cartesian types") unittest {
+    import unit_threaded.runner.factory;
+    import unit_threaded.runner.testcase;
+    import unit_threaded.should: shouldBeSameSetAs;
+    import unit_threaded.ut.modules.parametrized;
+    import unit_threaded.runner.attrs: getValue;
+
+    const testData = allTestData!(unit_threaded.ut.modules.parametrized).
+        filter!(a => a.name.canFind("cartesian_types")).array;
+    assertEqual(testData.length, 6);
+
+    auto tests = createTestCases(testData);
+    tests.map!(a => a.getPath).array.shouldBeSameSetAs(
+            addModPrefix(["int.string", "int.Foo", "int.Bar", "float.string", "float.Foo", "float.Bar"].
+                             map!(a => "cartesian_types." ~ a).array,
+                             "unit_threaded.ut.modules.parametrized"));
+    assertEqual(tests.length, 6);
+
+    auto intFoo = tests.find!(a => a.getPath.canFind("int.Foo")).front;
+    assertPass(intFoo);
+
+    auto floatString = tests.find!(a => a.getPath.canFind("float.string")).front;
+    assertFail(floatString);
+}
+
 
 @("module setup and shutdown")
 unittest {

@@ -244,6 +244,7 @@ TestData[] moduleUnitTests(alias module_)() pure nothrow {
         import std.meta: Filter, aliasSeqOf;
         import std.algorithm: map, cartesianProduct;
 
+        // weird name for hygiene reasons
         foreach(index, eLtEstO; __traits(getUnitTests, composite)) {
 
             enum dontTest = hasUDA!(eLtEstO, DontTest);
@@ -717,26 +718,84 @@ private TestData[] createValueParamFuncTestData(alias module_, string moduleMemb
     }
 }
 
+
 // template function with @Types
-private TestData[] createTypeParamFuncTestData(alias module_, string moduleMember, alias testFunction)() {
+private TestData[] createTypeParamFuncTestData(alias module_, string moduleMember, alias testFunction)
+                                              ()
+{
+    import unit_threaded.attrs: Types, AutoTags;
+    import std.traits: getUDAs, hasUDA;
 
-    import unit_threaded.runner.traits: HasAttribute, GetTypes, HasTypes;
-    import unit_threaded.runner.attrs: AutoTags;
+    alias typesAttrs = getUDAs!(testFunction, Types);
+    static assert(typesAttrs.length > 0);
 
-    alias types = GetTypes!(testFunction);
     TestData[] testData;
 
-    foreach(type; types) {
+    // To get a cartesian product of all @Types on the function, we use a mixin
+    string nestedForEachMixin() {
+        import std.array: join, array;
+        import std.range: iota, retro;
+        import std.algorithm: map;
+        import std.conv: text;
+        import std.format: format;
 
-        static if(HasAttribute!(module_, moduleMember, AutoTags))
-            enum extraTags = [type.stringof];
-        else
-            enum string[] extraTags = [];
+        string[] lines;
 
-        testData ~= memberTestData!(module_, moduleMember, extraTags)(
-            () { testFunction!type(); },
-            type.stringof);
+        string indentation(size_t n) {
+            string ret;
+            foreach(i; 0 .. n) ret ~= "    ";
+            return ret;
+        }
+
+        // e.g. 3 -> [type0, type1, type2]
+        string typeVars() {
+            return typesAttrs.length.iota.map!(i => text(`type`, i)).join(`, `);
+        }
+
+        // e.g. 3 -> [int, float, Foo]
+        string typeIds() {
+            return typesAttrs.length.iota.map!(i => text(`type`, i, `.stringof`)).join(` ~ "." ~ `);
+        }
+
+        // nested static foreachs, one per attribute
+        lines ~= typesAttrs
+            .length
+            .iota
+            .map!(i => indentation(i) ~ `static foreach(type%s; typesAttrs[%s].types) {`.format(i, i))
+            .array
+            ;
+
+        lines ~= q{
+            {
+                static if(hasUDA!(testFunction, AutoTags))
+                    enum extraTags = [type0.stringof]; // FIXME
+                else
+                    enum string[] extraTags = [];
+
+                testData ~= memberTestData!(module_, moduleMember, extraTags)(
+                    () { testFunction!(%s)(); },
+                    %s,
+                );
+            }
+        }.format(typeVars, typeIds);
+
+        // close all static foreach braces
+        lines ~= typesAttrs
+            .length
+            .iota
+            .retro
+            .map!(i => indentation(i) ~ `}`)
+            .array
+            ;
+
+        return lines.join("\n");
     }
+
+
+
+    enum mixinStr = nestedForEachMixin;
+    //pragma(msg, "\n", mixinStr, "\n");
+    mixin(mixinStr);
 
     return testData;
 }
