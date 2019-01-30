@@ -444,12 +444,9 @@ private template isPrivate(alias module_, string moduleMember) {
 
 // if this member is a test function or class, given the predicate
 private template PassesTestPred(alias module_, alias pred, string moduleMember) {
-    import unit_threaded.runner.meta: importMember;
     import unit_threaded.runner.attrs: DontTest;
     import std.traits: fullyQualifiedName, hasUDA;
 
-    //should be the line below instead but a compiler bug prevents it
-    //mixin(importMember!module_(moduleMember));
     mixin("import " ~ fullyQualifiedName!module_ ~ ";");
     alias I(T...) = T;
     static if(!__traits(compiles, I!(__traits(getMember, module_, moduleMember)))) {
@@ -532,7 +529,6 @@ private template PassesTestPred(alias module_, alias pred, string moduleMember) 
 TestData[] moduleTestClasses(alias module_)() pure nothrow {
 
     template isTestClass(alias module_, string moduleMember) {
-        import unit_threaded.runner.meta: importMember;
         import unit_threaded.runner.attrs: UnitTest;
         import std.traits: isAggregateType, hasUDA;
 
@@ -565,7 +561,6 @@ TestData[] moduleTestClasses(alias module_)() pure nothrow {
 TestData[] moduleTestFunctions(alias module_)() pure {
 
     template isTestFunction(alias module_, string moduleMember) {
-        import unit_threaded.runner.meta: importMember;
         import unit_threaded.runner.attrs: UnitTest, Types;
         import std.meta: AliasSeq;
         import std.traits: isSomeFunction, hasUDA;
@@ -594,7 +589,6 @@ TestData[] moduleTestFunctions(alias module_)() pure {
 
     template hasTestPrefix(alias module_, string memberName) {
         import std.uni: isUpper;
-        import unit_threaded.runner.meta: importMember;
 
         alias member = Identity!(__traits(getMember, module_, memberName));
 
@@ -626,10 +620,14 @@ TestData[] moduleTestFunctions(alias module_)() pure {
    ------
 */
 private TestData[] createFuncTestData(alias module_, string moduleMember)() {
-    import unit_threaded.runner.meta: importMember;
     import unit_threaded.runner.attrs;
     import std.meta: aliasSeqOf;
     import std.traits: hasUDA;
+
+    string importMember(alias module_)(string moduleMember) {
+        import std.traits: fullyQualifiedName;
+        return "import " ~ fullyQualifiedName!module_ ~ `: ` ~ moduleMember ~ ";";
+    }
 
     mixin(importMember!module_(moduleMember));
     alias testFunction = Identity!(mixin(moduleMember));
