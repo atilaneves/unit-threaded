@@ -827,9 +827,6 @@ private TestData[] createTypeParamFuncTestData(alias module_, string moduleMembe
 // pred determines what qualifies as a test
 // createTestData must return TestData[]
 private TestData[] moduleTestData(alias module_, alias pred, alias createTestData)() pure {
-    import std.traits: fullyQualifiedName;
-    mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
-
     TestData[] testData;
 
     foreach(moduleMember; __traits(allMembers, module_)) {
