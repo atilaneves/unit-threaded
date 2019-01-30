@@ -650,12 +650,14 @@ private TestData[] createFuncTestData(alias module_, string moduleMember)() {
 }
 
 private TestData[] createRegularFuncTestData(alias module_, string moduleMember)() {
-    enum func = &__traits(getMember, module_, moduleMember);
+    import std.meta: Alias;
+
+    alias member = Alias!(__traits(getMember, module_, moduleMember));
+    enum func = &member;
 
     // the reason we're creating a lambda to call the function is that test functions
     // are ordinary functions, but we're storing delegates
-
-    return [ memberTestData!(module_, moduleMember)(() { func(); }) ]; //simple case, just call the function
+    return [ memberTestData!member(() { func(); }) ]; //simple case, just call the function
 }
 
 // for value parameterised tests
@@ -668,9 +670,10 @@ private TestData[] createValueParamFuncTestData(alias module_, string moduleMemb
     import std.algorithm: map;
     import std.typecons: tuple;
     import std.traits: arity;
-    import std.meta: aliasSeqOf;
+    import std.meta: aliasSeqOf, Alias;
 
     alias params = Parameters!testFunction;
+    alias member = Alias!(__traits(getMember, module_, moduleMember));
 
     bool hasAttributesForAllParams() {
         auto ret = true;
@@ -709,10 +712,12 @@ private TestData[] createValueParamFuncTestData(alias module_, string moduleMemb
                 enum string[] extraTags = [];
 
 
-            testData ~= memberTestData!(module_, moduleMember, extraTags)(
+            testData ~= memberTestData!member(
                 // testFunction(value0, value1, ...)
                 () { testFunction(comb.expand); },
-                valuesName);
+                valuesName,
+                extraTags,
+            );
         }
 
         return testData;
@@ -823,46 +828,19 @@ private TestData[] moduleTestData(alias module_, alias pred, alias createTestDat
 
 }
 
+// Deprecated: here for backwards compatibility
 // TestData for a member of a module (either a test function or a test class)
 private TestData memberTestData
     (alias module_, string moduleMember, string[] extraTags = [])
     (TestFunction testFunction = null, string suffix = "")
 {
-    import unit_threaded.runner.traits: HasAttribute, GetAttributes, hasUtUDA;
-    import unit_threaded.runner.attrs;
-    import std.traits: fullyQualifiedName;
-
-    mixin("import " ~ fullyQualifiedName!module_ ~ ";"); //so it's visible
-    alias member = Identity!(mixin(moduleMember));
-
-    immutable singleThreaded = HasAttribute!(module_, moduleMember, Serial);
-    enum builtin = false;
-    enum tags = tagsFromAttrs!(GetAttributes!(module_, moduleMember, Tags));
-    enum exceptionTypeInfo = getExceptionTypeInfo!member;
-    enum shouldFail =
-        HasAttribute!(module_, moduleMember, ShouldFail) ||
-        hasUtUDA!(member, ShouldFailWith);
-    enum flakyRetries = getFlakyRetries!member;
-    // change names if explicitly asked to with a @Name UDA
-    enum nameFromAttr = TestNameFromAttr!member;
-
-    static if(nameFromAttr == "")
-        enum name = moduleMember;
-    else
-        enum name = nameFromAttr;
-
-    return TestData(fullyQualifiedName!module_~ "." ~ name,
-                    testFunction,
-                    HasAttribute!(module_, moduleMember, HiddenTest),
-                    shouldFail,
-                    singleThreaded,
-                    builtin,
-                    suffix,
-                    tags ~ extraTags,
-                    exceptionTypeInfo,
-                    flakyRetries);
+    import std.meta: Alias;
+    alias member = Alias!(__traits(getMember, module_, moduleMember));
+    return memberTestData!member(testFunction, suffix, extraTags);
 }
 
+
+// TestData for a member of a module (either a test function or a test class)
 private TestData memberTestData(alias member)
                                (TestFunction testFunction, string suffix = "", string[] extraTags = [])
 {
