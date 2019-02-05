@@ -378,10 +378,6 @@ unittest {
     assert(!isEqual(1.0, 1.0001));
 }
 
-@safe unittest {
-    assert(isApproxEqual(1.0, 1.0));
-    assert(isApproxEqual(1.0, 1.0001));
-}
 
 @safe unittest {
     1.0.shouldApproxEqual(1.0001);
