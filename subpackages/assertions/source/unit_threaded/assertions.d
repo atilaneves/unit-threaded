@@ -902,12 +902,6 @@ auto should(E)(lazy E expr) {
         {
             shouldThrow!UnitTestException(shouldApproxEqual(expr, expected), file, line);
         }
-
-        // void opDispatch(string s, A...)(auto ref A args)
-        // {
-        //     import std.functional: forward;
-        //     mixin(`Should().` ~ string ~ `(forward!args)`);
-        // }
     }
 
     struct Should {
