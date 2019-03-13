@@ -578,18 +578,6 @@ unittest {
     assertFail(2.should.not.be == 2);
 }
 
-@("should.throw")
-@safe pure unittest {
-
-    void funcOk() {}
-
-    void funcThrows() {
-        throw new Exception("oops");
-    }
-
-    assertFail(funcOk.should.throw_);
-    funcThrows.should.throw_;
-}
 
 @("should.be in")
 @safe pure unittest {

@@ -870,7 +870,9 @@ void shouldBeSameJsonAs(in string actual,
 
 
 
-auto should(E)(lazy E expr) {
+auto should(V)(scope auto ref V value){
+
+    import std.functional: forward;
 
     struct ShouldNot {
 
@@ -878,14 +880,14 @@ auto should(E)(lazy E expr) {
                          in string file = __FILE__,
                          in size_t line = __LINE__)
         {
-            expr.shouldNotEqual(other, file, line);
+            shouldNotEqual(forward!value, other, file, line);
             return true;
         }
 
         void opBinary(string op, R)(R range,
                                     in string file = __FILE__,
                                     in size_t line = __LINE__) const if(op == "in") {
-            shouldNotBeIn(expr, range, file, line);
+            shouldNotBeIn(forward!value, range, file, line);
         }
 
         void opBinary(string op, R)(R range,
@@ -893,14 +895,14 @@ auto should(E)(lazy E expr) {
                                     in size_t line = __LINE__) const
             if(op == "~" && isInputRange!R)
         {
-            shouldThrow!UnitTestException(shouldBeSameSetAs(expr, range), file, line);
+            shouldThrow!UnitTestException(shouldBeSameSetAs(forward!value, range), file, line);
         }
 
         void opBinary(string op, E)
                      (in E expected, string file = __FILE__, size_t line = __LINE__)
             if (isFloatingPoint!E)
         {
-            shouldThrow!UnitTestException(shouldApproxEqual(expr, expected), file, line);
+            shouldThrow!UnitTestException(shouldApproxEqual(forward!value, expected), file, line);
         }
     }
 
@@ -909,27 +911,10 @@ auto should(E)(lazy E expr) {
         bool opEquals(U)(auto ref U other,
                          in string file = __FILE__,
                          in size_t line = __LINE__)
+            @safe
         {
-            expr.shouldEqual(other, file, line);
+            shouldEqual(forward!value, other, file, line);
             return true;
-        }
-
-        void throw_(T : Throwable = Exception)
-                   (in string file = __FILE__, in size_t line = __LINE__)
-        {
-            shouldThrow!T(expr, file, line);
-        }
-
-        void throwExactly(T : Throwable = Exception)
-                         (in string file = __FILE__, in size_t line = __LINE__)
-        {
-            shouldThrowExactly!T(expr, file, line);
-        }
-
-        void throwWithMessage(T : Throwable = Exception)
-                             (in string file = __FILE__, in size_t line = __LINE__)
-        {
-            shouldThrowWithMessage!T(expr, file, line);
         }
 
         void opBinary(string op, R)(R range,
@@ -937,7 +922,7 @@ auto should(E)(lazy E expr) {
                                     in size_t line = __LINE__) const
             if(op == "in")
         {
-            shouldBeIn(expr, range, file, line);
+            shouldBeIn(forward!value, range, file, line);
         }
 
         void opBinary(string op, R)(R range,
@@ -945,14 +930,14 @@ auto should(E)(lazy E expr) {
                                     in size_t line = __LINE__) const
             if(op == "~" && isInputRange!R)
         {
-            shouldBeSameSetAs(expr, range, file, line);
+            shouldBeSameSetAs(forward!value, range, file, line);
         }
 
         void opBinary(string op, E)
                      (in E expected, string file = __FILE__, size_t line = __LINE__)
             if (isFloatingPoint!E)
         {
-            shouldApproxEqual(expr, expected, 1e-2, 1e-5, file, line);
+            shouldApproxEqual(forward!value, expected, 1e-2, 1e-5, file, line);
         }
 
         auto not() {
@@ -963,16 +948,7 @@ auto should(E)(lazy E expr) {
     return Should();
 }
 
-///
-@safe pure unittest {
-    1.should == 1;
-    1.should.not == 2;
-    1.should in [1, 2, 3];
-    4.should.not in [1, 2, 3];
 
-    void funcThrows() { throw new Exception("oops"); }
-    funcThrows.should.throw_;
-}
 
 T be(T)(T sh) {
     return sh;
