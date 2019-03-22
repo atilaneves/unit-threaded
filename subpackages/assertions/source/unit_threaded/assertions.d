@@ -911,7 +911,6 @@ auto should(V)(scope auto ref V value){
         bool opEquals(U)(auto ref U other,
                          in string file = __FILE__,
                          in size_t line = __LINE__)
-            @safe
         {
             shouldEqual(forward!value, other, file, line);
             return true;
