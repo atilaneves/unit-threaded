@@ -404,7 +404,7 @@ void shouldThrowWithMessage(T : Throwable = Exception, E)(lazy E expr,
     if (!threw)
         fail("Expression did not throw", file, line);
 
-    threw.throwable.msg.shouldEqual(msg, file, line);
+    threw.msg.shouldEqual(msg, file, line);
 }
 
 ///
@@ -424,6 +424,7 @@ private auto threw(T : Throwable, E)(lazy E expr) @trusted
     {
         bool threw;
         TypeInfo typeInfo;
+        string msg;
         immutable(T) throwable;
 
         T opCast(T)() @safe @nogc const pure if (is(T == bool))
@@ -439,7 +440,7 @@ private auto threw(T : Throwable, E)(lazy E expr) @trusted
     }
     catch (T e)
     {
-        return ThrowResult(true, typeid(e), cast(immutable)e);
+        return ThrowResult(true, typeid(e), e.msg.dup, cast(immutable)e);
     }
 
     return ThrowResult(false);
