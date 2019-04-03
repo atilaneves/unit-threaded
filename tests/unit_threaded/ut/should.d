@@ -614,3 +614,17 @@ unittest {
     "foo".shouldEqual(voids);
     voids.shouldEqual("foo");
 }
+
+
+@("shouldBeBetween")
+@safe pure unittest {
+    import std.datetime: seconds;
+
+    5.shouldBeBetween(4, 6);
+    assertFail(1.shouldBeBetween(4, 6));
+    4.shouldBeBetween(4, 6);
+    assertFail(6.shouldBeBetween(4, 6));
+
+    3.seconds.shouldBeBetween(2.seconds, 4.seconds);
+    assertFail(1.seconds.shouldBeBetween(2.seconds, 4.seconds));
+}

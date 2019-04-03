@@ -588,7 +588,6 @@ bool isEqual(V, E)(scope V value, scope E expected)
 
     // If it has opEquals, use it
     static if(staticIndexOf!("opEquals", __traits(derivedMembers, V)) != -1) {
-        pragma(msg, "Using opEquals for ", V, " and ", E);
         return value.opEquals(expected);
     } else {
 
@@ -960,4 +959,20 @@ T be(T)(T sh) {
     1.should.not.be == 2;
     1.should.be in [1, 2, 3];
     4.should.not.be in [1, 2, 3];
+}
+
+
+/**
+   Asserts that `lowerBound` <= `actual` < `upperBound`
+ */
+void shouldBeBetween(A, L, U)
+    (auto ref A actual,
+     auto ref L lowerBound,
+     auto ref U upperBound,
+     in string file = __FILE__,
+     in size_t line = __LINE__)
+{
+    import std.conv: text;
+    if(actual < lowerBound || actual >= upperBound)
+        fail(text(actual, "is not between ", lowerBound, " and ", upperBound), file, line);
 }
