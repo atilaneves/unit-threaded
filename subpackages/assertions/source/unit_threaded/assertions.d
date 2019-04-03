@@ -974,5 +974,5 @@ void shouldBeBetween(A, L, U)
 {
     import std.conv: text;
     if(actual < lowerBound || actual >= upperBound)
-        fail(text(actual, "is not between ", lowerBound, " and ", upperBound), file, line);
+        fail(text(actual, " is not between ", lowerBound, " and ", upperBound), file, line);
 }

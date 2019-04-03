@@ -621,7 +621,8 @@ unittest {
     import std.datetime: seconds;
 
     5.shouldBeBetween(4, 6);
-    assertFail(1.shouldBeBetween(4, 6));
+    assertExceptionMsg(3.shouldBeBetween(4, 6),
+                       "    tests/unit_threaded/ut/should.d:123 - 3 is not between 4 and 6\n");
     4.shouldBeBetween(4, 6);
     assertFail(6.shouldBeBetween(4, 6));
 
