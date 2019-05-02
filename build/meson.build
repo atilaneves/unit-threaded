@@ -8,7 +8,7 @@ project(
     default_options: ['buildtype=release'],
 )
 
-main_source = run_command('sh', '-c', 'cd $MESON_SOURCE_ROOT && ls unit_threaded/*.d').stdout().split()
+main_source = run_command('sh', '-c', 'cd $MESON_SOURCE_ROOT && ls ../source/unit_threaded/*.d').stdout().split()
 assertions_subpackage_source = run_command('sh', '-c', 'cd $MESON_SOURCE_ROOT && ls ../subpackages/assertions/source/unit_threaded/*.d').stdout().split()
 exception_subpackage_source = run_command('sh', '-c', 'cd $MESON_SOURCE_ROOT && ls ../subpackages/exception/source/unit_threaded/*.d').stdout().split()
 from_subpackage_source = run_command('sh', '-c', 'cd $MESON_SOURCE_ROOT && ls ../subpackages/from/source/unit_threaded/*.d').stdout().split()
