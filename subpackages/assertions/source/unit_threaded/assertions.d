@@ -441,13 +441,16 @@ private auto threw(T : Throwable, E)(lazy E expr)
     import std.typecons : tuple;
 
     auto ret = tuple!("threw", "info")(false, ThrownInfo!T.init);
+
+    // separate in order to not be inside the @trusted
     void makeRet(scope T e) {
         ret = typeof(ret)(true, ThrownInfo!T(typeid(e), e.msg.dup));
     }
+    // insert dummy call outside @trusted to correctly infer the attributes of shouldThrow
     if (false)
         makeRet(null);
 
-    (() @trusted {
+    (() @trusted { // @trusted because of catching Throwable
         try
             expr();
         catch (T e)
