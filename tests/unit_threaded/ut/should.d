@@ -238,8 +238,8 @@ private void assertFail(E)(lazy E expression, in string file = __FILE__, in size
     import unit_threaded.asserts;
     void funcThrows(string msg) { throw new Exception(msg); }
     try {
-        auto exception = funcThrows("foo bar").shouldThrow;
-        assertEqual(exception.msg, "foo bar");
+        auto exceptionInfo = funcThrows("foo bar").shouldThrow;
+        assertEqual(exceptionInfo.msg, "foo bar");
     } catch(Exception e) {
         assert(false, "should not have thrown anything and threw: " ~ e.msg);
     }

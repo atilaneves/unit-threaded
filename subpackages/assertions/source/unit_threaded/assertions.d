@@ -297,11 +297,17 @@ void shouldNotBeIn(T, U)(in auto ref T value, U container,
     shouldNotBeIn(1, arrayRangeWithoutLength([2, 3, 4]));
 }
 
+private struct ThrownInfo(T)
+{
+    TypeInfo typeInfo;
+    string msg;
+}
+
 /**
  * Verify that expr throws the templated Exception class.
  * This succeeds if the expression throws a child class of
  * the template parameter.
- * Returns: The caught throwable.
+ * Returns: A `ThrownInfo` containing info about the throwable
  * Throws: UnitTestException on failure (when expr does not
  * throw the expected exception)
  */
@@ -310,14 +316,29 @@ auto shouldThrow(T : Throwable = Exception, E)
 {
     import std.conv: text;
 
+    // separate in order to not be inside the @trusted
+    auto callThrew() { return threw!T(expr); }
+    void wrongThrowableType(scope Throwable t) {
+        fail(text("Expression threw ", typeid(t), " instead of the expected ", T.stringof, ":\n", t.msg), file, line);
+    }
+    void didntThrow() { fail("Expression did not throw", file, line); }
+
+    // insert dummy call outside @trusted to correctly infer the attributes of shouldThrow
+    if (false) {
+        callThrew();
+        wrongThrowableType(null);
+        didntThrow();
+    }
+
     return () @trusted { // @trusted because of catching Throwable
         try {
-           const result = threw!T(expr);
-           if (result) return result.throwable;
-        } catch(Throwable t)
-            fail(text("Expression threw ", typeid(t), " instead of the expected ", T.stringof, ":\n", t.msg), file, line);
-
-        fail("Expression did not throw", file, line);
+            const result = callThrew();
+            if (result.threw)
+                return result.info;
+        }
+        catch(Throwable t)
+            wrongThrowableType(t);
+        didntThrow();
         assert(0);
     }();
 }
@@ -326,7 +347,7 @@ auto shouldThrow(T : Throwable = Exception, E)
 @safe pure unittest {
     void funcThrows(string msg) { throw new Exception(msg); }
     try {
-        auto exception = funcThrows("foo bar").shouldThrow;
+        auto exceptionInfo = funcThrows("foo bar").shouldThrow;
         assert(exception.msg == "foo bar");
     } catch(Exception e) {
         assert(false, "should not have thrown anything and threw: " ~ e.msg);
@@ -359,7 +380,7 @@ auto shouldThrow(T : Throwable = Exception, E)
  * Verify that expr throws the templated Exception class.
  * This only succeeds if the expression throws an exception of
  * the exact type of the template parameter.
- * Returns: The caught throwable.
+ * Returns: A `ThrownInfo` containing info about the throwable
  * Throws: UnitTestException on failure (when expr does not
  * throw the expected exception)
  */
@@ -369,16 +390,16 @@ auto shouldThrowExactly(T : Throwable = Exception, E)(lazy E expr,
     import std.conv: text;
 
     const threw = threw!T(expr);
-    if (!threw)
+    if (!threw.threw)
         fail("Expression did not throw", file, line);
 
     //Object.opEquals is @system and impure
-    const sameType = () @trusted { return threw.typeInfo == typeid(T); }();
+    const sameType = () @trusted { return threw.info.typeInfo == typeid(T); }();
     if (!sameType)
-        fail(text("Expression threw wrong type ", threw.typeInfo,
+        fail(text("Expression threw wrong type ", threw.info.typeInfo,
             "instead of expected type ", typeid(T)), file, line);
 
-    return threw.throwable;
+    return threw.info;
 }
 
 /**
@@ -388,7 +409,7 @@ auto shouldThrowExactly(T : Throwable = Exception, E)(lazy E expr,
 void shouldNotThrow(T: Throwable = Exception, E)(lazy E expr,
     in string file = __FILE__, in size_t line = __LINE__)
 {
-    if (threw!T(expr))
+    if (threw!T(expr).threw)
         fail("Expression threw", file, line);
 }
 
@@ -401,10 +422,11 @@ void shouldThrowWithMessage(T : Throwable = Exception, E)(lazy E expr,
                                                           string file = __FILE__,
                                                           size_t line = __LINE__) {
     auto threw = threw!T(expr);
-    if (!threw)
+
+    if (!threw.threw)
         fail("Expression did not throw", file, line);
 
-    threw.msg.shouldEqual(msg, file, line);
+    threw.info.msg.shouldEqual(msg, file, line);
 }
 
 ///
@@ -414,39 +436,26 @@ void shouldThrowWithMessage(T : Throwable = Exception, E)(lazy E expr,
     funcThrows("foo bar").shouldThrowWithMessage("foo bar");
 }
 
-
-//@trusted because the user might want to catch a throwable
-//that's not derived from Exception, such as RangeError
-private auto threw(T : Throwable, E)(lazy E expr) @trusted
+private auto threw(T : Throwable, E)(lazy E expr)
 {
+    import std.typecons : tuple;
 
-    static struct ThrowResult
-    {
-        bool threw;
-        TypeInfo typeInfo;
-        string msg;
-        immutable(T) throwable;
-
-        T opCast(T)() @safe @nogc const pure if (is(T == bool))
-        {
-            return threw;
-        }
+    auto ret = tuple!("threw", "info")(false, ThrownInfo!T.init);
+    void makeRet(scope T e) {
+        ret = typeof(ret)(true, ThrownInfo!T(typeid(e), e.msg.dup));
     }
+    if (false)
+        makeRet(null);
 
-    import std.stdio;
-    try
-    {
-        expr();
-    }
-    catch (T e)
-    {
-        return ThrowResult(true, typeid(e), e.msg.dup, cast(immutable)e);
-    }
+    (() @trusted {
+        try
+            expr();
+        catch (T e)
+            makeRet(e);
+    })();
 
-    return ThrowResult(false);
+    return ret;
 }
-
-
 
 // Formats output in different lines
 private string[] formatValueInItsOwnLine(T)(in string prefix, scope auto ref T value) {
