@@ -238,8 +238,8 @@ private void assertFail(E)(lazy E expression, in string file = __FILE__, in size
     import unit_threaded.asserts;
     void funcThrows(string msg) { throw new Exception(msg); }
     try {
-        auto exception = funcThrows("foo bar").shouldThrow;
-        assertEqual(exception.msg, "foo bar");
+        auto exceptionInfo = funcThrows("foo bar").shouldThrow;
+        assertEqual(exceptionInfo.msg, "foo bar");
     } catch(Exception e) {
         assert(false, "should not have thrown anything and threw: " ~ e.msg);
     }
@@ -280,6 +280,18 @@ unittest {
     assertFail(funcThrows("boo boo").shouldThrowWithMessage("foo bar"));
     void func() {}
     assertFail(func.shouldThrowWithMessage("oops"));
+}
+
+@("catch Throwables without compromising other safety checks")
+unittest
+{
+    int a  = 3;
+    void foo() @system { assert(a == 4); }
+    void bar() @safe { assert(a == 4); }
+    static assert(!__traits(compiles, () @safe => foo.shouldThrow!Throwable));
+    static assert(__traits(compiles, () => foo.shouldThrow!Throwable));
+    static assert(__traits(compiles, () @safe => bar.shouldThrow!Throwable));
+    static assert(__traits(compiles, () => bar.shouldThrow!Throwable));
 }
 
 // can't be made pure because of throwExactly, which in turn
