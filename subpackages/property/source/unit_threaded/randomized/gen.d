@@ -150,7 +150,7 @@ struct Gen(T, size_t low = 0, size_t high = 32) if (from!"std.traits".isSomeStri
     alias Value = T;
 
     T value;
-    static this()
+    shared static this()
     {
         import std.array : array;
         import std.uni : unicode;
@@ -283,7 +283,7 @@ struct GenASCIIString(size_t low = 1, size_t high = 32)
 
     string value;
 
-    static this()
+    shared static this()
     {
         import std.array : array;
         import std.uni : unicode;
