@@ -12,13 +12,13 @@
     ],
     "-ddoxTool": "scod",
     "dependencies": {
-        "unit-threaded:from": "*",
-        "unit-threaded:exception": "*",
-        "unit-threaded:assertions": "*",
-        "unit-threaded:runner": "*",
-        "unit-threaded:mocks": "*",
-        "unit-threaded:integration": "*",
-        "unit-threaded:property": "*"
+        ":from": "*",
+        ":exception": "*",
+        ":assertions": "*",
+        ":runner": "*",
+        ":mocks": "*",
+        ":integration": "*",
+        ":property": "*"
     },
     "subPackages": [
         "./subpackages/from",

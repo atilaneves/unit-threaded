@@ -589,7 +589,7 @@ auto mockStruct(T...)() if(T.length > 0 && from!"std.meta".allSatisfy!(isReturnV
 /**
    A mock struct that always throws.
  */
-auto throwStruct(E = from!"unit_threaded.should".UnitTestException, R = void)() {
+auto throwStruct(E = from!"unit_threaded.exception".UnitTestException, R = void)() {
 
     struct Mock {
 

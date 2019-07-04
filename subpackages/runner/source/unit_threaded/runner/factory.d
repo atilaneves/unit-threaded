@@ -141,7 +141,3 @@ private bool isWantedNonTagTest(in from!"unit_threaded.runner.reflection".TestDa
     return testsToRun.any!(a => matchesExactly(a) || matchesPackage(a));
 }
 
-
-unittest {
-    assert(false);
-}
