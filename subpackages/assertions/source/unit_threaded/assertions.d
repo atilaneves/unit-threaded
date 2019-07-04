@@ -297,7 +297,7 @@ void shouldNotBeIn(T, U)(in auto ref T value, U container,
     shouldNotBeIn(1, arrayRangeWithoutLength([2, 3, 4]));
 }
 
-private struct ThrownInfo(T)
+private struct ThrownInfo
 {
     TypeInfo typeInfo;
     string msg;
@@ -440,11 +440,11 @@ private auto threw(T : Throwable, E)(lazy E expr)
 {
     import std.typecons : tuple;
 
-    auto ret = tuple!("threw", "info")(false, ThrownInfo!T.init);
+    auto ret = tuple!("threw", "info")(false, ThrownInfo.init);
 
     // separate in order to not be inside the @trusted
     void makeRet(scope T e) {
-        ret = typeof(ret)(true, ThrownInfo!T(typeid(e), e.msg.dup));
+        ret = typeof(ret)(true, ThrownInfo(typeid(e), e.msg.dup));
     }
     // insert dummy call outside @trusted to correctly infer the attributes of shouldThrow
     if (false)
