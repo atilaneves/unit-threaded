@@ -348,7 +348,7 @@ auto shouldThrow(T : Throwable = Exception, E)
     void funcThrows(string msg) { throw new Exception(msg); }
     try {
         auto exceptionInfo = funcThrows("foo bar").shouldThrow;
-        assert(exception.msg == "foo bar");
+        assert(exceptionInfo.msg == "foo bar");
     } catch(Exception e) {
         assert(false, "should not have thrown anything and threw: " ~ e.msg);
     }
