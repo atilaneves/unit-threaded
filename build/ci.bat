@@ -1,6 +1,6 @@
 @echo off
 @setlocal
-
+setlocal EnableDelayedExpansion
 
 echo Unit Tests
 pushd %~dp0\..
@@ -43,3 +43,9 @@ pushd %~dp0\..\tests\integration_tests\runTestsMain
 dub run --build=unittest
 if %errorlevel% neq 0 exit /b %errorlevel%
 popd
+
+for /D %%D in ("subpackages\*") do (
+    echo %%D
+    dub test --root=%%D
+    if !errorlevel! neq 0 exit /b !errorlevel!
+)
