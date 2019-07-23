@@ -1,0 +1,5 @@
+name "issue157"
+dflags "-dip1008"
+targetType "executable"
+dependency "unit-threaded" path="../../.."
+dependency "nogc" version="~>0.5.0"
