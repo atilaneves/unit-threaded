@@ -1,6 +1,7 @@
 module unit_threaded.ut.issues;
 
 import unit_threaded;
+import unit_threaded.asserts;
 
 
 interface ICalcView {
@@ -108,4 +109,15 @@ class CalcController {
 
     // Object.opEquals isn't scope and therefore not @safe
     assertThrown(() @trusted { a.should == b; }());
+}
+
+
+@("146")
+@safe unittest {
+    version(unitThreadedLight) {}
+    else {
+        assertExceptionMsg(shouldApproxEqual(42000.301, 42000.302, 1e-9),
+                           `    tests/unit_threaded/ut/issues.d:123 - Expected approx: 42000.302000` ~ "\n" ~
+                           `    tests/unit_threaded/ut/issues.d:123 -      Got       : 42000.301000`);
+    }
 }

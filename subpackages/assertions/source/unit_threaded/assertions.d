@@ -479,11 +479,14 @@ private string[] formatValueInItsOwnLine(T)(in string prefix, scope auto ref T v
 }
 
 // helper function for non-copyable types
-string convertToString(T)(scope auto ref T value) { // std.conv.to sometimes is @system
+string convertToString(T)(scope auto ref T value) {  // std.conv.to sometimes is @system
     import std.conv: to;
-    import std.traits: Unqual;
+    import std.traits: Unqual, isFloatingPoint;
+    import std.format: format;
 
-    static if(__traits(compiles, () @trusted { return value.to!string; }()))
+    static if(isFloatingPoint!T) {
+        return format!"%.6f"(value);
+    } else static if(__traits(compiles, () @trusted { return value.to!string; }()))
         return () @trusted { return value.to!string; }();
     else static if(__traits(compiles, value.toString)) {
         static if(isObject!T)
