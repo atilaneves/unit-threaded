@@ -439,12 +439,17 @@ void shouldThrowWithMessage(T : Throwable = Exception, E)(lazy E expr,
 private auto threw(T : Throwable, E)(lazy E expr)
 {
     import std.typecons : tuple;
+    import std.array: array;
+    import std.conv: text;
 
     auto ret = tuple!("threw", "info")(false, ThrownInfo.init);
 
     // separate in order to not be inside the @trusted
     void makeRet(scope T e) {
-        ret = typeof(ret)(true, ThrownInfo(typeid(e), e.msg.dup));
+        // the message might have to be copied because of lifetime issues
+        // .msg is sometimes a range, so .array
+        // but .array sometimes returns dchar[] (autodecoding), so .text
+        ret = typeof(ret)(true, ThrownInfo(typeid(e), e.msg.array.dup.text));
     }
     // insert dummy call outside @trusted to correctly infer the attributes of shouldThrow
     if (false)

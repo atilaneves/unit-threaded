@@ -1,6 +1,7 @@
 unittest {
-    import unit_threaded;
-    fun.shouldThrowWithMessage("why hello there");
+    import unit_threaded: shouldThrowWithMessage;
+    import nogc: NoGcException;
+    fun.shouldThrowWithMessage!NoGcException("why hello there");
 }
 
 

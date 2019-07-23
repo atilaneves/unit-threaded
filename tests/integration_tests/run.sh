@@ -21,9 +21,14 @@ dub run -q --build=unittest-cov
 cd "$SCRIPT_DIR"/issue121
 dub test -q && issue121_status=0 || issue121_status=1
 
+
 if [[ $issue121_status -eq 0 ]]; then
     echo "ERROR: issue121 should have failed but didn't"
     exit 1
 else
-    printf "\\nDisregard the error messages for issue121, it's supposed to fail\\n"
+    printf "\\nDisregard the stack trace for issue121, it's supposed to fail\\n"
 fi
+
+
+cd "$SCRIPT_DIR"/issue157
+dub run -q --build=unittest-cov
