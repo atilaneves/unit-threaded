@@ -39,7 +39,7 @@ project, you can use a `unittest` configuration as exemplified in this
         {
             "name": "unittest",
             "targetType": "executable",
-            "preBuildCommands": ["dub run unit-threaded -c gen_ut_main -- -f bin/ut.d"],
+            "preBuildCommands": ["$DUB run --compiler=$$DC unit-threaded -c gen_ut_main -- -f bin/ut.d"],
             "mainSourceFile": "bin/ut.d",
             "excludedSourceFiles": ["src/main.d"],
             "dependencies": {
@@ -61,7 +61,7 @@ configuration "unittest" {
     mainSourceFile "bin/ut.d"
     excludedSourceFiles "src/main.d"
     targetType "executable"
-    preBuildCommands "dub run unit-threaded -c gen_ut_main -- -f bin/ut.d"
+    preBuildCommands "$DUB run --compiler=$$DC unit-threaded -c gen_ut_main -- -f bin/ut.d"
 }
 
 ```
@@ -97,7 +97,7 @@ the standard D runtime unittest runner and one that uses unit-threaded:
         {"name": "ut_default"},
         {
           "name": "unittest",
-          "preBuildCommands: ["dub run unit-threaded -c gen_ut_main -- -f bin/ut.d"],
+          "preBuildCommands: ["$DUB run --compiler=$$DC unit-threaded -c gen_ut_main -- -f bin/ut.d"],
           "mainSourceFile": "bin/ut.d",
           ...
         }
