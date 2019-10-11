@@ -71,8 +71,14 @@ configuration "unittest" {
 `excludedSourceFiles`, the "real" `main` can be versioned out:
 
 ```d
-version(unittest) {}
-else {
+version(unittest) {
+    import unit_threaded;
+    mixin runTestsMain!(
+        "module1",
+        "module2",
+        // ...
+    );
+} else {
     void main() {
         //...
     }
@@ -440,11 +446,11 @@ the output of both example programs
 generated for them. The user can specify a name by decorating them
 with a string UDA or the included `@Name` UDA.
 
-The easiest way to run tests is by doing what the example code does:
-calling `runTests()` in [`runner.d`](unit_threaded/runner.d) with
-the modules containing the tests as compile-time arguments. This can
-be done as symbols or strings, and the two approaches are shown in
-the examples.
+The easiest way to run tests is by doing what the failing example code
+does: mixing in `runTestsMain()` in
+[`runner.d`](subpackages/runner/source/unit_threaded/runner/runner.d)
+with the modules containing the tests as compile-time arguments (as
+strings).
 
 There is no need to register tests. The registration is implicit
 and happens with:
@@ -454,7 +460,7 @@ and happens with:
 * Classes that derive from `TestCase` and override `test()`
 
 The modules to be reflected on must be specified when calling
-`runTests`, but that's usually done as shown in the dub configuration
+`runTests` or `runTestsMain`, but that's usually done as shown in the dub configuration
 above. Private functions are skipped. `TestCase` also has support for
 `setup()` and `shutdown()`, child classes need only override the
 appropriate functions(s).
