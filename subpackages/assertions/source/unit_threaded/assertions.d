@@ -779,10 +779,23 @@ void shouldBeSmallerThan(T, U)(in auto ref T t, in auto ref U u,
 void shouldBeSameSetAs(V, E)(auto ref V value, auto ref E expected, in string file = __FILE__, in size_t line = __LINE__)
 if (isInputRange!V && isInputRange!E && is(typeof(value.front != expected.front) == bool))
 {
+    import std.algorithm: sort;
+    import std.array: array;
+
     if (!isSameSet(value, expected))
     {
-        const msg = formatValueInItsOwnLine("Expected: ", expected) ~
-                    formatValueInItsOwnLine("     Got: ", value);
+        static if(__traits(compiles, sort(expected.array)))
+            const expPrintRange = sort(expected.array).array;
+        else
+            alias expPrintRange = expected;
+
+        static if(__traits(compiles, sort(value.array)))
+            const actPrintRange = sort(value.array).array;
+        else
+            alias actPrintRange = value;
+
+        const msg = formatValueInItsOwnLine("Expected: ", expPrintRange) ~
+                    formatValueInItsOwnLine("     Got: ", actPrintRange);
         throw new UnitTestException(msg, file, line);
     }
 }

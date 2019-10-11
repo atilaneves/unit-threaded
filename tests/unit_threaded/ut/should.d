@@ -641,3 +641,13 @@ unittest {
     3.seconds.shouldBeBetween(2.seconds, 4.seconds);
     assertFail(1.seconds.shouldBeBetween(2.seconds, 4.seconds));
 }
+
+
+@("shouldBeSameSetAs")
+@safe pure unittest {
+    [1, 2, 3].shouldBeSameSetAs([2, 3, 1]);
+    [1, 2, 3].shouldBeSameSetAs([3, 2, 1]);
+    assertExceptionMsg([1, 2, 3].shouldBeSameSetAs([2, 1, 4]),
+                       `    tests/unit_threaded/ut/should.d:123 - Expected: [1, 2, 4]` ~ "\n" ~
+                       `    tests/unit_threaded/ut/should.d:123 -      Got: [1, 2, 3]`);
+}
