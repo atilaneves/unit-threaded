@@ -280,7 +280,7 @@ void threadWriter(alias OUT, alias ERR)(from!"std.concurrency".Tid tid)
                 if(currentTid != currentTid.init && currentTid != originTid)
                     return;
 
-                foreach(tid, ref threadOutput; outputs) {
+                foreach(_, ref threadOutput; outputs) {
                     foreach(o; threadOutput.outputs)
                         actuallyPrint(o);
                     threadOutput.outputs = [];
