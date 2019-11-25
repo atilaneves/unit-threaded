@@ -17,9 +17,16 @@ import unit_threaded.from;
  * $(D runTests) if a shared library is used instead of an executable.
  */
 mixin template runTestsMain(Modules...) if(Modules.length > 0) {
-    int main(string[] args) {
+    extern(C) int rt_moduleDtor() @nogc nothrow @system;
+    void main(string[] args) {
+        import core.stdc.stdlib : exit;
         import unit_threaded.runner.runner: runTests;
-        return runTests!Modules(args);
+
+        /* work around https://issues.dlang.org/show_bug.cgi?id=19978 */
+        const ret = runTests!Modules(args);
+        /* ensure that module destructors run, for instance to write coverage */
+        if (ret == 0) rt_moduleDtor;
+        exit(ret); /* bypass broken runtime shutdown */
     }
 }
 
