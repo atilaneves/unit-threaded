@@ -17,7 +17,21 @@ import unit_threaded.from;
  * $(D runTests) if a shared library is used instead of an executable.
  */
 mixin template runTestsMain(Modules...) if(Modules.length > 0) {
-    extern(C) int rt_moduleDtor() @nogc nothrow @system;
+    import unit_threaded.runner.runner : runTestsMainHelper;
+
+    mixin runTestsMainHelper!();
+}
+
+/**
+ * Runs all tests in passed-in modules. Modules can be symbols or
+ * strings but they can't mix and match - either all symbols or all
+ * strings. It's recommended to use strings since then the modules don't
+ * have to be imported first.
+ * This wrapper is necessary to allow us to reference an extern-C
+ * symbol that would otherwise be mismangled, by importing it as
+ * a default parameter.
+ */
+mixin template runTestsMainHelper(alias rt_moduleDtor = rt_moduleDtor) {
     void main(string[] args) {
         import core.stdc.stdlib : exit;
         import unit_threaded.runner.runner: runTests;
@@ -29,6 +43,8 @@ mixin template runTestsMain(Modules...) if(Modules.length > 0) {
         exit(ret); /* bypass broken runtime shutdown */
     }
 }
+
+extern(C) int rt_moduleDtor() @nogc nothrow @system;
 
 /**
  * Runs all tests in passed-in modules. Modules can be symbols or
