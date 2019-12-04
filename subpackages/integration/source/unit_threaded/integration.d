@@ -79,12 +79,13 @@ struct Sandbox {
 
     /// Instantiate a Sandbox object
     static Sandbox opCall() {
-        import std.file: getcwd, chdir;
+        import std.file: getcwd, chdir, mkdirRecurse;
 
         Sandbox ret;
         ret.testPath = newTestDir;
         ret.oldCwd = getcwd;
 
+        () @trusted { mkdirRecurse(ret.testPath); }();
         chdir(ret.testPath);
 
         return ret;
