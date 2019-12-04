@@ -89,11 +89,13 @@ import unit_threaded.integration;
     import unit_threaded.should;
     import std.stdio: File;
     import std.array: array;
+    import std.string: chomp;
+    import std.algorithm: map;
 
     with(immutable Sandbox()) {
         writeFile("lines.txt", ["foo", "bar", "quux"]);
         auto f = File("lines.txt");
-        auto lines = () @trusted { return f.byLineCopy.array; }();
+        auto lines = () @trusted { return f.byLineCopy.map!chomp.array; }();
         lines.should == ["foo", "bar", "quux"];
     }
 }
