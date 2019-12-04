@@ -50,11 +50,17 @@ version(Windows) {
 }
 
 
-shared static this() {
+shared static this() nothrow {
     import std.file: exists, rmdirRecurse;
 
-    if(Sandbox.sandboxesPath.exists)
-        rmdirRecurse(Sandbox.sandboxesPath);
+    if(Sandbox.sandboxesPath.exists) {
+        try
+            rmdirRecurse(Sandbox.sandboxesPath);
+        catch(Exception e) {
+            import core.stdc.stdio: fprintf, stderr;
+            fprintf(stderr, "Could not delete sandboxes path\n");
+        }
+    }
 }
 
 
