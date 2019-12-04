@@ -98,8 +98,8 @@ private:
         auto sw = StopWatch(AutoStart.yes);
         print(getPath() ~ ":\n");
         check(setup());
-        check(test());
-        check(shutdown());
+        if (!_failed) check(test());
+        if (!_failed) check(shutdown());
         if(_failed) print("\n");
         if(_showChrono) print(text("    (", cast(Duration)sw.peek, ")\n\n"));
         if(_failed) print("\n");
@@ -130,6 +130,69 @@ private:
 
     final void flushOutput() {
         getWriter.flush;
+    }
+}
+
+unittest
+{
+    enum Stage { setup, test, shutdown, none, }
+
+    class TestForFailingStage : TestCase
+    {
+        Stage failedStage, currStage;
+
+        this(Stage failedStage)
+        {
+            this.failedStage = failedStage;
+        }
+
+        override void setup()
+        {
+            currStage = Stage.setup;
+            if (failedStage == currStage) assert(0);
+        }
+
+        override void test()
+        {
+            currStage = Stage.test;
+            if (failedStage == currStage) assert(0);
+        }
+
+        override void shutdown()
+        {
+            currStage = Stage.shutdown;
+            if (failedStage == currStage) assert(0);
+        }
+    }
+
+    // the last stage of non failing test case is the shutdown stage
+    {
+        auto test = new TestForFailingStage(Stage.none);
+        test.silence;
+        test.doTest;
+
+        assert(test.failedStage == Stage.none);
+        assert(test.currStage   == Stage.shutdown);
+    }
+
+    // if a test case fails at setup stage the last stage is setup one
+    {
+        auto test = new TestForFailingStage(Stage.setup);
+        test.silence;
+        test.doTest;
+
+        assert(test.failedStage == Stage.setup);
+        assert(test.currStage   == Stage.setup);
+    }
+
+    // if a test case fails at test stage the last stage is test stage
+    {
+        auto test = new TestForFailingStage(Stage.test);
+        test.silence;
+        test.doTest;
+
+        assert(test.failedStage == Stage.test);
+        assert(test.currStage   == Stage.test);
     }
 }
 
