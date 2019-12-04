@@ -82,3 +82,18 @@ import unit_threaded.integration;
         shouldEqualLines("lines.txt", ["foo", "toto"]);
     }
 }
+
+
+@("cwd")
+@safe unittest {
+    import unit_threaded.should;
+    import std.stdio: File;
+    import std.array: array;
+
+    with(immutable Sandbox()) {
+        writeFile("lines.txt", ["foo", "bar", "quux"]);
+        auto f = File("lines.txt");
+        auto lines = () @trusted { return f.byLineCopy.array; }();
+        lines.should == ["foo", "bar", "quux"];
+    }
+}

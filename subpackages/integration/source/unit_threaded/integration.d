@@ -70,14 +70,25 @@ struct Sandbox {
     enum defaultSandboxesPath = buildPath("tmp", "unit-threaded");
     static string sandboxesPath = defaultSandboxesPath;
     string testPath;
+    string oldCwd;
+
+    ~this() @safe {
+        import std.file: chdir;
+        chdir(oldCwd);
+    }
 
     /// Instantiate a Sandbox object
     static Sandbox opCall() {
+        import std.file: getcwd, chdir;
+
         Sandbox ret;
         ret.testPath = newTestDir;
+        ret.oldCwd = getcwd;
+
+        chdir(ret.testPath);
+
         return ret;
     }
-
 
     static void setPath(string path) {
         import std.file: exists, mkdirRecurse;
