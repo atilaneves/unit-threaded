@@ -60,6 +60,7 @@ struct Options {
     bool verbose;
     string fileName;
     string[] dirs;
+    string dubBinary;
     bool help;
     bool showVersion;
     string[] includes;
@@ -73,6 +74,7 @@ struct Options {
 
 Options getGenUtOptions(string[] args) {
     import std.getopt;
+    import std.range: empty;
     import std.stdio: writeln;
 
     Options options;
@@ -80,6 +82,7 @@ Options getGenUtOptions(string[] args) {
         args,
         "verbose|v", "Verbose mode.", &options.verbose,
         "file|f", "The filename to write. Will use a temporary if not set.", &options.fileName,
+        "dub|d", "The dub binary to use.", &options.dubBinary,
         "I", "Import paths as would be passed to the compiler", &options.includes,
         "version", "Show version.", &options.showVersion,
         );
@@ -99,6 +102,10 @@ Options getGenUtOptions(string[] args) {
 
     if (options.verbose) {
         writeln(__FILE__, ": finding all test cases in ", options.dirs);
+    }
+
+    if (options.dubBinary.empty) {
+        options.dubBinary = "dub";
     }
 
     return options;
