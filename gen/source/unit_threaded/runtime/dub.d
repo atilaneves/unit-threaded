@@ -111,19 +111,22 @@ private string[] getOptionalList(from!"std.json".JSONValue json, in string key) 
 }
 
 
-DubInfo getDubInfo(in bool verbose) {
+DubInfo getDubInfo(in bool verbose, in string dubBinary) {
     import std.json: JSONException;
     import std.conv: text;
     import std.algorithm: joiner, map, copy;
+    import std.range: empty;
     import std.stdio: writeln;
     import std.exception: enforce;
-    import std.process: pipeProcess, Redirect, wait;
+    import std.process: environment, pipeProcess, Redirect, wait;
     import std.array: join, appender;
 
     if(verbose)
         writeln("Running dub describe");
 
-    immutable args = ["dub", "describe", "-c", "unittest"];
+    const args =
+        [dubBinary, "describe", "-c", "unittest"] ~
+        ("DC" in environment ? ["--compiler", environment["DC"]] : null);
     auto pipes = pipeProcess(args, Redirect.stdout | Redirect.stderr);
     scope(exit) wait(pipes.pid); // avoid zombies in all cases
     string stdoutStr;
@@ -160,7 +163,7 @@ void dubify(ref from!"unit_threaded.runtime.runtime".Options options) {
 
     if(!isDubProject) return;
 
-    auto dubInfo = getDubInfo(options.verbose);
+    auto dubInfo = getDubInfo(options.verbose, options.dubBinary);
     options.includes = dubInfo.packages.
         map!(a => a.importPaths.map!(b => buildPath(a.path, b)).array).
         reduce!((a, b) => a ~ b).array;
