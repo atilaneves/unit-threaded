@@ -44,7 +44,6 @@ void shouldBeFalse(E)(lazy E condition, in string file = __FILE__, in size_t lin
 
 /**
  * Verify that two values are the same.
- * Floating point values are compared using $(D std.math.approxEqual).
  * Throws: UnitTestException on failure
  */
 void shouldEqual(V, E)(scope auto ref V value, scope auto ref E expected, in string file = __FILE__, in size_t line = __LINE__)
@@ -543,6 +542,15 @@ bool isEqual(V, E)(in V value, in E expected)
 }
 
 
+/**
+ * Verify that two floating point values are approximately equal
+ * Params:
+ *    value = the value to check.
+ *    expected = the expected value
+ *    maxRelDiff = the maximum relative difference
+ *    maxAbsDiff = the maximum absolute difference
+ * Throws: UnitTestException on failure
+ */
 void shouldApproxEqual(V, E)(in V value, in E expected, double maxRelDiff = 1e-2, double maxAbsDiff = 1e-5, string file = __FILE__, size_t line = __LINE__)
  if (!isObject!V && (isFloatingPoint!V || isFloatingPoint!E) && is(typeof(value == expected) == bool))
 {
