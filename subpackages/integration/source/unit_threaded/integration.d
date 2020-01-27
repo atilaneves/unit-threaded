@@ -97,7 +97,7 @@ struct Sandbox {
         import std.file: mkdirRecurse;
 
         () @trusted { mkdirRecurse(buildPath(testPath, fileName.dirName)); }();
-        File(buildPath(testPath, fileName), "w").writeln(output);
+        File(buildPath(testPath, fileName), "wb").writeln(output);
     }
 
     /// Write a file to the sanbox
