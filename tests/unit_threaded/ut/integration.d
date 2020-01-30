@@ -82,3 +82,12 @@ import unit_threaded.integration;
         shouldEqualLines("lines.txt", ["foo", "toto"]);
     }
 }
+
+version(Windows) {
+    @safe unittest {
+        with(immutable Sandbox()) {
+            writeFile("newline.txt", "\r\n");
+            shouldEqualContent("newline.txt", "\r\n\n");
+        }
+    }
+}
