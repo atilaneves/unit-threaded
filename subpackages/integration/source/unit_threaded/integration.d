@@ -100,7 +100,7 @@ struct Sandbox {
         File(buildPath(testPath, fileName), "wb").writeln(output);
     }
 
-    /// Write a file to the sanbox
+    /// Write a file to the sandbox
     void writeFile(in string fileName, in string[] lines) const {
         import std.array;
         writeFile(fileName, lines.join("\n"));
