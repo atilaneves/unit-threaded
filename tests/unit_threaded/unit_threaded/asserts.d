@@ -7,7 +7,7 @@ module unit_threaded.asserts;
  * Helper to call the standard assert
  */
 void assertEqual(T, U)
-                (scope auto ref T t, scope auto ref U u, string file = __FILE__, size_t line = __LINE__)
+                (scope auto ref T t, scope auto ref U u, string file = __FILE__, in size_t line = __LINE__)
     @trusted
 {
     import std.conv: text;
@@ -17,7 +17,7 @@ void assertEqual(T, U)
 
 
 void assertExceptionMsg(E)(lazy E expr, string expected,
-                           in string file = __FILE__,
+                           string file = __FILE__,
                            in size_t line = __LINE__)
     @safe
 {

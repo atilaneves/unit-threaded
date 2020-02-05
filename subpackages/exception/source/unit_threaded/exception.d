@@ -3,12 +3,12 @@
  */
 module unit_threaded.exception;
 
-void fail(in string output, in string file, in size_t line) @safe pure
+void fail(const string output, const string file, in size_t line) @safe pure
 {
     throw new UnitTestException([output], file, line);
 }
 
-void fail(in string[] lines, in string file, in size_t line) @safe pure
+void fail(const string[] lines, const string file, in size_t line) @safe pure
 {
     throw new UnitTestException(lines, file, line);
 }
@@ -18,18 +18,18 @@ void fail(in string[] lines, in string file, in size_t line) @safe pure
  */
 class UnitTestException : Exception
 {
-    this(in string msg, string file = __FILE__,
-         size_t line = __LINE__, Throwable next = null) @safe pure nothrow
+    this(const string msg, string file = __FILE__,
+         in size_t line = __LINE__, Throwable next = null) @safe pure nothrow
     {
         this([msg], file, line, next);
     }
 
-    this(in string[] msgLines, string file = __FILE__,
-         size_t line = __LINE__, Throwable next = null) @safe pure nothrow
+    this(const string[] msgLines, string file = __FILE__,
+         in size_t line = __LINE__, Throwable next = null) @safe pure nothrow
     {
         import std.string: join;
-        super(msgLines.join("\n"), next, file, line);
-        this.msgLines = msgLines;
+        super(msgLines.join("\n"), next, file.dup, line);
+        this.msgLines = msgLines.dup;
     }
 
     override string toString() @safe const pure scope
