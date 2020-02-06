@@ -363,7 +363,7 @@ unittest
     import core.exception: OutOfMemoryError;
 
     class CustomException : Exception {
-        this(string msg = "", in string file = __FILE__, in size_t line = __LINE__) { super(msg, file, line); }
+        this(string msg = "", string file = __FILE__, in size_t line = __LINE__) { super(msg, file, line); }
     }
 
     void func() { throw new CustomException("oh noes"); }
