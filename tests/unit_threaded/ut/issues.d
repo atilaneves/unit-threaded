@@ -121,3 +121,31 @@ class CalcController {
                            `    tests/unit_threaded/ut/issues.d:123 -      Got       : 42000.301000`);
     }
 }
+
+
+// should not compile for @safe
+@("176")
+@safe unittest {
+  int* ptr;
+  bool func(int a) {
+      *(ptr + 256) = 42;
+      return a % 2 == 0;
+  }
+
+  version(unitThreadedLight) {}
+  else
+      static assert(!__traits(compiles, check!func(100)));
+}
+
+
+// should compile for @system
+@("176.1")
+@system unittest {
+  int* ptr;
+  bool func(int a) {
+      *(ptr + 256) = 42;
+      return a % 2 == 0;
+  }
+
+  static assert(__traits(compiles, check!func(100)));
+}
