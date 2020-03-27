@@ -31,7 +31,7 @@ struct RndValueGen(T...)
        Params:
        rnd = The required random number generator.
     */
-    this(Random* rnd) @safe
+    this(Random* rnd)
     {
         this.rnd = rnd;
     }
@@ -49,8 +49,9 @@ struct RndValueGen(T...)
         $(D values) passing $(D the provided) random number generator
     */
     void genValues()
+        in(rnd !is null)
+        do
     {
-        assert(rnd !is null);
         foreach (ref it; this.values)
         {
             it.gen(*this.rnd);

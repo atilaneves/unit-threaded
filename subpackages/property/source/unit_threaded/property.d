@@ -22,9 +22,7 @@ void check(alias F, int numFuncCalls = 100)
           (in uint seed = from!"std.random".unpredictableSeed,
            in string file = __FILE__,
            in size_t line = __LINE__)
-    @trusted
 {
-
     import unit_threaded.randomized.random: RndValueGen;
     import unit_threaded.exception: UnitTestException;
     import std.conv: text;
@@ -32,19 +30,20 @@ void check(alias F, int numFuncCalls = 100)
     import std.array: join;
     import std.typecons: Flag, Yes, No;
     import std.random: Random;
+    import std.traits: isSafe;
 
     static assert(is(ReturnType!F == bool),
                   text("check only accepts functions that return bool, not ", ReturnType!F.stringof));
 
-    auto random = Random(seed);
-    auto gen = RndValueGen!(Parameters!F)(&random);
+    scope random = Random(seed);
+    scope gen = RndValueGen!(Parameters!F)(&random);
 
     auto input(Flag!"shrink" shrink = Yes.shrink) {
-        string[] ret;
+        scope string[] ret;
         static if(Parameters!F.length == 1 && canShrink!(Parameters!F[0])) {
             auto val = gen.values[0].value;
             auto shrunk = shrink ? val.shrink!F : val;
-            ret ~= shrunk.text;
+            ret ~= shrunk.text.idup;
             static if(isSomeString!(Parameters!F[0]))
                 ret[$-1] = `"` ~ ret[$-1] ~ `"`;
         } else
@@ -57,27 +56,36 @@ void check(alias F, int numFuncCalls = 100)
     foreach(i; 0 .. numFuncCalls) {
         bool pass;
 
-        try {
-            gen.genValues;
-        } catch(Throwable t) {
-            throw new PropertyException("Error generating values\n" ~ t.toString, file, line, t);
-        }
+        () @trusted {  // catch throwable
+            try {
+                static if(isSafe!({ gen.genValues; }))
+                    () @safe { gen.genValues; }();
+                else
+                    gen.genValues;
+            } catch(Throwable t) {
+                throw new PropertyException("Error generating values\n" ~ t.toString, file, line, t);
+            }
+        }();
 
-        try {
-            pass = F(gen.values);
-        } catch(Throwable t) {
-            // trying to shrink when an exeption is thrown is too much of a bother code-wise
-            throw new UnitTestException(
-                text("Property threw. Seed: ", seed, ". Input: ", input(No.shrink), ". Message: ", t.msg),
-                file,
-                line,
-                t,
-            );
-        }
+        () @trusted { // catch throwable
+            try {
+                static if(isSafe!F)
+                    pass = () @safe { return F(gen.values); }();
+                else
+                    pass = F(gen.values);
+            } catch(Throwable t) {
+                // trying to shrink when an exeption is thrown is too much of a bother code-wise
+                throw new UnitTestException(
+                    text("Property threw. Seed: ", seed, ". Input: ", input(No.shrink), ". Message: ", t.msg),
+                    file,
+                    line,
+                    t,
+                    );
+            }
+        }();
 
-        if(!pass) {
+        if(!pass)
             throw new UnitTestException(text("Property failed. Seed: ", seed, ". Input: ", input), file, line);
-        }
     }
 }
 

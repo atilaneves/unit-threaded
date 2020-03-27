@@ -49,6 +49,7 @@
             "targetName": "ut_pass",
             "sourcePaths": ["source", "gen/source", "tests/unit_threaded", "tests/examples/pass"],
             "mainSourceFile": "example/example_pass.d",
+            "dflags": ["-dip25", "-dip1000", "-dip1008"],
             "versions": ["testing_unit_threaded", "unitUnthreaded"]
         },
 
