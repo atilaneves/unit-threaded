@@ -30,7 +30,6 @@ void check(alias F, int numFuncCalls = 100)
     import std.array: join;
     import std.typecons: Flag, Yes, No;
     import std.random: Random;
-    import std.traits: isSafe;
 
     static assert(is(ReturnType!F == bool),
                   text("check only accepts functions that return bool, not ", ReturnType!F.stringof));
@@ -39,42 +38,35 @@ void check(alias F, int numFuncCalls = 100)
     scope gen = RndValueGen!(Parameters!F)(&random);
 
     auto input(Flag!"shrink" shrink = Yes.shrink) {
+
         scope string[] ret;
+
         static if(Parameters!F.length == 1 && canShrink!(Parameters!F[0])) {
             auto val = gen.values[0].value;
             auto shrunk = shrink ? val.shrink!F : val;
             ret ~= shrunk.text.idup;
             static if(isSomeString!(Parameters!F[0]))
                 ret[$-1] = `"` ~ ret[$-1] ~ `"`;
-        } else
+        } else {
             foreach(ref valueGen; gen.values) {
                 ret ~= valueGen.text;
             }
+        }
+
         return ret.join(", ");
     }
 
     foreach(i; 0 .. numFuncCalls) {
         bool pass;
 
-        () @trusted {  // catch throwable
-            try {
-                static if(isSafe!({ gen.genValues; }))
-                    () @safe { gen.genValues; }();
-                else
-                    gen.genValues;
-            } catch(Throwable t) {
-                throw new PropertyException("Error generating values\n" ~ t.toString, file, line, t);
-            }
-        }();
+        safelyCatchThrowable!(
+            { gen.genValues; },
+            (t) @trusted { throw new PropertyException("Error generating values\n" ~ t.toString, file, line, t); }
+        );
 
-        () @trusted { // catch throwable
-            try {
-                static if(isSafe!F)
-                    pass = () @safe { return F(gen.values); }();
-                else
-                    pass = F(gen.values);
-            } catch(Throwable t) {
-                // trying to shrink when an exeption is thrown is too much of a bother code-wise
+        pass = safelyCatchThrowable!(
+            () => F(gen.values),
+            (t) @trusted {
                 throw new UnitTestException(
                     text("Property threw. Seed: ", seed, ". Input: ", input(No.shrink), ". Message: ", t.msg),
                     file,
@@ -82,12 +74,30 @@ void check(alias F, int numFuncCalls = 100)
                     t,
                     );
             }
-        }();
+        );
 
         if(!pass)
             throw new UnitTestException(text("Property failed. Seed: ", seed, ". Input: ", input), file, line);
     }
 }
+
+private auto safelyCatchThrowable(alias Func, alias Handler, A...)(auto ref A args) {
+    import std.traits: isSafe, ReturnType;
+
+    ReturnType!Func impl() {
+        try
+            return Func(args);
+        catch(Throwable t)
+            Handler(t);
+        assert(0);
+    }
+
+    static if(isSafe!Func)
+        return () @trusted { return impl; }();
+    else
+        return impl;
+}
+
 
 /**
    For values that unit-threaded doesn't know how to generate, test that the Predicate
@@ -148,7 +158,7 @@ private auto shrinkOne(alias F, int index, T)(T values) {
 
 ///
 @("Verify identity property for int[] succeeds")
-@safe unittest {
+@system /* generating arrays is @system */ unittest {
 
     int numCalls;
     bool identity(int[] a) pure {
