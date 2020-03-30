@@ -123,29 +123,32 @@ class CalcController {
 }
 
 
-// should not compile for @safe
-@("176")
-@safe unittest {
-  int* ptr;
-  bool func(int a) {
-      *(ptr + 256) = 42;
-      return a % 2 == 0;
-  }
+version(unitThreadedLight) {}
+else {
 
-  version(unitThreadedLight) {}
-  else
-      static assert(!__traits(compiles, check!func(100)));
-}
+    // should not compile for @safe
+    @("176.0")
+        @safe pure unittest {
 
+        int* ptr;
+        bool func(int a) {
+            *(ptr + 256) = 42;
+            return a % 2 == 0;
+        }
 
-// should compile for @system
-@("176.1")
-@system unittest {
-  int* ptr;
-  bool func(int a) {
-      *(ptr + 256) = 42;
-      return a % 2 == 0;
-  }
+        static assert(!__traits(compiles, check!func(100)));
+    }
 
-  static assert(__traits(compiles, check!func(100)));
+    @("176.1")
+        @safe unittest {
+        import std.traits: isSafe;
+
+        int* ptr;
+        bool func(int a) {
+            *(ptr + 256) = 42;
+            return a % 2 == 0;
+        }
+
+        static assert(!isSafe!({ check!func(100); }));
+    }
 }
