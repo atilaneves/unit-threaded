@@ -61,12 +61,12 @@ void check(alias F, int numFuncCalls = 100)
 
         safelyCatchThrowable!(
             { gen.genValues; },
-            (t) @trusted { throw new PropertyException("Error generating values\n" ~ t.toString, file, line, t); }
+            (Throwable t) @trusted { throw new PropertyException("Error generating values\n" ~ t.toString, file, line, t); }
         );
 
         pass = safelyCatchThrowable!(
             () => F(gen.values),
-            (t) @trusted {
+            (Throwable t) @trusted {
                 throw new UnitTestException(
                     text("Property threw. Seed: ", seed, ". Input: ", input(No.shrink), ". Message: ", t.msg),
                     file,
@@ -81,6 +81,7 @@ void check(alias F, int numFuncCalls = 100)
     }
 }
 
+
 private auto safelyCatchThrowable(alias Func, alias Handler, A...)(auto ref A args) {
     import std.traits: isSafe, ReturnType;
 
@@ -92,7 +93,7 @@ private auto safelyCatchThrowable(alias Func, alias Handler, A...)(auto ref A ar
         assert(0);
     }
 
-    static if(isSafe!Func)
+    static if(isSafe!Func && isSafe!Handler)
         return () @trusted { return impl; }();
     else
         return impl;
