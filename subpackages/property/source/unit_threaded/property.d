@@ -158,7 +158,7 @@ private auto shrinkOne(alias F, int index, T)(T values) {
 
 ///
 @("Verify identity property for int[] succeeds")
-@system /* generating arrays is @system */ unittest {
+@safe unittest {
 
     int numCalls;
     bool identity(int[] a) pure {

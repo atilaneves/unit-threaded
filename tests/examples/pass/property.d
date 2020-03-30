@@ -3,7 +3,7 @@ module tests.pass.property;
 import unit_threaded;
 
 @("int[] property")
-@system unittest {
+unittest {
     // probably as unlikely to happen as quantum tunneling to the moon
     check!((int[] a) => a != [0, 1, 2, 3, 4]);
 }

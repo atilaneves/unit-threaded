@@ -48,7 +48,7 @@ struct RndValueGen(T...)
     /** A call to this member function will call $(D gen) on all items in
         $(D values) passing $(D the provided) random number generator
     */
-    void genValues()
+    void genValues() scope
         in(rnd !is null)
         do
     {
@@ -67,6 +67,15 @@ struct RndValueGen(T...)
             formattedWrite(sink, "'%s' = %s ", parameterNames[idx], it);
         }
     }
+}
+
+@("176")
+@safe unittest {
+    import std.random: Random;
+    const seed = 0x1337;
+    scope random = Random(seed);
+    scope gen = RndValueGen!(int[])(&random);
+    gen.genValues;
 }
 
 

@@ -4,7 +4,7 @@ import unit_threaded.property;
 import unit_threaded.asserts;
 
 @("Verify anti-identity property for int[] fails")
-@system /* generating arrays is @system */ unittest {
+@safe unittest {
     import unit_threaded.should;
     int numCalls;
     bool antiIdentity(int[] a) {
@@ -18,7 +18,7 @@ import unit_threaded.asserts;
 }
 
 @("Verify property that sometimes succeeds")
-@system /* generating arrays is @system */ unittest {
+@safe unittest {
     // 2^100 is ~1.26E30, so the chances that no even length array is generated
     // is small enough to disconsider even if it were truly random
     // since Gen!int[] is front-loaded, it'll fail deterministically
