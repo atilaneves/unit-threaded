@@ -6,7 +6,7 @@ matrix:
   include:
     - d: dmd-nightly
     - d: dmd-2.091.1
-    - d: ldc-1.21.0
+   # - d: ldc-1.21.0 # FIXME
   allow_failures:
     - d: dmd-nightly
 
