@@ -18,8 +18,10 @@ Augments D's `unittest` blocks with:
 * Mocking
 
 
-Quick start with dub
-----------------------
+## Quick start with dub
+
+Note: while getting started this way is easy, it also increases build
+times and may run into edge cases. See below for how to do it manually.
 
 dub runs tests with `dub test`. Unfortunately, due to the nature of
 D's compile-time reflection, to use this library a test runner file
@@ -83,6 +85,21 @@ version(unittest) {
         //...
     }
 }
+```
+
+### Manually listing the D modules with tests
+
+Alternatively to the above and the recommended way is to manually (unfortunately)
+list all the modules with tests in the unittest main function. There's a mixin
+for that:
+
+```d
+import unit_threaded;
+mixin runTestsMain!(
+    "mypkg.mymod0",
+    "mypkg.mymod1",
+    // ...
+);
 ```
 
 Your unittest blocks will now be run in threads and can be run individually.
