@@ -90,6 +90,48 @@ mixin template disableDefaultRunner() {
 
 
 /**
+   Generates a main function for collectAndRunTests.
+ */
+mixin template collectAndRunTestsMain(Modules...) {
+    int main(string[] args) {
+        import unit_threaded.runner.runner: collectAndRunTests;
+        return collectAndRunTests!Modules(args);
+    }
+}
+
+/**
+   Collects test data from each module in Modules and runs tests
+   with the supplied command-line arguments.
+
+   Each module in the list must be a string and the respective D
+   module must define a module-level function called `testData`
+   that returns TestData (obtained by calling allTestData on a list
+   of modules to reflect to). This convoluted way of discovering and
+   running tests is offered to possibly distribute the compile-time
+   price of using reflection to find tests. This is advanced usage.
+ */
+template collectAndRunTests(Modules...) {
+
+    mixin disableDefaultRunner;
+
+    int collectAndRunTests(string[] args) {
+
+        import unit_threaded.runner.reflection: TestData;
+
+        const(TestData)[] data;
+
+        static foreach(module_; Modules) {
+            static assert(is(typeof(module_) == string));
+            mixin(`static import `, module_, `;`);
+            data ~= mixin(module_, `.testData()`);
+        }
+
+        return runTests(args, data);
+    }
+}
+
+
+/**
  * Runs all tests in passed-in testData. Arguments are taken from the
  * command-line. `-s` Can be passed to run in single-threaded mode. The
  * rest of argv is considered to be test names to be run.
