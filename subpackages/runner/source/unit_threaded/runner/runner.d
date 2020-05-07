@@ -77,6 +77,10 @@ template runTests(Modules...) if(Modules.length > 0) {
 }
 
 
+/**
+   A template mixin for a static constructor that disables druntimes's
+   default test runner so that unit-threaded can take over.
+ */
 mixin template disableDefaultRunner() {
     shared static this() nothrow {
         import unit_threaded.runner.runner: replaceModuleUnitTester;
