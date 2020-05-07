@@ -182,6 +182,7 @@ void replaceModuleUnitTester() nothrow {
     try
         Runtime.moduleUnitTester = &moduleUnitTester;
     catch(Exception e) {
+        handleException(e);
         import core.stdc.stdio: fprintf, stderr;
         fprintf(stderr, "Error: failed to replace Runtime.moduleUnitTester\n");
         assert(0, "Inconceivable!");
