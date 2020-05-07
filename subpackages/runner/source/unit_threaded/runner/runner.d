@@ -60,17 +60,75 @@ extern(C) int rt_moduleDtor() @nogc nothrow @system;
  */
 template runTests(Modules...) if(Modules.length > 0) {
 
-    shared static this() {
-        import unit_threaded.runner.runner: replaceModuleUnitTester;
-        replaceModuleUnitTester;
+    mixin disableDefaultRunner;
+
+    int runTests(string[] args) nothrow {
+        import unit_threaded.runner.reflection: allTestData;
+        return .runTests(args, allTestData!Modules);
     }
 
-    int runTests(string[] args) {
+    int runTests(string[] args,
+                 in from!"unit_threaded.runner.reflection".TestData[] testData)
+        nothrow
+    {
         import unit_threaded.runner.reflection: allTestData;
-        return runTests(args, allTestData!Modules);
+        return .runTests(args, allTestData!Modules);
     }
 }
 
+
+/**
+   A template mixin for a static constructor that disables druntimes's
+   default test runner so that unit-threaded can take over.
+ */
+mixin template disableDefaultRunner() {
+    shared static this() nothrow {
+        import unit_threaded.runner.runner: replaceModuleUnitTester;
+        replaceModuleUnitTester;
+    }
+}
+
+
+/**
+   Generates a main function for collectAndRunTests.
+ */
+mixin template collectAndRunTestsMain(Modules...) {
+    int main(string[] args) {
+        import unit_threaded.runner.runner: collectAndRunTests;
+        return collectAndRunTests!Modules(args);
+    }
+}
+
+/**
+   Collects test data from each module in Modules and runs tests
+   with the supplied command-line arguments.
+
+   Each module in the list must be a string and the respective D
+   module must define a module-level function called `testData`
+   that returns TestData (obtained by calling allTestData on a list
+   of modules to reflect to). This convoluted way of discovering and
+   running tests is offered to possibly distribute the compile-time
+   price of using reflection to find tests. This is advanced usage.
+ */
+template collectAndRunTests(Modules...) {
+
+    mixin disableDefaultRunner;
+
+    int collectAndRunTests(string[] args) {
+
+        import unit_threaded.runner.reflection: TestData;
+
+        const(TestData)[] data;
+
+        static foreach(module_; Modules) {
+            static assert(is(typeof(module_) == string));
+            mixin(`static import `, module_, `;`);
+            data ~= mixin(module_, `.testData()`);
+        }
+
+        return runTests(args, data);
+    }
+}
 
 
 /**
@@ -82,24 +140,56 @@ template runTests(Modules...) if(Modules.length > 0) {
  *   testData = Data about the tests to run.
  * Returns: An integer suitable for the program's return code.
  */
-int runTests(string[] args, in from!"unit_threaded.runner.reflection".TestData[] testData) {
-    import unit_threaded.runner.options: getOptions;
-    return runTests(getOptions(args), testData);
+int runTests(string[] args,
+             in from!"unit_threaded.runner.reflection".TestData[] testData)
+    nothrow
+{
+    import unit_threaded.runner.options: Options, getOptions;
+
+    Options options;
+
+    try
+        options = getOptions(args);
+    catch(Exception e) {
+        handleException(e);
+        return 1;
+    }
+
+    return runTests(options, testData);
 }
 
 int runTests(in from!"unit_threaded.runner.options".Options options,
              in from!"unit_threaded.runner.reflection".TestData[] testData)
+    nothrow
 {
     import unit_threaded.runner.testsuite: TestSuite;
 
-    handleCmdLineOptions(options, testData);
-    if (options.exit)
-        return 0;
+    int impl() {
+        handleCmdLineOptions(options, testData);
+        if (options.exit)
+            return 0;
 
-    auto suite = TestSuite(options, testData);
-    return suite.run ? 0 : 1;
+        auto suite = TestSuite(options, testData);
+        return suite.run ? 0 : 1;
+    }
+
+    try
+        return impl;
+    catch(Exception e) {
+        handleException(e);
+        return 1;
+    }
 }
 
+private void handleException(Exception e) @safe nothrow {
+    try {
+        import std.stdio: stderr;
+        () @trusted { stderr.writeln("Error: ", e.msg); }();
+    } catch(Exception oops) {
+        import core.stdc.stdio: fprintf, stderr;
+        () @trusted { fprintf(stderr, "Error: exception thrown and stderr.writeln failed\n"); }();
+    }
+}
 
 private void handleCmdLineOptions(in from!"unit_threaded.runner.options".Options options,
                                   in from!"unit_threaded.runner.reflection".TestData[] testData)
@@ -133,9 +223,16 @@ private void handleCmdLineOptions(in from!"unit_threaded.runner.options".Options
  * Replace the D runtime's normal unittest block tester. If this is not done,
  * the tests will run twice.
  */
-void replaceModuleUnitTester() {
+void replaceModuleUnitTester() nothrow {
     import core.runtime: Runtime;
-    Runtime.moduleUnitTester = &moduleUnitTester;
+    try
+        Runtime.moduleUnitTester = &moduleUnitTester;
+    catch(Exception e) {
+        handleException(e);
+        import core.stdc.stdio: fprintf, stderr;
+        fprintf(stderr, "Error: failed to replace Runtime.moduleUnitTester\n");
+        assert(0, "Inconceivable!");
+    }
 }
 
 
@@ -145,19 +242,19 @@ void replaceModuleUnitTester() {
  */
 private bool moduleUnitTester() {
     //this is so unit-threaded's own tests run
-    import std.algorithm: startsWith;
-    foreach(module_; ModuleInfo) {
-        if(module_ && module_.unitTest &&
-           module_.name.startsWith("unit_threaded") && // we want to run the "normal" unit tests
-           //!module_.name.startsWith("unit_threaded.property") && // left here for fast iteration when developing
-           !module_.name.startsWith("unit_threaded.ut.modules")) //but not the ones from the test modules
-        {
-            version(testing_unit_threaded) {
+    version(testing_unit_threaded) {
+        import std.algorithm: startsWith;
+        foreach(module_; ModuleInfo) {
+            if(module_ && module_.unitTest &&
+               module_.name.startsWith("unit_threaded") && // we want to run the "normal" unit tests
+               //!module_.name.startsWith("unit_threaded.property") && // left here for fast iteration when developing
+               !module_.name.startsWith("unit_threaded.ut.modules")) //but not the ones from the test modules
+            {
                 import std.stdio: writeln;
                 writeln("Running unit-threaded UT for module " ~ module_.name);
-            }
-            module_.unitTest()();
+                module_.unitTest()();
 
+            }
         }
     }
 
