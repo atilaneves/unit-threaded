@@ -60,12 +60,12 @@ extern(C) int rt_moduleDtor() @nogc nothrow @system;
  */
 template runTests(Modules...) if(Modules.length > 0) {
 
-    shared static this() {
+    shared static this() nothrow {
         import unit_threaded.runner.runner: replaceModuleUnitTester;
         replaceModuleUnitTester;
     }
 
-    int runTests(string[] args) {
+    int runTests(string[] args) nothrow {
         import unit_threaded.runner.reflection: allTestData;
         return runTests(args, allTestData!Modules);
     }
@@ -82,24 +82,56 @@ template runTests(Modules...) if(Modules.length > 0) {
  *   testData = Data about the tests to run.
  * Returns: An integer suitable for the program's return code.
  */
-int runTests(string[] args, in from!"unit_threaded.runner.reflection".TestData[] testData) {
-    import unit_threaded.runner.options: getOptions;
-    return runTests(getOptions(args), testData);
+int runTests(string[] args,
+             in from!"unit_threaded.runner.reflection".TestData[] testData)
+    nothrow
+{
+    import unit_threaded.runner.options: Options, getOptions;
+
+    Options options;
+
+    try
+        options = getOptions(args);
+    catch(Exception e) {
+        handleException(e);
+        return 1;
+    }
+
+    return runTests(options, testData);
 }
 
 int runTests(in from!"unit_threaded.runner.options".Options options,
              in from!"unit_threaded.runner.reflection".TestData[] testData)
+    nothrow
 {
     import unit_threaded.runner.testsuite: TestSuite;
 
-    handleCmdLineOptions(options, testData);
-    if (options.exit)
-        return 0;
+    int impl() {
+        handleCmdLineOptions(options, testData);
+        if (options.exit)
+            return 0;
 
-    auto suite = TestSuite(options, testData);
-    return suite.run ? 0 : 1;
+        auto suite = TestSuite(options, testData);
+        return suite.run ? 0 : 1;
+    }
+
+    try
+        return impl;
+    catch(Exception e) {
+        handleException(e);
+        return 1;
+    }
 }
 
+private void handleException(Exception e) nothrow {
+    try {
+        import std.stdio: stderr;
+        () @trusted { stderr.writeln("Error: ", e.msg); }();
+    } catch(Exception oops) {
+        import core.stdc.stdio: fprintf, stderr;
+        () @trusted { fprintf(stderr, "Error: exception thrown and stderr.writeln failed\n"); }();
+    }
+}
 
 private void handleCmdLineOptions(in from!"unit_threaded.runner.options".Options options,
                                   in from!"unit_threaded.runner.reflection".TestData[] testData)
@@ -133,9 +165,15 @@ private void handleCmdLineOptions(in from!"unit_threaded.runner.options".Options
  * Replace the D runtime's normal unittest block tester. If this is not done,
  * the tests will run twice.
  */
-void replaceModuleUnitTester() {
+void replaceModuleUnitTester() nothrow {
     import core.runtime: Runtime;
-    Runtime.moduleUnitTester = &moduleUnitTester;
+    try
+        Runtime.moduleUnitTester = &moduleUnitTester;
+    catch(Exception e) {
+        import core.stdc.stdio: fprintf, stderr;
+        fprintf(stderr, "Error: failed to replace Runtime.moduleUnitTester\n");
+        assert(0, "Inconceivable!");
+    }
 }
 
 
