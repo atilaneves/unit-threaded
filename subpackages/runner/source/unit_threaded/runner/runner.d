@@ -135,7 +135,7 @@ int runTests(in from!"unit_threaded.runner.options".Options options,
     }
 }
 
-private void handleException(Exception e) nothrow {
+private void handleException(Exception e) @safe nothrow {
     try {
         import std.stdio: stderr;
         () @trusted { stderr.writeln("Error: ", e.msg); }();
