@@ -60,17 +60,29 @@ extern(C) int rt_moduleDtor() @nogc nothrow @system;
  */
 template runTests(Modules...) if(Modules.length > 0) {
 
+    mixin disableDefaultRunner;
+
+    int runTests(string[] args) nothrow {
+        import unit_threaded.runner.reflection: allTestData;
+        return .runTests(args, allTestData!Modules);
+    }
+
+    int runTests(string[] args,
+                 in from!"unit_threaded.runner.reflection".TestData[] testData)
+        nothrow
+    {
+        import unit_threaded.runner.reflection: allTestData;
+        return .runTests(args, allTestData!Modules);
+    }
+}
+
+
+mixin template disableDefaultRunner() {
     shared static this() nothrow {
         import unit_threaded.runner.runner: replaceModuleUnitTester;
         replaceModuleUnitTester;
     }
-
-    int runTests(string[] args) nothrow {
-        import unit_threaded.runner.reflection: allTestData;
-        return runTests(args, allTestData!Modules);
-    }
 }
-
 
 
 /**
