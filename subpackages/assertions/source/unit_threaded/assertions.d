@@ -572,7 +572,7 @@ void shouldApproxEqual(V, E)(in V value, in E expected, double maxRelDiff = 1e-2
 
 
 bool isEqual(V, E)(scope V value, scope E expected)
-    if (!isObject!V && isInputRange!V && isInputRange!E && !isSomeString!V &&
+    if (isInputRange!V && isInputRange!E && !isSomeString!V &&
         is(typeof(isEqual(value.front, expected.front))))
 {
 

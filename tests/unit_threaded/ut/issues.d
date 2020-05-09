@@ -152,3 +152,13 @@ else {
         static assert(!isSafe!({ check!func(100); }));
     }
 }
+
+
+@("182")
+// not @safe or pure because the InputRange interface member functions aren't
+@system unittest {
+    import std.range: inputRangeObject;
+    auto a = [1, 2, 3];
+    auto b = [1, 2, 3];
+    a.inputRangeObject.should == b;
+}
