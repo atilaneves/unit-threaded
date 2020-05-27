@@ -585,7 +585,7 @@ bool isEqual(V, E)(scope V value, scope E expected)
 }
 
 bool isEqual(V, E)(scope V value, scope E expected)
-    if (!isObject!V && isInputRange!V && isInputRange!E && isSomeString!V && isSomeString!E &&
+    if (isSomeString!V && isSomeString!E &&
         is(typeof(isEqual(value.front, expected.front))))
 {
     if(value.length != expected.length) return false;
