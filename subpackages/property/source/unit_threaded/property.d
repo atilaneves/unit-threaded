@@ -26,7 +26,7 @@ void check(alias F, int numFuncCalls = 100)
     import unit_threaded.randomized.random: RndValueGen;
     import unit_threaded.exception: UnitTestException;
     import std.conv: text;
-    import std.traits: ReturnType, Parameters, isSomeString;
+    import std.traits: ReturnType, Parameters, isSomeString, isSafe;
     import std.array: join;
     import std.typecons: Flag, Yes, No;
     import std.random: Random;
@@ -35,7 +35,18 @@ void check(alias F, int numFuncCalls = 100)
                   text("check only accepts functions that return bool, not ", ReturnType!F.stringof));
 
     scope random = Random(seed);
-    scope gen = RndValueGen!(Parameters!F)(&random);
+
+    // See https://github.com/atilaneves/unit-threaded/issues/187 for why
+    auto createGenerator() {
+        return RndValueGen!(Parameters!F)(&random);
+    }
+
+    // It might be that some projects don't use dip1000 and so
+    // createGenerator isn't safe
+    static if(isSafe!createGenerator)
+        scope gen = createGenerator;
+    else
+        scope gen = () @trusted { return createGenerator; }();
 
     auto input(Flag!"shrink" shrink = Yes.shrink) {
 
