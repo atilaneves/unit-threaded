@@ -36,14 +36,15 @@ class CalcController {
 
 
 @("82")
-@safe unittest {
+// @system because of Object member functions are @system
+@system unittest {
 
     import std.exception: assertThrown;
 
     static class A {
         string x;
 
-        override string toString() const {
+        override string toString() @safe const {
             return x;
         }
     }
@@ -72,9 +73,20 @@ class CalcController {
             return ints.length != 0;
         }
 
-        inout(int)[] opSlice() inout {
+        inout(int)[] opSlice() @safe inout {
             return ints;
         }
+
+        string toString() @safe pure const {
+            import std.conv: text;
+            return text(this);
+        }
+    }
+
+
+    static huh() @safe {
+        import std.conv: to;
+        return Array([1, 2, 3]).to!string;
     }
 
     {
@@ -189,21 +201,21 @@ else {
 @("184.1")
 @safe pure unittest {
 
-    import std.traits;
+    import std.traits: isUnsafe;
 
     auto obviouslySystem = {
         int* foo = cast(int*) 42;
         *foo = 42;
     };
 
-    static assert(!isSafe!(obviouslySystem));
+    static assert(isUnsafe!(obviouslySystem));
 
     void oops()() {
         shouldThrowExactly!Exception(obviouslySystem);
     }
 
     // oops;  // uncomment to ever check the compiler error message
-    static assert(!isSafe!(oops!()),
+    static assert(isUnsafe!(oops!()),
                   "Passing @system functions to shouldThrowExactly should not be @safe");
 }
 
@@ -220,4 +232,35 @@ else {
     }
 
     S(42).should == S(33);
+}
+
+
+version(unitThreadedLight) {}
+else {
+    @("186")
+        @safe pure unittest {
+
+        import std.traits: isUnsafe;
+
+        static struct Key {
+
+            int val;
+
+            string toString () const @system {
+                int* ptr = cast(int*) 42;
+                *ptr = 42;
+                return "Oops";
+            }
+        }
+
+        Key a = Key(42);
+        Key b = Key(84);
+
+        void impl()() {
+            a.should == b;
+        }
+
+        // unsafe due to unsafe toString
+        static assert(isUnsafe!(impl!()));
+    }
 }

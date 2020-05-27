@@ -499,20 +499,26 @@ private string[] formatValueInItsOwnLine(T)(in string prefix, scope auto ref T v
 
 // helper function for non-copyable types
 string convertToString(T)(scope auto ref T value) {  // std.conv.to sometimes is @system
-    import std.conv: to;
-    import std.traits: Unqual, isFloatingPoint;
+    import std.conv: text, to;
+    import std.traits: isFloatingPoint, isAssociativeArray;
     import std.format: format;
 
-    static if(isFloatingPoint!T) {
+    static string text_(scope ref const(T) value) {
+        static if(isAssociativeArray!T)
+            return (scope ref const(T) value) @trusted { return value.text; }(value);
+        else static if(__traits(compiles, value.text))
+            return value.text;
+        else static if(__traits(compiles, value.to!string))
+            return value.to!string;
+    }
+
+    static if(isFloatingPoint!T)
         return format!"%.6f"(value);
-    } else static if(__traits(compiles, () @trusted { return value.to!string; }()))
-        return () @trusted { return value.to!string; }();
-    else static if(__traits(compiles, value.toString)) {
-        static if(isObject!T)
-            return () @trusted { return (cast(Unqual!T)value).toString; }();
-        else
-            return value.toString;
-    } else
+    else static if(__traits(compiles, text_(value)))
+        return text_(value);
+    else static if(__traits(compiles, value.toString))
+        return value.toString;
+    else
         return T.stringof ~ "<cannot print>";
 }
 
