@@ -545,8 +545,14 @@ bool isEqual(V, E)(in auto ref V value, in auto ref E expected)
  *    maxAbsDiff = the maximum absolute difference
  * Throws: UnitTestException on failure
  */
-void shouldApproxEqual(V, E)(in V value, in E expected, double maxRelDiff = 1e-2, double maxAbsDiff = 1e-5, string file = __FILE__, size_t line = __LINE__)
- if (!isObject!V && (isFloatingPoint!V || isFloatingPoint!E) && is(typeof(value == expected) == bool))
+void shouldApproxEqual(V, E)
+                      (in V value,
+                       in E expected,
+                       double maxRelDiff = 1e-2,
+                       double maxAbsDiff = 1e-5,
+                       string file = __FILE__,
+                       size_t line = __LINE__)
+ if ((isFloatingPoint!V || isFloatingPoint!E) && is(typeof(value == expected) == bool))
 {
     import std.math: approxEqual;
     if (!approxEqual(value, expected, maxRelDiff, maxAbsDiff))
