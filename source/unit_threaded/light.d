@@ -258,14 +258,29 @@ void shouldNotBeIn(T, U)(in auto ref T value, U container, in string file = __FI
 /// Assert that expr throws.
 void shouldThrow(T : Throwable = Exception, E)
                 (lazy E expr, in string file = __FILE__, in size_t line = __LINE__) {
+    import std.traits: isSafe, isUnsafe;
+
     auto threw = false;
-    () @trusted {
+
+    static if(isUnsafe!expr)
+        void callExpr() @system { expr(); }
+    else
+        void callExpr() @safe   { expr(); }
+
+    bool impl() {
         try {
-            expr();
+            callExpr;
+            return false;
         } catch(T _) {
-            threw = true;
+            return true;
         }
-    }();
+    }
+
+    static if(isSafe!callExpr)
+        threw = () @trusted { return impl; }();
+    else
+        threw = impl;
+
     assert_(threw, file, line);
 }
 
@@ -273,22 +288,33 @@ void shouldThrow(T : Throwable = Exception, E)
 void shouldThrowExactly(T : Throwable = Exception, E)
                        (lazy E expr, in string file = __FILE__, in size_t line = __LINE__)
 {
+    import std.traits: isSafe, isUnsafe;
+
     T throwable = null;
 
-    () @trusted {
-        try {
-            expr();
-            assert_(false, file, line);
-        } catch(T t) {
+    static if(isUnsafe!expr)
+        void callExpr() @system { expr(); }
+    else
+        void callExpr() @safe   { expr(); }
+
+    void impl() {
+        try
+            callExpr;
+        catch(T t) {
             throwable = t;
         }
-    }();
+    }
+
+    static if(isSafe!callExpr)
+        () @trusted { return impl; }();
+    else
+        impl;
 
     //Object.opEquals is @system and impure
     const sameType = () @trusted { return throwable !is null && typeid(throwable) == typeid(T); }();
     assert_(sameType, file, line);
-
 }
+
 
 /// Assert that expr doesn't throw
 void shouldNotThrow(T: Throwable = Exception, E)

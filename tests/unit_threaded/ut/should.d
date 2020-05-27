@@ -201,6 +201,20 @@ private void assertFail(E)(lazy E expression, in string file = __FILE__, in size
 }
 
 
+@safe pure unittest {
+    assertExceptionMsg((1 == 2).shouldThrow,
+                       `    tests/unit_threaded/ut/should.d:123 - Expression did not throw`);
+}
+
+
+@safe pure unittest {
+    static void oops() { throw new Exception("oops"); }
+    assertExceptionMsg(oops.shouldThrow!UnitTestException,
+                       `    tests/unit_threaded/ut/should.d:123 - Expression threw object.Exception instead of the expected UnitTestException:`
+                       ~ "\n"  ~ `oops`);
+}
+
+
 @safe unittest
 {
     auto arrayRangeWithoutLength(T)(T[] array)
