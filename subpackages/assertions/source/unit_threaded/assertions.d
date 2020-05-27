@@ -530,14 +530,7 @@ private enum isObject(T) = is(T == class) || is(T == interface);
 
 bool isEqual(V, E)(in auto ref V value, in auto ref E expected)
  if (!isObject!V &&
-     !isFloatingPoint!V && !isFloatingPoint!E &&
      is(typeof(value == expected) == bool))
-{
-    return value == expected;
-}
-
-bool isEqual(V, E)(in V value, in E expected)
- if (!isObject!V && (isFloatingPoint!V || isFloatingPoint!E) && is(typeof(value == expected) == bool))
 {
     return value == expected;
 }
