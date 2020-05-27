@@ -142,7 +142,7 @@ void shouldBeFalse(E)(lazy E condition, in string file = __FILE__, in size_t lin
 void shouldEqual(V, E)(auto ref V value, auto ref E expected, in string file = __FILE__, in size_t line = __LINE__) {
 
     void checkInputRange(T)(auto ref const(T) _) @trusted {
-        auto obj = cast(T)_;
+        auto obj = cast(T) _;
         bool e = obj.empty;
         auto f = obj.front;
         obj.popFront;
@@ -196,7 +196,7 @@ void shouldEqual(V, E)(auto ref V value, auto ref E expected, in string file = _
         assert_(equal(unvoid(unqual(value)), unvoid(unqual(expected))), file, line);
 
     } else {
-        assert_(cast(const)value == cast(const)expected, file, line);
+        assert_(value == expected, file, line);
     }
 }
 

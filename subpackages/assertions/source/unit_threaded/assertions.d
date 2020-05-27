@@ -77,7 +77,11 @@ void shouldEqual(V, E)(scope auto ref V value, scope auto ref E expected, string
  * Verify that two values are not the same.
  * Throws: UnitTestException on failure
  */
-void shouldNotEqual(V, E)(V value, E expected, string file = __FILE__, in size_t line = __LINE__)
+void shouldNotEqual(V, E)
+                   (scope auto ref V value,
+                    scope auto ref E expected,
+                    string file = __FILE__,
+                    in size_t line = __LINE__)
 {
     if (isEqual(value, expected))
     {
@@ -528,16 +532,20 @@ private string[] formatRange(T)(in string prefix, scope auto ref T value) {
 
 private enum isObject(T) = is(T == class) || is(T == interface);
 
-bool isEqual(V, E)(in auto ref V value, in auto ref E expected)
- if (!isObject!V &&
-     !isFloatingPoint!V && !isFloatingPoint!E &&
+bool isEqual(V, E)(auto ref V value, auto ref E expected)
+ if (!isObject!V && !isInputRange!V &&
      is(typeof(value == expected) == bool))
 {
     return value == expected;
 }
 
+
+// The reason this overload exists is because for some reason we can't
+// compare a mutable AA with a const one so we force both of them to
+// be const here, while not forcing users to have a const opEquals
+// in their own types
 bool isEqual(V, E)(in V value, in E expected)
- if (!isObject!V && (isFloatingPoint!V || isFloatingPoint!E) && is(typeof(value == expected) == bool))
+    if (isAssociativeArray!V && isAssociativeArray!E)
 {
     return value == expected;
 }
@@ -552,8 +560,14 @@ bool isEqual(V, E)(in V value, in E expected)
  *    maxAbsDiff = the maximum absolute difference
  * Throws: UnitTestException on failure
  */
-void shouldApproxEqual(V, E)(in V value, in E expected, double maxRelDiff = 1e-2, double maxAbsDiff = 1e-5, string file = __FILE__, size_t line = __LINE__)
- if (!isObject!V && (isFloatingPoint!V || isFloatingPoint!E) && is(typeof(value == expected) == bool))
+void shouldApproxEqual(V, E)
+                      (in V value,
+                       in E expected,
+                       double maxRelDiff = 1e-2,
+                       double maxAbsDiff = 1e-5,
+                       string file = __FILE__,
+                       size_t line = __LINE__)
+ if ((isFloatingPoint!V || isFloatingPoint!E) && is(typeof(value == expected) == bool))
 {
     import std.math: approxEqual;
     if (!approxEqual(value, expected, maxRelDiff, maxAbsDiff))
@@ -586,7 +600,7 @@ bool isEqual(V, E)(scope V value, scope E expected)
 }
 
 bool isEqual(V, E)(scope V value, scope E expected)
-    if (!isObject!V && isInputRange!V && isInputRange!E && isSomeString!V && isSomeString!E &&
+    if (isSomeString!V && isSomeString!E &&
         is(typeof(isEqual(value.front, expected.front))))
 {
     if(value.length != expected.length) return false;
