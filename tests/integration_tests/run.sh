@@ -7,18 +7,23 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 clear
 
 cd "$SCRIPT_DIR"/issue61
+echo issue61
 dub run -q --build=unittest-cov
 
 cd "$SCRIPT_DIR"/issue109
+echo issue109
 dub run -q --build=unittest-cov
 
 cd "$SCRIPT_DIR"/issue116
+echo issue116
 dub run -q --build=unittest-cov
 
 cd "$SCRIPT_DIR"/runTestsMain
+echo runTestsMain
 dub run -q --build=unittest-cov
 
 cd "$SCRIPT_DIR"/issue121
+echo issue121
 dub test -q && issue121_status=0 || issue121_status=1
 
 
@@ -31,4 +36,9 @@ fi
 
 
 cd "$SCRIPT_DIR"/issue157
+echo issue157
+dub run -q --build=unittest-cov
+
+cd "$SCRIPT_DIR"/issue187
+echo issue187
 dub run -q --build=unittest-cov
