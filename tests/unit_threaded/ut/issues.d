@@ -164,6 +164,50 @@ else {
 }
 
 
+@("184.0")
+@safe pure unittest {
+
+    import std.traits;
+
+    auto obviouslySystem = {
+        int* foo = cast(int*) 42;
+        *foo = 42;
+    };
+
+    static assert(!isSafe!(obviouslySystem));
+
+    void oops()() {
+        shouldThrow(obviouslySystem);
+    }
+
+    // oops;  // uncomment to ever check the compiler error message
+    static assert(!isSafe!(oops!()),
+                  "Passing @system functions to shouldThrow should not be @safe");
+}
+
+
+@("184.1")
+@safe pure unittest {
+
+    import std.traits;
+
+    auto obviouslySystem = {
+        int* foo = cast(int*) 42;
+        *foo = 42;
+    };
+
+    static assert(!isSafe!(obviouslySystem));
+
+    void oops()() {
+        shouldThrowExactly!Exception(obviouslySystem);
+    }
+
+    // oops;  // uncomment to ever check the compiler error message
+    static assert(!isSafe!(oops!()),
+                  "Passing @system functions to shouldThrowExactly should not be @safe");
+}
+
+
 @("185")
 @safe pure unittest {
     static struct S {

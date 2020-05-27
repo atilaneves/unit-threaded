@@ -445,29 +445,39 @@ private auto threw(T : Throwable, E)(lazy E expr)
     import std.typecons : tuple;
     import std.array: array;
     import std.conv: text;
+    import std.traits: isSafe, isUnsafe;
 
     auto ret = tuple!("threw", "info")(false, ThrownInfo.init);
 
     // separate in order to not be inside the @trusted
-    void makeRet(scope T e) {
+    auto makeRet(scope T e) {
         // the message might have to be copied because of lifetime issues
         // .msg is sometimes a range, so .array
         // but .array sometimes returns dchar[] (autodecoding), so .text
-        ret = typeof(ret)(true, ThrownInfo(typeid(e), e.msg.array.dup.text));
+        return tuple!("threw", "info")(true, ThrownInfo(typeid(e), e.msg.array.dup.text));
     }
-    // insert dummy call outside @trusted to correctly infer the attributes of shouldThrow
-    if (false)
-        makeRet(null);
 
-    (() @trusted { // @trusted because of catching Throwable
-        try
-            expr();
-        catch (T e)
-            makeRet(e);
-    })();
+    static if(isUnsafe!expr)
+        void callExpr() @system { expr(); }
+    else
+        void callExpr() @safe   { expr(); }
 
-    return ret;
+    auto impl() {
+        try {
+            callExpr;
+            return tuple!("threw", "info")(false, ThrownInfo.init);
+        }
+        catch(T t) {
+            return makeRet(t);
+        }
+    }
+
+    static if(isSafe!callExpr && isSafe!makeRet)
+        return () @trusted { return impl; }();
+    else
+        return impl;
 }
+
 
 // Formats output in different lines
 private string[] formatValueInItsOwnLine(T)(in string prefix, scope auto ref T value) {
