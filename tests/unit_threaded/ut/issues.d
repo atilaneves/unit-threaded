@@ -162,3 +162,18 @@ else {
     auto b = [1, 2, 3];
     a.inputRangeObject.should == b;
 }
+
+
+@("185")
+@safe pure unittest {
+    static struct S {
+
+        int i;
+
+        bool opEquals(T...)(T whatever) /* not const */ {
+            return true;
+        }
+    }
+
+    S(42).should == S(33);
+}

@@ -532,9 +532,20 @@ private string[] formatRange(T)(in string prefix, scope auto ref T value) {
 
 private enum isObject(T) = is(T == class) || is(T == interface);
 
-bool isEqual(V, E)(in auto ref V value, in auto ref E expected)
- if (!isObject!V &&
+bool isEqual(V, E)(auto ref V value, auto ref E expected)
+ if (!isObject!V && !isInputRange!V &&
      is(typeof(value == expected) == bool))
+{
+    return value == expected;
+}
+
+
+// The reason this overload exists is because for some reason we can't
+// compare a mutable AA with a const one so we force both of them to
+// be const here, while not forcing users to have a const opEquals
+// in their own types
+bool isEqual(V, E)(in V value, in E expected)
+    if (isAssociativeArray!V && isAssociativeArray!E)
 {
     return value == expected;
 }

@@ -80,7 +80,8 @@ private void assertFail(E)(lazy E expression, in string file = __FILE__, in size
 @safe pure unittest
 {
     ubyte[] arr;
-    arr.shouldEqual([]);
+    ubyte[] empty;
+    arr.shouldEqual(empty);
 }
 
 
@@ -440,7 +441,8 @@ unittest {
     assert(!isEqual(new Foo(5), new Foo(4)));
 
     ubyte[] arr;
-    assert(isEqual(arr, []));
+    ubyte[] empty;
+    assert(isEqual(arr, empty));
 }
 
 @safe pure unittest
@@ -617,14 +619,6 @@ unittest {
     1.0.should ~ 1.0001;
     1.0.should.not ~ 2.0;
     assertFail(2.0.should ~ 1.0001);
-}
-
-
-@("void[] vs string")
-@safe unittest {
-    auto voids = () @trusted { return cast(void[]) ['f', 'o', 'o']; }();
-    "foo".shouldEqual(voids);
-    voids.shouldEqual("foo");
 }
 
 
