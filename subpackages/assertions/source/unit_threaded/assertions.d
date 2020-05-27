@@ -77,7 +77,11 @@ void shouldEqual(V, E)(scope auto ref V value, scope auto ref E expected, string
  * Verify that two values are not the same.
  * Throws: UnitTestException on failure
  */
-void shouldNotEqual(V, E)(V value, E expected, string file = __FILE__, in size_t line = __LINE__)
+void shouldNotEqual(V, E)
+                   (scope auto ref V value,
+                    scope auto ref E expected,
+                    string file = __FILE__,
+                    in size_t line = __LINE__)
 {
     if (isEqual(value, expected))
     {
