@@ -3,7 +3,7 @@ unit-threaded
 
 | [![Build Status](https://travis-ci.org/atilaneves/unit-threaded.png?branch=master)](https://travis-ci.org/atilaneves/unit-threaded) |  [![Build Status](https://ci.appveyor.com/api/projects/status/github/atilaneves/unit-threaded?branch=master&svg=true)](https://ci.appveyor.com/project/atilaneves/unit-threaded) | [![Coverage](https://codecov.io/gh/atilaneves/unit-threaded/branch/master/graph/badge.svg)](https://codecov.io/gh/atilaneves/unit-threaded) |
 
-[My DConf2016 Lightning talk demonstrating unit-threaded](https://www.youtube.com/watch?v=yIH_0ew-maI#t=6m50s).
+[My DConf2016 Lightning talk demonstrating unit-threaded](https://www.youtube.com/watch?v=vNPb4Mg6F6Y#t=6m50s).
 
 Multi-threaded advanced unit test framework for [the D programming language](https://dlang.org/).
 
