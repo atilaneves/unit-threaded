@@ -35,7 +35,7 @@ void assertExceptionMsg(E)(lazy E expr, string expected,
         catch(UnitTestException ex)
             return ex.toString;
 
-        assert(0, "Expression did not throw UnitTestException");
+        assert(0, text("Expression did not throw UnitTestException in ", file, ":", line));
     }
 
 

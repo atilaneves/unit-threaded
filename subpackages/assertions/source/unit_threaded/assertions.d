@@ -962,19 +962,41 @@ auto should(V)(scope auto ref V value){
             shouldNotBeIn(forward!value, range, file, line);
         }
 
-        void opBinary(string op, R)(R range,
+        void opBinary(string op, R)(R expected,
                                     string file = __FILE__,
                                     in size_t line = __LINE__) const
             if(op == "~" && isInputRange!R)
         {
-            shouldThrow!UnitTestException(shouldBeSameSetAs(forward!value, range), file, line);
+            import std.conv: text;
+
+            bool failed;
+
+            try
+                shouldBeSameSetAs(forward!value, expected);
+            catch(UnitTestException)
+                failed = true;
+
+            if(!failed)
+                fail(text(value, " should not be the same set as ", expected),
+                     file, line);
         }
 
         void opBinary(string op, E)
                      (in E expected, string file = __FILE__, size_t line = __LINE__)
             if (isFloatingPoint!E)
         {
-            shouldThrow!UnitTestException(shouldApproxEqual(forward!value, expected), file, line);
+            import std.conv: text;
+
+            bool failed;
+
+            try
+                shouldApproxEqual(forward!value, expected);
+            catch(UnitTestException)
+                failed = true;
+
+            if(!failed)
+                fail(text(value, " should not be approximately equal to ", expected),
+                     file, line);
         }
     }
 
