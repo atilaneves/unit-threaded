@@ -10,7 +10,8 @@ class Service: IService {
     override string toString() @safe pure nothrow const { return ""; }
 }
 
-void testCastNotAllowed() {
+@("castNotAllowed")
+unittest {
    IService x = new Service();
    IService y = new Service();
    shouldEqual(x, y);

@@ -7,47 +7,32 @@ enum myEnumNum = "foo.bar"; //there was a bug that made this not compile
 enum myOtherEnumNum;
 
 @Tags("tagged")
-@UnitTest
-void funcAttributes() {
+unittest {
     //tests that using the @UnitTest UDA adds this function
     //to the list of tests despite its name
     1.shouldEqual(1);
 }
 
-//won't be tested due to attribute
-@DontTest
-void testThatWontRun() {
-    1.shouldEqual(2); //doesn't matter, won't run anyway
-}
-
-@DontTest
-class TestThatWontRun: TestCase {
-    override void test() {
-        null.shouldNotBeNull; //doesn't matter, won't run anyway
-    }
-}
 
 @HiddenTest("Bug id #54321")
-class MyHiddenTest: TestCase {
-    override void test() {
-        null.shouldNotBeNull; //hidden by default, fails if explicitly run
-    }
+unittest {
+    null.shouldNotBeNull; //hidden by default, fails if explicitly run
 }
 
 @HiddenTest
-void testHidden() {
+unittest {
     null.shouldNotBeNull; //hidden by default, fails if explicitly run
 }
 
 
 @ShouldFail("Bug id 12345")
-void testShouldFail() {
+unittest {
     3.shouldEqual(4);
 }
 
 
 @ShouldFail("Bug id 12345")
-void testShouldFailWithOtherException() {
+unittest {
     throw new Exception("This should not be seen");
 }
 
@@ -77,30 +62,34 @@ unittest {
 }
 
 @Tags("other", "more")
+@UnitTest
 @(42, 2)
-void testValues(int i) {
+void values(int i) {
     (i % 2 == 0).shouldBeTrue;
 }
 
 
 @ShouldFail
-void testShouldFailWithAssertionInTestFunction() {
+unittest {
      assert(false);
 }
 
 @ShouldFail
 @(12, 14)
-void testIssue14(int i) {
+@UnitTest
+void issue14(int i) {
     (i % 2 == 0).shouldBeFalse;
 }
 
+@UnitTest
 @Types!(int, byte)
-void testTemplate(T)() {
+void template_(T)() {
     T.init.shouldEqual(0);
 }
 
+@UnitTest
 @Types!(A)
-void testTemplateWithTypeFromAnotherModule(T)() {
+void templateWithTypeFromAnotherModule(T)() {
 
 }
 
@@ -125,7 +114,7 @@ unittest {
 }
 
 @Flaky
-void testFlaky() {
+unittest {
     static int i = 0;
     if(i++ % 2 == 0) throw new Exception("oops");
 }

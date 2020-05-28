@@ -1,5 +1,6 @@
 module tests.fail.exception;
 
+
 import unit_threaded;
 
 
@@ -8,7 +9,8 @@ class CustomException: Exception {
 }
 
 @HiddenTest("Don't want to pollute the output")
-void testCustomException() {
+@("custom")
+unittest {
     throw new CustomException("This should have a stack trace in the output");
 }
 
@@ -18,6 +20,7 @@ class NormalException: UnitTestException {
     }
 }
 
-void testNormalException() {
+@("normal")
+unittest {
     throw new NormalException("This should not have a stack trace in the output");
 }

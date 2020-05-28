@@ -1,55 +1,59 @@
 module tests.fail.normal;
 
+
 import unit_threaded;
 
 
-class WrongTest: TestCase {
-    override void test() {
-        shouldBeTrue(5 == 3);
-        shouldBeFalse(5 == 5);
-        5.shouldEqual(5);
-        5.shouldNotEqual(3);
-        5.shouldEqual(3);
-    }
+@("wrong.0")
+unittest {
+    shouldBeTrue(5 == 3);
+    shouldBeFalse(5 == 5);
+    5.shouldEqual(5);
+    5.shouldNotEqual(3);
+    5.shouldEqual(3);
 }
 
-class OtherWrongTest: TestCase {
-    override void test() {
-        shouldBeTrue(false);
-    }
+
+@("wrong.1")
+unittest {
+    shouldBeTrue(false);
 }
 
-class RightTest: TestCase {
-    override void test() {
-        shouldBeTrue(true);
-    }
-}
 
-void testTrue() {
+@("right")
+unittest {
     shouldBeTrue(true);
 }
 
-void testEqualVars() {
+@("true")
+unittest {
+    shouldBeTrue(true);
+}
+
+@("equalVars")
+unittest {
     immutable foo = 4;
     immutable bar = 6;
     foo.shouldEqual(bar);
 }
 
 void someFun() {
-    //not going to be executed as part of the testsuite,
-    //doesn't obey the naming convention
+    //not going to be executed as part of the testsuite
     assert(0, "Never going to happen");
 }
 
-void testStringEqual() {
+@("stringEqual")
+unittest {
     "foo".shouldEqual("bar");
 }
 
-void testStringEqualFails() {
+@("stringEqualFails")
+unittest {
     "foo".shouldEqual("bar");
 }
 
-void testStringNotEqual() {
+@("stringNotEqual")
+unittest {
     "foo".shouldNotEqual("foo");
 }
 
@@ -59,10 +63,12 @@ unittest {
     assert(3 == 4, str);
 }
 
-void testIntArray() {
+@("intArray")
+unittest {
     [1, 2, 4].shouldEqual([1, 2, 3]);
 }
 
-void testStringArray() {
+@("stringArray")
+unittest {
     ["foo", "baz", "badoooooooooooo!"].shouldEqual(["foo", "bar", "baz"]);
 }

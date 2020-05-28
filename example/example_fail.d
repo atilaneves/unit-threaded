@@ -1,10 +1,7 @@
-#!/usr/bin/rdmd -unittest
-
-
 import unit_threaded;
 
 
-return runTestsMain!(
+mixin runTestsMain!(
     "tests.fail.normal",
     "tests.fail.delayed",
     "tests.fail.priv",
