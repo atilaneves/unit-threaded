@@ -238,7 +238,7 @@ else {
 version(unitThreadedLight) {}
 else {
     @("186")
-        @safe pure unittest {
+    @safe pure unittest {
 
         import std.traits: isUnsafe;
 

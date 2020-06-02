@@ -1,0 +1,4 @@
+name "property_light"
+targetType "executable"
+dependency "unit-threaded" path="../../.."
+versions "unitThreadedLight"
