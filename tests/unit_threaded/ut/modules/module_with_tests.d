@@ -24,11 +24,6 @@ private void tes() {}
 //non-test non-functions
 int testInt;
 
-//test classes
-class FooTest { void test() { } }
-class BarTest { void test() { } }
-@UnitTest class Blergh { }
-
 //non-test classes
 class NotATest { void tes() { } }
 class AlsoNotATest { void testosterone() { } }
@@ -70,14 +65,6 @@ struct StructWithUnitTests{
 
 // github issue #26 - template instance GetTypes!uint does not match template declaration
 alias RGB = uint;
-
-
-import unit_threaded: TestCase;
-
-class Issue83: TestCase {
-    this() {}
-    override void test() {}
-}
 
 
 mixin Test!(
