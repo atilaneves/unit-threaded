@@ -75,7 +75,7 @@ void writelnUt(T...)(auto ref T args) {
    Same as unit_threaded.property.check
  */
 void check(alias F)(int numFuncCalls = 100,
-                    in string file = __FILE__, in size_t line = __LINE__) @trusted {
+                    in string file = __FILE__, in size_t line = __LINE__) {
     import unit_threaded.property: utCheck = check;
     utCheck!F(numFuncCalls, file, line);
 }
@@ -84,7 +84,7 @@ void check(alias F)(int numFuncCalls = 100,
    Same as unit_threaded.property.checkCustom
  */
 void checkCustom(alias Generator, alias Predicate)
-                (int numFuncCalls = 100, in string file = __FILE__, in size_t line = __LINE__) @trusted {
+                (int numFuncCalls = 100, in string file = __FILE__, in size_t line = __LINE__) {
     import unit_threaded.property: utCheckCustom = checkCustom;
     utCheckCustom!(Generator, Predicate)(numFuncCalls, file, line);
 }
