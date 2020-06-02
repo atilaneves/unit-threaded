@@ -14,13 +14,6 @@ private auto addModPrefix(string[] elements,
 
 
 unittest {
-    const expected = addModPrefix([ "FooTest", "BarTest", "Blergh", "Issue83"]);
-    const actual = moduleTestClasses!(unit_threaded.ut.modules.module_with_tests).
-        map!(a => a.name).array;
-    assertEqual(actual, expected);
-}
-
-unittest {
     import std.algorithm: sorted = sort;
 
     const expected = addModPrefix(
@@ -46,9 +39,9 @@ unittest {
         [
             "myUnitTest",
             "StructWithUnitTests.InStruct",
-            "StructWithUnitTests.unittest_L65_C5",
+            "StructWithUnitTests.unittest_L60_C5",
+            "unittest_L38",
             "unittest_L43",
-            "unittest_L48",
         ]
     ).sorted.array;
     const actual = moduleUnitTests!(unit_threaded.ut.modules.module_with_tests).

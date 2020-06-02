@@ -46,11 +46,11 @@ string unittestFunctionName(size_t line = __LINE__) {
 alias TestFunction = void delegate();
 
 /**
- * Common data for test functions and test classes
+ * Attributes of each test.
  */
 struct TestData {
     string name;
-    TestFunction testFunction; ///only used for functions, null for classes
+    TestFunction testFunction;
     bool hidden;
     bool shouldFail;
     bool singleThreaded;
@@ -67,17 +67,12 @@ struct TestData {
         if(!suffix.empty) path ~= "." ~ suffix;
         return path;
     }
-
-    /// If the test is a class
-    bool isTestClass() @safe const pure nothrow {
-        return testFunction is null;
-    }
 }
 
 
 /**
- * Finds all test cases (functions, classes, built-in unittest blocks)
- * Template parameters are module strings
+ * Finds all test cases.
+ * Template parameters are module strings.
  */
 const(TestData)[] allTestData(MOD_STRINGS...)()
     if(from!"std.meta".allSatisfy!(from!"std.traits".isSomeString, typeof(MOD_STRINGS)))
@@ -102,14 +97,13 @@ const(TestData)[] allTestData(MOD_STRINGS...)()
 
 
 /**
- * Finds all test cases (functions, classes, built-in unittest blocks)
- * Template parameters are module symbols
+ * Finds all test cases.
+ * Template parameters are module symbols.
  */
 const(TestData)[] allTestData(MOD_SYMBOLS...)()
     if(!from!"std.meta".anySatisfy!(from!"std.traits".isSomeString, typeof(MOD_SYMBOLS)))
 {
     return
-        moduleTestClasses!MOD_SYMBOLS ~
         moduleTestFunctions!MOD_SYMBOLS ~
         moduleUnitTests!MOD_SYMBOLS;
 }
@@ -425,7 +419,7 @@ private template isPrivate(alias module_, string moduleMember) {
 }
 
 
-// if this member is a test function or class, given the predicate
+// if this member is considered a test case given the predicate
 private template PassesTestPred(alias module_, alias pred, string moduleMember) {
 
     static if(__traits(compiles, Identity!(__traits(getMember, module_, moduleMember)))) {
@@ -447,44 +441,6 @@ private template PassesTestPred(alias module_, alias pred, string moduleMember) 
 
     } else
         enum PassesTestPred = false;
-}
-
-
-/**
- * Finds all test classes (classes implementing a test() function)
- * in the given module
- */
-TestData[] moduleTestClasses(modules...)() pure nothrow {
-
-    template isTestClass(alias module_, string moduleMember) {
-        import unit_threaded.runner.attrs: UnitTest;
-        import std.traits: isAggregateType, hasUDA;
-
-        alias member = Identity!(__traits(getMember, module_, moduleMember));
-
-        static if(.isPrivate!(module_, moduleMember)) {
-            enum isTestClass = false;
-        } else static if(!__traits(compiles, isAggregateType!(member))) {
-            enum isTestClass = false;
-        } else static if(!isAggregateType!(member)) {
-            enum isTestClass = false;
-        } else static if(!__traits(compiles, { return new member; })) {
-            enum isTestClass = false; //can't new it, can't use it
-        } else {
-            enum hasUnitTest = hasUDA!(member, UnitTest);
-            enum hasTestMethod = __traits(hasMember, member, "test");
-
-            enum isTestClass = is(member == class) && (hasTestMethod || hasUnitTest);
-        }
-    }
-
-    TestData[] ret;
-
-    static foreach(module_; modules) {
-        ret ~= moduleTestData!(module_, isTestClass, memberTestData);
-    }
-
-    return ret;
 }
 
 
@@ -741,8 +697,8 @@ private TestData[] createTypeParamFuncTestData(alias module_, string moduleMembe
 }
 
 
-// this funtion returns TestData for either classes or test functions
-// built-in unittest modules are handled by moduleUnitTests
+// This funtion returns TestData for test functions.
+// Built-in unittest modules are handled by moduleUnitTests
 // pred determines what qualifies as a test
 // createTestData must return TestData[]
 private TestData[] moduleTestData(alias module_, alias pred, alias createTestData)() pure {
@@ -758,19 +714,8 @@ private TestData[] moduleTestData(alias module_, alias pred, alias createTestDat
 
 }
 
-// Deprecated: here for backwards compatibility
-// TestData for a member of a module (either a test function or a test class)
-private TestData memberTestData
-    (alias module_, string moduleMember, string[] extraTags = [])
-    (TestFunction testFunction = null, string suffix = "")
-{
-    import std.meta: Alias;
-    alias member = Alias!(__traits(getMember, module_, moduleMember));
-    return memberTestData!member(testFunction, suffix, extraTags);
-}
 
-
-// TestData for a member of a module (either a test function or a test class)
+// TestData for a test function
 private TestData memberTestData(alias member)
                                (TestFunction testFunction, string suffix = "", string[] extraTags = [])
 {
