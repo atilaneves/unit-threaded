@@ -319,12 +319,26 @@ void shouldThrowExactly(T : Throwable = Exception, E)
 /// Assert that expr doesn't throw
 void shouldNotThrow(T: Throwable = Exception, E)
                    (lazy E expr, in string file = __FILE__, in size_t line = __LINE__) {
-    () @trusted {
+
+    import std.traits: isSafe, isUnsafe;
+
+    static if(isUnsafe!expr)
+        void callExpr() @system { expr(); }
+    else
+        void callExpr() @safe   { expr(); }
+
+    void impl() {
         try
-            expr();
-        catch(T _)
+            callExpr;
+        catch(T t) {
             assert_(false, file, line);
-    }();
+        }
+    }
+
+    static if(isSafe!callExpr)
+        () @trusted { return impl; }();
+    else
+        impl;
 }
 
 /// Assert that expr throws and the exception message is msg.
@@ -332,21 +346,35 @@ void shouldThrowWithMessage(T : Throwable = Exception, E)(lazy E expr,
                                                           string msg,
                                                           string file = __FILE__,
                                                           size_t line = __LINE__) {
+    import std.traits: isSafe, isUnsafe;
+
     T throwable = null;
 
-    () @trusted {
-        try {
-            expr();
-        } catch(T ex) {
-            throwable = ex;
+    static if(isUnsafe!expr)
+        void callExpr() @system { expr(); }
+    else
+        void callExpr() @safe   { expr(); }
+
+    void impl() {
+        try
+            callExpr;
+        catch(T t) {
+            throwable = t;
         }
-    }();
+    }
+
+    static if(isSafe!callExpr)
+        () @trusted { return impl; }();
+    else
+        impl;
 
     assert_(throwable !is null && throwable.msg == msg, file, line);
 }
 
 /// Assert that value is approximately equal to expected.
-void shouldApproxEqual(V, E)(in V value, in E expected, double maxRelDiff = 1e-2, double maxAbsDiff = 1e-5, string file = __FILE__, size_t line = __LINE__) {
+void shouldApproxEqual(V, E)
+                      (in V value, in E expected, double maxRelDiff = 1e-2, double maxAbsDiff = 1e-5, string file = __FILE__, size_t line = __LINE__)
+{
     import std.math: approxEqual;
     assert_(approxEqual(value, expected, maxRelDiff, maxAbsDiff), file, line);
 }
@@ -446,7 +474,7 @@ private void assert_(in bool value, in string file, in size_t line) @safe pure {
     assert_(value, "Assertion failure", file, line);
 }
 
-private void assert_(bool value, in string message, in string file, in size_t line) @trusted pure {
+private void assert_(bool value, in string message, in string file, in size_t line) @safe pure {
     if(!value)
         throw new Exception(message, file, line);
 }
