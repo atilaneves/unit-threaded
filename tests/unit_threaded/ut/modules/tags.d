@@ -9,14 +9,6 @@ unittest {
     assert(1 == 2);
 }
 
-version(unittest) {
-    @Tags("make")
-    void testMake() {
-        import unit_threaded.should;
-
-        2.shouldEqual(2);
-    }
-}
 
 @Tags("make")
 unittest {

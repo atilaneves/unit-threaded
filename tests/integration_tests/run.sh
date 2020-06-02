@@ -15,10 +15,6 @@ cd "$SCRIPT_DIR"/issue109
 echo issue109
 dub run -q --build=unittest-cov --compiler="$DC"
 
-cd "$SCRIPT_DIR"/issue116
-echo issue116
-dub run -q --build=unittest-cov --compiler="$DC"
-
 cd "$SCRIPT_DIR"/runTestsMain
 echo runTestsMain
 dub run -q --build=unittest-cov --compiler="$DC"
