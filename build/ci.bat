@@ -29,12 +29,6 @@ dub run --build=unittest
 if %errorlevel% neq 0 exit /b %errorlevel%
 popd
 
-echo Issue 116
-pushd tests\integration_tests\issue116
-dub run --build=unittest
-if %errorlevel% neq 0 exit /b %errorlevel%
-popd
-
 echo runTestsMain
 pushd tests\integration_tests\runTestsMain
 dub run --build=unittest
