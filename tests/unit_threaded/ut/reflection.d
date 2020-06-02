@@ -13,24 +13,6 @@ private auto addModPrefix(string[] elements,
 }
 
 
-unittest {
-    import std.algorithm: sorted = sort;
-
-    const expected = addModPrefix(
-        [
-            "testFoo",
-            "testBar",
-            "funcThatShouldShowUpCosOfAttr",
-            "this is my successful test name",
-            "this is my unsuccessful test name",
-        ]
-    ).sorted.array;
-    const actual = moduleTestFunctions!(unit_threaded.ut.modules.module_with_tests).
-        map!(a => a.getPath).array.sorted.array;
-
-    assertEqual(actual, expected);
-}
-
 
 unittest {
     import std.algorithm: sorted = sort;
@@ -39,9 +21,9 @@ unittest {
         [
             "myUnitTest",
             "StructWithUnitTests.InStruct",
-            "StructWithUnitTests.unittest_L60_C5",
-            "unittest_L38",
-            "unittest_L43",
+            "StructWithUnitTests.unittest_L58_C5",
+            "unittest_L36",
+            "unittest_L41",
         ]
     ).sorted.array;
     const actual = moduleUnitTests!(unit_threaded.ut.modules.module_with_tests).
@@ -69,89 +51,6 @@ version(unittest) {
     }
 }
 
-@("Test that parametrized value tests work")
-unittest {
-    import unit_threaded.runner.factory;
-    import unit_threaded.runner.testcase;
-    import unit_threaded.ut.modules.parametrized;
-
-    const testData = allTestData!(unit_threaded.ut.modules.parametrized).
-        filter!(a => a.name.endsWith("testValues")).array;
-
-    auto tests = createTestCases(testData);
-    assertEqual(tests.length, 3);
-
-    // the first and third test should pass, the second should fail
-    assertPass(tests[0]);
-    assertPass(tests[2]);
-
-    assertFail(tests[1]);
-}
-
-
-@("Test that parametrized type tests work")
-unittest {
-    import unit_threaded.runner.factory;
-    import unit_threaded.runner.testcase;
-    import unit_threaded.ut.modules.parametrized;
-
-    const testData = allTestData!(unit_threaded.ut.modules.parametrized).
-        filter!(a => a.name.endsWith("testTypes")).array;
-    const expected = addModPrefix(["testTypes.float", "testTypes.int"],
-                                  "unit_threaded.ut.modules.parametrized");
-    const actual = testData.map!(a => a.getPath).array;
-    assertEqual(actual, expected);
-
-    auto tests = createTestCases(testData);
-    assertEqual(tests.map!(a => a.getPath).array, expected);
-
-    assertPass(tests[1]);
-    assertFail(tests[0]);
-}
-
-
-@("Test that parametrized type tests work with @Name")
-unittest {
-    import unit_threaded.runner.factory;
-    import unit_threaded.runner.testcase;
-    import unit_threaded.ut.modules.parametrized;
-
-    const testData = allTestData!(unit_threaded.ut.modules.parametrized).
-        filter!(a => a.name.canFind("my_name_is_test")).array;
-    const expected = addModPrefix(["my_name_is_test.float", "my_name_is_test.int"],
-                                  "unit_threaded.ut.modules.parametrized");
-    const actual = testData.map!(a => a.getPath).array;
-    assertEqual(actual, expected);
-
-    auto tests = createTestCases(testData);
-    assertEqual(tests.map!(a => a.getPath).array, expected);
-
-    assertPass(tests[1]);
-    assertFail(tests[0]);
-}
-
-
-@("Value parametrized built-in unittests")
-unittest {
-    import unit_threaded.runner.factory;
-    import unit_threaded.runner.testcase;
-    import unit_threaded.ut.modules.parametrized;
-
-    const testData = allTestData!(unit_threaded.ut.modules.parametrized).
-        filter!(a => a.name.canFind("builtinIntValues")).array;
-
-    auto tests = createTestCases(testData);
-    assertEqual(tests.length, 4);
-
-    // these should be ok
-    assertPass(tests[1]);
-
-    //these should fail
-    assertFail(tests[0]);
-    assertFail(tests[2]);
-    assertFail(tests[3]);
-}
-
 
 @("Tests can be selected by tags") unittest {
     import unit_threaded.runner.factory;
@@ -160,162 +59,26 @@ unittest {
 
     const testData = allTestData!(unit_threaded.ut.modules.tags).array;
     auto testsNoTags = createTestCases(testData);
-    assertEqual(testsNoTags.length, 4);
+    assertEqual(testsNoTags.length, 3);
     assertPass(testsNoTags.find!(a => a.getPath.canFind("unittest_L6")).front);
     assertFail(testsNoTags.find!(a => a.getPath.canFind("unittest_L8")).front);
-    assertPass(testsNoTags.find!(a => a.getPath.canFind("testMake")).front);
-    assertFail(testsNoTags.find!(a => a.getPath.canFind("unittest_L22")).front);
+    assertFail(testsNoTags.find!(a => a.getPath.canFind("unittest_L14")).front);
 
     auto testsNinja = createTestCases(testData, ["@ninja"]);
     assertEqual(testsNinja.length, 1);
     assertPass(testsNinja[0]);
 
     auto testsMake = createTestCases(testData, ["@make"]);
-    assertEqual(testsMake.length, 3);
-    assertPass(testsMake.find!(a => a.getPath.canFind("testMake")).front);
+    assertEqual(testsMake.length, 2);
     assertPass(testsMake.find!(a => a.getPath.canFind("unittest_L6")).front);
-    assertFail(testsMake.find!(a => a.getPath.canFind("unittest_L22")).front);
+    assertFail(testsMake.find!(a => a.getPath.canFind("unittest_L14")).front);
 
     auto testsNotNinja = createTestCases(testData, ["~@ninja"]);
-    assertEqual(testsNotNinja.length, 3);
-    assertPass(testsNotNinja.find!(a => a.getPath.canFind("testMake")).front);
+    assertEqual(testsNotNinja.length, 2);
     assertFail(testsNotNinja.find!(a => a.getPath.canFind("unittest_L8")).front);
-    assertFail(testsNotNinja.find!(a => a.getPath.canFind("unittest_L22")).front);
+    assertFail(testsNotNinja.find!(a => a.getPath.canFind("unittest_L14")).front);
 
     assertEqual(createTestCases(testData, ["unit_threaded.ut.modules.tags.testMake", "@ninja"]).length, 0);
-
-}
-
-@("Parametrized built-in tests with @AutoTags get tagged by value")
-unittest {
-    import unit_threaded.runner.factory;
-    import unit_threaded.runner.testcase;
-    import unit_threaded.ut.modules.parametrized;
-
-    const testData = allTestData!(unit_threaded.ut.modules.parametrized).
-        filter!(a => a.name.canFind("builtinIntValues")).array;
-
-    auto two = createTestCases(testData, ["@2"]);
-
-    assertEqual(two.length, 1);
-    assertFail(two[0]);
-
-    auto three = createTestCases(testData, ["@3"]);
-    assertEqual(three.length, 1);
-    assertPass(three[0]);
-}
-
-@("Value parametrized function tests with @AutoTags get tagged by value")
-unittest {
-    import unit_threaded.runner.factory;
-    import unit_threaded.runner.testcase;
-    import unit_threaded.ut.modules.parametrized;
-
-    const testData = allTestData!(unit_threaded.ut.modules.parametrized).
-        filter!(a => a.name.canFind("testValues")).array;
-
-    auto two = createTestCases(testData, ["@2"]);
-    assertEqual(two.length, 1);
-    assertFail(two[0]);
-}
-
-@("Type parameterized tests with @AutoTags get tagged by type")
-unittest {
-    import unit_threaded.runner.factory;
-    import unit_threaded.runner.testcase;
-    import unit_threaded.ut.modules.parametrized;
-
-    const testData = allTestData!(unit_threaded.ut.modules.parametrized).
-        filter!(a => a.name.canFind("testTypes")).array;
-
-    auto tests = createTestCases(testData, ["@int"]);
-    assertEqual(tests.length, 1);
-    assertPass(tests[0]);
-}
-
-@("Cartesian parameterized built-in values") unittest {
-    import unit_threaded.runner.factory;
-    import unit_threaded.runner.testcase;
-    import unit_threaded.should: shouldBeSameSetAs;
-    import unit_threaded.ut.modules.parametrized;
-    import unit_threaded.runner.attrs: getValue;
-
-    const testData = allTestData!(unit_threaded.ut.modules.parametrized).
-        filter!(a => a.name.canFind("cartesianBuiltinNoAutoTags")).array;
-
-    auto tests = createTestCases(testData);
-    tests.map!(a => a.getPath).array.shouldBeSameSetAs(
-                addModPrefix(["foo.red", "foo.blue", "foo.green", "bar.red", "bar.blue", "bar.green"].
-                             map!(a => "cartesianBuiltinNoAutoTags." ~ a).array,
-                             "unit_threaded.ut.modules.parametrized"));
-    assertEqual(tests.length, 6);
-
-    auto fooRed = tests.find!(a => a.getPath.canFind("foo.red")).front;
-    assertPass(fooRed);
-    assertEqual(getValue!(string, 0), "foo");
-    assertEqual(getValue!(string, 1), "red");
-    assertEqual(testData.find!(a => a.getPath.canFind("foo.red")).front.tags, []);
-
-    auto barGreen = tests.find!(a => a.getPath.canFind("bar.green")).front;
-    assertFail(barGreen);
-    assertEqual(getValue!(string, 0), "bar");
-    assertEqual(getValue!(string, 1), "green");
-
-    assertEqual(testData.find!(a => a.getPath.canFind("bar.green")).front.tags, []);
-    assertEqual(allTestData!(unit_threaded.ut.modules.parametrized).
-                filter!(a => a.name.canFind("cartesianBuiltinAutoTags")).array.
-                find!(a => a.getPath.canFind("bar.green")).front.tags,
-                ["bar", "green"]);
-}
-
-@("Cartesian parameterized function values") unittest {
-    import unit_threaded.runner.factory;
-    import unit_threaded.runner.testcase;
-    import unit_threaded.should: shouldBeSameSetAs;
-
-    const testData = allTestData!(unit_threaded.ut.modules.parametrized).
-        filter!(a => a.name.canFind("CartesianFunction")).array;
-
-    auto tests = createTestCases(testData);
-        tests.map!(a => a.getPath).array.shouldBeSameSetAs(
-            addModPrefix(["1.foo", "1.bar", "2.foo", "2.bar", "3.foo", "3.bar"].
-                             map!(a => "testCartesianFunction." ~ a).array,
-                             "unit_threaded.ut.modules.parametrized"));
-
-    foreach(test; tests) {
-        test.getPath.canFind("2.bar")
-            ? assertPass(test)
-            : assertFail(test);
-    }
-
-    assertEqual(testData.find!(a => a.getPath.canFind("2.bar")).front.tags,
-                ["2", "bar"]);
-}
-
-
-@("Cartesian types") unittest {
-    import unit_threaded.runner.factory;
-    import unit_threaded.runner.testcase;
-    import unit_threaded.should: shouldBeSameSetAs;
-    import unit_threaded.ut.modules.parametrized;
-    import unit_threaded.runner.attrs: getValue;
-
-    const testData = allTestData!(unit_threaded.ut.modules.parametrized).
-        filter!(a => a.name.canFind("cartesian_types")).array;
-    assertEqual(testData.length, 6);
-
-    auto tests = createTestCases(testData);
-    tests.map!(a => a.getPath).array.shouldBeSameSetAs(
-            addModPrefix(["int.string", "int.Foo", "int.Bar", "float.string", "float.Foo", "float.Bar"].
-                             map!(a => "cartesian_types." ~ a).array,
-                             "unit_threaded.ut.modules.parametrized"));
-    assertEqual(tests.length, 6);
-
-    auto intFoo = tests.find!(a => a.getPath.canFind("int.Foo")).front;
-    assertPass(intFoo);
-
-    auto floatString = tests.find!(a => a.getPath.canFind("float.string")).front;
-    assertFail(floatString);
 }
 
 
@@ -445,20 +208,4 @@ unittest {
         .array
         .createTestCases[0];
     assertFail(flakyFails);
-}
-
-@("mixin") unittest {
-    import unit_threaded.runner.factory;
-    import unit_threaded.asserts;
-    import unit_threaded.ut.modules.module_with_tests;
-    import std.algorithm: canFind;
-    import std.array: array;
-
-    const testData = allTestData!"unit_threaded.ut.modules.module_with_tests";
-
-    auto failingMixinTest = testData
-        .find!(a => a.getPath.canFind("this is my unsuccessful test name"))
-        .array
-        .createTestCases[0];
-    assertFail(failingMixinTest);
 }

@@ -10,10 +10,9 @@ Multi-threaded advanced unit test framework for [the D programming language](htt
 Augments D's `unittest` blocks with:
 
 * Tests can be named and individually run
-* Custom assertions for better error reporting (e.g. 1.should == 2)
+* Custom assertions for better error reporting (e.g. `1.should == 2`)
 * Runs in threads by default
 * UDAs for customisation of tests
-* Value and type parameterized tests
 * Property based testing
 * Mocking
 
@@ -210,64 +209,7 @@ the `@Flaky` UDA can be used to rerun the test up to a default number
 of 10 times. This can be customized by passing it a number
 (e.g. `@Flaky(12)`);
 
-The `@UnitTest` and `@DontTest` attributes are explained below.
-
-There is support for parameterized tests. This means running the test
-code multiple times, either with different values or different types.
-At the moment this feature cannot be used with the built-in unittest
-blocks.
-
-For values and built-in unit tests, use the `@Values` UDA to supply
-test values and `getValue` with the appropriate type to retrive them:
-
-```d
-@Values(2, 4, 6)
-unittest {
-    assert(getValue!int % 0 == 2);
-}
-```
-
-This will run the test 3 times, and the reporting
-will consider it to be 3 separate tests.
-
-
-If more than one `@Values` UDA is used, then the test gets instantiated
-with the cartesian product of values, e.g.
-
-```d
-@Values(1, 2)
-@Values("foo", "bar")
-unittest {
-    getValue!(int, 0); // gets the integer value (1 or 2)
-    getValue!(string, 1); // gets the string value ("foo" or "bar")
-}
-```
-
-The test above is instantiated 4 times for each one of the possible
-combinations. This helps to reduce boilerplate and repeated tests.
-
-You can also declare a test function that takes parameters of the
-appropriate types and add UDAs with the values desired, e.g.
-
-```d
-@(2, 4, 6)
-void testEven(int i) {
-    (i % 0 == 2).shouldBeTrue;
-}
-```
-
-For a cartesian product, simply declare more parameters and add
-UDAs as appropriate.
-
-For types, use the `@Types` UDA on a template function with exactly
-one compile-time parameter:
-
-```d
-@Types!(int, byte)
-void testInit(T)() {
-    T.init.shouldEqual(0);
-}
-```
+The `@DontTest` attribute is explained below.
 
 The `@Name` UDA can be used instead of a plain string in order to name
 a `unittest` block.
@@ -482,10 +424,7 @@ above. Private functions are skipped. `TestCase` also has support for
 `setup()` and `shutdown()`, child classes need only override the
 appropriate functions(s).
 
-Don't like the algorithm for registering tests? Not a problem. The
-attributes `@UnitTest` and `@DontTest` can be used to opt-in or
-opt-out. These are used in the examples.
-Tests can also be hidden with the `@HiddenTest` attribute. This means
+Tests can be hidden with the `@HiddenTest` attribute. This means
 that particular test doesn't get run by default but can still be run
 by passing its name as a command-line argument. `HiddenTest` takes
 a compile-time string to list the reason why the test is hidden. This
