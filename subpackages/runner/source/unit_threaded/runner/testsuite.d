@@ -53,9 +53,6 @@ struct TestSuite
         _testData = testData;
         _output = output;
         _testCases = createTestCases(testData, options.testsToRun);
-        if(options.quiet)
-            foreach(test; _testCases)
-                test.quiet;
     }
 
     /**
@@ -156,6 +153,10 @@ private:
         if(_options.showChrono)
             foreach(test; tests)
                 test.showChrono;
+
+        if(_options.quiet)
+            foreach(test; tests)
+                test.quiet;
 
         _stopWatch.start();
 
