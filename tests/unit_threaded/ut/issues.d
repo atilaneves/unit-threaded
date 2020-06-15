@@ -264,3 +264,13 @@ else {
         static assert(isUnsafe!(impl!()));
     }
 }
+
+
+@("shouldEqual.enum.text")
+@safe pure unittest {
+    static enum Enum {
+        text,
+    }
+
+    Enum.init.should == Enum.init;
+}
