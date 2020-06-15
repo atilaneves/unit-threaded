@@ -26,7 +26,7 @@ from!"unit_threaded.runner.testcase".TestCase[] createTestCases(
     foreach(const data; testData) {
         if(!isWantedTest(data, testsToRun)) continue;
         auto test = createTestCase(data);
-         if(test !is null) tests[test] = true; //can be null if abtract base class
+        if(test !is null) tests[test] = true; //can be null if abtract base class
     }
 
     return tests.keys.sort!((a, b) => a.getPath < b.getPath).array;
