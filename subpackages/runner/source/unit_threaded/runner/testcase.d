@@ -60,6 +60,7 @@ class TestCase {
     void showChrono() @safe pure nothrow { _showChrono = true; }
     void setOutput(Output output) @safe pure nothrow { _output = output; }
     void silence() @safe pure nothrow { _silent = true; }
+    void quiet() @safe pure nothrow { _quiet = true; }
     bool shouldFail() @safe @nogc pure nothrow { return false; }
 
 
@@ -85,6 +86,7 @@ private:
 
     bool _failed;
     bool _silent;
+    bool _quiet;
     bool _showChrono;
 
     final auto doTest() {
@@ -96,13 +98,19 @@ private:
             import std.datetime: StopWatch, AutoStart;
 
         auto sw = StopWatch(AutoStart.yes);
-        print(getPath() ~ ":\n");
+        // Print the name of the test, unless in quiet mode.
+        // However, we want to print everything if it fails.
+        if(!_quiet) printTestName;
         check(setup());
         if (!_failed) check(test());
         if (!_failed) check(shutdown());
         if(_failed) print("\n");
         if(_showChrono) print(text("    (", cast(Duration)sw.peek, ")\n\n"));
         if(_failed) print("\n");
+    }
+
+    final void printTestName() {
+        print(getPath() ~ ":\n");
     }
 
     final bool check(E)(lazy E expression) {
@@ -119,6 +127,9 @@ private:
     }
 
     final void fail(in string msg) {
+        // if this is the first failure and in quiet mode, print the test
+        // name since we didn't do it at first
+        if(!_failed && _quiet) printTestName;
         _failed = true;
         print(msg);
     }
@@ -126,6 +137,11 @@ private:
     final void print(in string msg) {
         import unit_threaded.runner.io: write;
         if(!_silent) getWriter.write(msg);
+    }
+
+    final void alwaysPrint(in string msg) {
+        import unit_threaded.runner.io: write;
+        getWriter.write(msg);
     }
 
     final void flushOutput() {
