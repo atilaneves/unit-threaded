@@ -507,7 +507,7 @@ string convertToString(T)(scope auto ref T value) {  // std.conv.to sometimes is
         static if(isAssociativeArray!T)
             return (scope ref const(T) value) @trusted { return value.text; }(value);
         else static if(__traits(compiles, value.text))
-            return value.text;
+            return text(value);
         else static if(__traits(compiles, value.to!string))
             return value.to!string;
     }
