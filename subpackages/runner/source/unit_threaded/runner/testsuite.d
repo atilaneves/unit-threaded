@@ -53,6 +53,9 @@ struct TestSuite
         _testData = testData;
         _output = output;
         _testCases = createTestCases(testData, options.testsToRun);
+        if(options.quiet)
+            foreach(test; _testCases)
+                test.quiet;
     }
 
     /**
