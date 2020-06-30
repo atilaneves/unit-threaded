@@ -659,13 +659,15 @@ bool isEqual(V, E)(scope V value, scope E expected)
 
         auto members(T)(T obj) {
             import std.typecons: Tuple;
+            import std.meta: staticMap;
+            import std.traits: Unqual;
 
             alias Member(string name) = typeof(__traits(getMember, T, name));
             alias IsFieldOfT(string s) = IsFieldOf!(T, s);
             alias FieldNames = Filter!(IsFieldOfT, __traits(allMembers, T));
             alias FieldTypes = staticMap!(Member, FieldNames);
 
-            Tuple!FieldTypes ret;
+            Tuple!(staticMap!(Unqual, FieldTypes)) ret;
             foreach(i, name; FieldNames)
                 ret[i] = __traits(getMember, obj, name);
 
