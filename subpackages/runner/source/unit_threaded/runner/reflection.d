@@ -197,19 +197,34 @@ private TestData[] moduleUnitTests_(alias module_)() {
         import std.traits: hasUDA;
         import std.meta: Filter;
 
+        // cheap target for implicit conversion
+        string str__;
+
         // weird name for hygiene reasons
         foreach(index, eLtEstO; __traits(getUnitTests, composite)) {
-
-            enum name = unittestName!(eLtEstO, index);
-            enum hidden = hasUDA!(eLtEstO, HiddenTest);
-            enum shouldFail = hasUDA!(eLtEstO, ShouldFail) || hasUDA!(eLtEstO, ShouldFailWith);
-            enum singleThreaded = hasUDA!(eLtEstO, Serial);
+            // make common case cheap: @("name") unittest {}
+            static if(__traits(getAttributes, eLtEstO).length == 1
+                && __traits(compiles, str__ = __traits(getAttributes, eLtEstO)[0])
+            ) {
+                enum name = __traits(getAttributes, eLtEstO)[0];
+                enum hidden = false;
+                enum shouldFail = false;
+                enum singleThreaded = false;
+                enum tags = string[].init;
+                enum exceptionTypeInfo = TypeInfo.init;
+                enum flakyRetries = 0;
+            } else {
+                enum name = unittestName!(eLtEstO, index);
+                enum hidden = hasUDA!(eLtEstO, HiddenTest);
+                enum shouldFail = hasUDA!(eLtEstO, ShouldFail) || hasUDA!(eLtEstO, ShouldFailWith);
+                enum singleThreaded = hasUDA!(eLtEstO, Serial);
+                enum isTags(alias T) = is(typeof(T)) && is(typeof(T) == Tags);
+                enum tags = tagsFromAttrs!(Filter!(isTags, __traits(getAttributes, eLtEstO)));
+                enum exceptionTypeInfo = getExceptionTypeInfo!eLtEstO;
+                enum flakyRetries = getFlakyRetries!(eLtEstO);
+            }
             enum builtin = true;
             enum suffix = "";
-            enum isTags(alias T) = is(typeof(T)) && is(typeof(T) == Tags);
-            enum tags = tagsFromAttrs!(Filter!(isTags, __traits(getAttributes, eLtEstO)));
-            enum exceptionTypeInfo = getExceptionTypeInfo!eLtEstO;
-            enum flakyRetries = getFlakyRetries!(eLtEstO);
 
             testData ~= TestData(name,
                                  () {
