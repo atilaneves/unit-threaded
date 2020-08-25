@@ -37,16 +37,16 @@ void check(alias F, int numFuncCalls = 100)
     scope random = Random(seed);
 
     // See https://github.com/atilaneves/unit-threaded/issues/187 for why
-    auto createGenerator() {
+    auto createGenerator(ref Random random) {
         return RndValueGen!(Parameters!F)(&random);
     }
 
     // It might be that some projects don't use dip1000 and so
     // createGenerator isn't safe
     static if(isSafe!createGenerator)
-        scope gen = createGenerator;
+        scope gen = createGenerator(random);
     else
-        scope gen = () @trusted { return createGenerator; }();
+        scope gen = () @trusted { return createGenerator(random); }();
 
     auto input(Flag!"shrink" shrink = Yes.shrink) {
 
