@@ -274,3 +274,24 @@ else {
 
     Enum.init.should == Enum.init;
 }
+
+
+@("212.0")
+// not pure because of float comparison
+@safe unittest {
+    float[] lhs  = [2f, 4, 6, 8, 10, 12];
+    float[6] rhs = [2f, 4, 6, 8, 10, 12];
+
+    lhs.should == rhs;
+    rhs.should == lhs;
+}
+
+
+@("212.1")
+@safe pure unittest {
+    int[] lhs  = [2, 4, 6, 8, 10, 12];
+    int[6] rhs = [2, 4, 6, 8, 10, 12];
+
+    lhs.should == rhs;
+    rhs.should == lhs;
+}

@@ -602,6 +602,13 @@ void shouldApproxEqual(V, E)
 
 
 bool isEqual(V, E)(scope V value, scope E expected)
+    if(isInputRange!V && isStaticArray!E)
+{
+    return isEqual(value, expected[]);
+}
+
+
+bool isEqual(V, E)(scope V value, scope E expected)
     if (isInputRange!V && isInputRange!E && !isSomeString!V &&
         is(typeof(isEqual(value.front, expected.front))))
 {
