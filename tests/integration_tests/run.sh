@@ -4,8 +4,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DC="${DC:-dmd}"
+TERM="${TERM:-xterm}"
 
-[ -z "$TERM" ] || clear
+clear
 
 cd "$SCRIPT_DIR"/issue61
 echo issue61
