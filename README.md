@@ -209,8 +209,6 @@ the `@Flaky` UDA can be used to rerun the test up to a default number
 of 10 times. This can be customized by passing it a number
 (e.g. `@Flaky(12)`);
 
-The `@DontTest` attribute is explained below.
-
 The `@Name` UDA can be used instead of a plain string in order to name
 a `unittest` block.
 

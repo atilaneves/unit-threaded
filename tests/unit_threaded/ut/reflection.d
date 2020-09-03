@@ -125,16 +125,6 @@ unittest {
     assertFail(inStructTest);
 }
 
-@("@DontTest should work for unittest blocks") unittest {
-    import unit_threaded.runner.factory;
-    import unit_threaded.asserts;
-    import unit_threaded.ut.modules.module_with_tests;
-    import std.algorithm: canFind;
-    import std.array: array;
-
-    const testData = allTestData!"unit_threaded.ut.modules.module_with_attrs";
-    assertEqual(testData.canFind!(a => a.getPath.canFind("DontTestBlock" )), false);
-}
 
 @("@ShouldFail") unittest {
     import unit_threaded.runner.factory;
