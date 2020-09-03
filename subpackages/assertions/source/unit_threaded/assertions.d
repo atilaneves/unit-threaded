@@ -114,7 +114,7 @@ void shouldNotEqual(V, E)
  * Verify that the value is null.
  * Throws: UnitTestException on failure
  */
-void shouldBeNull(T)(in auto ref T value, string file = __FILE__, size_t line = __LINE__)
+void shouldBeNull(T)(const scope auto ref T value, string file = __FILE__, size_t line = __LINE__)
 {
     if (value !is null)
         fail("Value is not null", file, line);
@@ -131,7 +131,7 @@ void shouldBeNull(T)(in auto ref T value, string file = __FILE__, size_t line = 
  * Verify that the value is not null.
  * Throws: UnitTestException on failure
  */
-void shouldNotBeNull(T)(in auto ref T value, string file = __FILE__, size_t line = __LINE__)
+void shouldNotBeNull(T)(const scope auto ref T value, string file = __FILE__, size_t line = __LINE__)
 {
     if (value is null)
         fail("Value is null", file, line);
@@ -167,7 +167,7 @@ static assert(!isLikeAssociativeArray!(string[string], int));
  * Verify that the value is in the container.
  * Throws: UnitTestException on failure
 */
-void shouldBeIn(T, U)(in auto ref T value, in auto ref U container, string file = __FILE__, size_t line = __LINE__)
+void shouldBeIn(T, U)(const scope auto ref T value, const scope auto ref U container, string file = __FILE__, size_t line = __LINE__)
     if (isLikeAssociativeArray!(U, T))
 {
     import std.conv: to;
@@ -197,7 +197,7 @@ void shouldBeIn(T, U)(in auto ref T value, in auto ref U container, string file 
  * Verify that the value is in the container.
  * Throws: UnitTestException on failure
  */
-void shouldBeIn(T, U)(in auto ref T value, U container, string file = __FILE__, size_t line = __LINE__)
+void shouldBeIn(T, U)(const scope auto ref T value, U container, string file = __FILE__, size_t line = __LINE__)
     if (!isLikeAssociativeArray!(U, T) && isInputRange!U)
 {
     import std.algorithm: find;
@@ -222,7 +222,7 @@ void shouldBeIn(T, U)(in auto ref T value, U container, string file = __FILE__, 
  * Verify that the value is not in the container.
  * Throws: UnitTestException on failure
  */
-void shouldNotBeIn(T, U)(in auto ref T value, in auto ref U container,
+void shouldNotBeIn(T, U)(const scope auto ref T value, const scope auto ref U container,
                          string file = __FILE__, size_t line = __LINE__)
     if (isLikeAssociativeArray!(U, T))
 {
@@ -254,7 +254,7 @@ void shouldNotBeIn(T, U)(in auto ref T value, in auto ref U container,
  * Verify that the value is not in the container.
  * Throws: UnitTestException on failure
  */
-void shouldNotBeIn(T, U)(in auto ref T value, U container,
+void shouldNotBeIn(T, U)(const scope auto ref T value, U container,
                          string file = __FILE__, size_t line = __LINE__)
     if (!isLikeAssociativeArray!(U, T) && isInputRange!U)
 {
@@ -693,7 +693,7 @@ bool isEqual(V, E)(scope V value, scope E expected)
  * Verify that rng is empty.
  * Throws: UnitTestException on failure.
  */
-void shouldBeEmpty(R)(in auto ref R rng, string file = __FILE__, size_t line = __LINE__)
+void shouldBeEmpty(R)(const scope auto ref R rng, string file = __FILE__, size_t line = __LINE__)
 if (isInputRange!R)
 {
     import std.conv: text;
@@ -757,7 +757,7 @@ if (isInputRange!R)
  * Verify that aa is not empty.
  * Throws: UnitTestException on failure.
  */
-void shouldNotBeEmpty(T)(in auto ref T aa, string file = __FILE__, size_t line = __LINE__)
+void shouldNotBeEmpty(T)(const scope auto ref T aa, string file = __FILE__, size_t line = __LINE__)
 if (isAssociativeArray!T)
 {
     //keys is @system
@@ -785,7 +785,7 @@ if (isAssociativeArray!T)
  * Verify that t is greater than u.
  * Throws: UnitTestException on failure.
  */
-void shouldBeGreaterThan(T, U)(in auto ref T t, in auto ref U u,
+void shouldBeGreaterThan(T, U)(const scope auto ref T t, const scope auto ref U u,
                                string file = __FILE__, size_t line = __LINE__)
 {
     import std.conv: text;
@@ -804,7 +804,7 @@ void shouldBeGreaterThan(T, U)(in auto ref T t, in auto ref U u,
  * Verify that t is smaller than u.
  * Throws: UnitTestException on failure.
  */
-void shouldBeSmallerThan(T, U)(in auto ref T t, in auto ref U u,
+void shouldBeSmallerThan(T, U)(const scope auto ref T t, const scope auto ref U u,
                                string file = __FILE__, size_t line = __LINE__)
 {
     import std.conv: text;
