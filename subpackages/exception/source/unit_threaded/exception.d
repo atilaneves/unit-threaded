@@ -3,12 +3,12 @@
  */
 module unit_threaded.exception;
 
-void fail(const string output, const string file, in size_t line) @safe pure
+void fail(const string output, const string file, size_t line) @safe pure
 {
     throw new UnitTestException([output], file, line);
 }
 
-void fail(const string[] lines, const string file, in size_t line) @safe pure
+void fail(const string[] lines, const string file, size_t line) @safe pure
 {
     throw new UnitTestException(lines, file, line);
 }
@@ -19,13 +19,13 @@ void fail(const string[] lines, const string file, in size_t line) @safe pure
 class UnitTestException : Exception
 {
     this(const string msg, string file = __FILE__,
-         in size_t line = __LINE__, Throwable next = null) @safe pure nothrow
+         size_t line = __LINE__, Throwable next = null) @safe pure nothrow
     {
         this([msg], file, line, next);
     }
 
     this(const string[] msgLines, string file = __FILE__,
-         in size_t line = __LINE__, Throwable next = null) @safe pure nothrow
+         size_t line = __LINE__, Throwable next = null) @safe pure nothrow
     {
         import std.string: join;
         super(msgLines.join("\n"), next, file.dup, line);
