@@ -20,8 +20,8 @@ class PropertyException : Exception
  */
 void check(alias F, int numFuncCalls = 100)
           (in uint seed = from!"std.random".unpredictableSeed,
-           in string file = __FILE__,
-           in size_t line = __LINE__)
+           string file = __FILE__,
+           size_t line = __LINE__)
 {
     import unit_threaded.randomized.random: RndValueGen;
     import unit_threaded.exception: UnitTestException;

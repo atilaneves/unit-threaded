@@ -15,7 +15,7 @@ import std.range; // also
  * Verify that the condition is `true`.
  * Throws: UnitTestException on failure.
  */
-void shouldBeTrue(E)(lazy E condition, string file = __FILE__, in size_t line = __LINE__)
+void shouldBeTrue(E)(lazy E condition, string file = __FILE__, size_t line = __LINE__)
 {
     shouldEqual(cast(bool)condition, true, file, line);
 }
@@ -31,7 +31,7 @@ void shouldBeTrue(E)(lazy E condition, string file = __FILE__, in size_t line = 
  * Verify that the condition is `false`.
  * Throws: UnitTestException on failure.
  */
-void shouldBeFalse(E)(lazy E condition, string file = __FILE__, in size_t line = __LINE__)
+void shouldBeFalse(E)(lazy E condition, string file = __FILE__, size_t line = __LINE__)
 {
     shouldEqual(cast(bool)condition, false, file, line);
 }
@@ -47,7 +47,7 @@ void shouldBeFalse(E)(lazy E condition, string file = __FILE__, in size_t line =
  * Verify that two values are the same.
  * Throws: UnitTestException on failure
  */
-void shouldEqual(V, E)(scope auto ref V value, scope auto ref E expected, string file = __FILE__, in size_t line = __LINE__)
+void shouldEqual(V, E)(scope auto ref V value, scope auto ref E expected, string file = __FILE__, size_t line = __LINE__)
 {
     if (!isEqual(value, expected))
     {
@@ -81,7 +81,7 @@ void shouldNotEqual(V, E)
                    (scope auto ref V value,
                     scope auto ref E expected,
                     string file = __FILE__,
-                    in size_t line = __LINE__)
+                    size_t line = __LINE__)
 {
     if (isEqual(value, expected))
     {
@@ -114,7 +114,7 @@ void shouldNotEqual(V, E)
  * Verify that the value is null.
  * Throws: UnitTestException on failure
  */
-void shouldBeNull(T)(in auto ref T value, string file = __FILE__, in size_t line = __LINE__)
+void shouldBeNull(T)(const scope auto ref T value, string file = __FILE__, size_t line = __LINE__)
 {
     if (value !is null)
         fail("Value is not null", file, line);
@@ -131,7 +131,7 @@ void shouldBeNull(T)(in auto ref T value, string file = __FILE__, in size_t line
  * Verify that the value is not null.
  * Throws: UnitTestException on failure
  */
-void shouldNotBeNull(T)(in auto ref T value, string file = __FILE__, in size_t line = __LINE__)
+void shouldNotBeNull(T)(const scope auto ref T value, string file = __FILE__, size_t line = __LINE__)
 {
     if (value is null)
         fail("Value is null", file, line);
@@ -167,7 +167,7 @@ static assert(!isLikeAssociativeArray!(string[string], int));
  * Verify that the value is in the container.
  * Throws: UnitTestException on failure
 */
-void shouldBeIn(T, U)(in auto ref T value, in auto ref U container, string file = __FILE__, in size_t line = __LINE__)
+void shouldBeIn(T, U)(const scope auto ref T value, const scope auto ref U container, string file = __FILE__, size_t line = __LINE__)
     if (isLikeAssociativeArray!(U, T))
 {
     import std.conv: to;
@@ -197,7 +197,7 @@ void shouldBeIn(T, U)(in auto ref T value, in auto ref U container, string file 
  * Verify that the value is in the container.
  * Throws: UnitTestException on failure
  */
-void shouldBeIn(T, U)(in auto ref T value, U container, string file = __FILE__, in size_t line = __LINE__)
+void shouldBeIn(T, U)(const scope auto ref T value, U container, string file = __FILE__, size_t line = __LINE__)
     if (!isLikeAssociativeArray!(U, T) && isInputRange!U)
 {
     import std.algorithm: find;
@@ -222,8 +222,8 @@ void shouldBeIn(T, U)(in auto ref T value, U container, string file = __FILE__, 
  * Verify that the value is not in the container.
  * Throws: UnitTestException on failure
  */
-void shouldNotBeIn(T, U)(in auto ref T value, in auto ref U container,
-                         string file = __FILE__, in size_t line = __LINE__)
+void shouldNotBeIn(T, U)(const scope auto ref T value, const scope auto ref U container,
+                         string file = __FILE__, size_t line = __LINE__)
     if (isLikeAssociativeArray!(U, T))
 {
     import std.conv: to;
@@ -254,8 +254,8 @@ void shouldNotBeIn(T, U)(in auto ref T value, in auto ref U container,
  * Verify that the value is not in the container.
  * Throws: UnitTestException on failure
  */
-void shouldNotBeIn(T, U)(in auto ref T value, U container,
-                         string file = __FILE__, in size_t line = __LINE__)
+void shouldNotBeIn(T, U)(const scope auto ref T value, U container,
+                         string file = __FILE__, size_t line = __LINE__)
     if (!isLikeAssociativeArray!(U, T) && isInputRange!U)
 {
     import std.algorithm: find;
@@ -316,7 +316,7 @@ private struct ThrownInfo
  * throw the expected exception)
  */
 auto shouldThrow(T : Throwable = Exception, E)
-                (lazy E expr, string file = __FILE__, in size_t line = __LINE__)
+                (lazy E expr, string file = __FILE__, size_t line = __LINE__)
 {
     import std.conv: text;
 
@@ -389,7 +389,7 @@ auto shouldThrow(T : Throwable = Exception, E)
  * throw the expected exception)
  */
 auto shouldThrowExactly(T : Throwable = Exception, E)(lazy E expr,
-    string file = __FILE__, in size_t line = __LINE__)
+    string file = __FILE__, size_t line = __LINE__)
 {
     import std.conv: text;
 
@@ -411,7 +411,7 @@ auto shouldThrowExactly(T : Throwable = Exception, E)(lazy E expr,
  * Throws: UnitTestException on failure
  */
 void shouldNotThrow(T: Throwable = Exception, E)(lazy E expr,
-    string file = __FILE__, in size_t line = __LINE__)
+    string file = __FILE__, size_t line = __LINE__)
 {
     if (threw!T(expr).threw)
         fail("Expression threw", file, line);
@@ -693,7 +693,7 @@ bool isEqual(V, E)(scope V value, scope E expected)
  * Verify that rng is empty.
  * Throws: UnitTestException on failure.
  */
-void shouldBeEmpty(R)(in auto ref R rng, string file = __FILE__, in size_t line = __LINE__)
+void shouldBeEmpty(R)(const scope auto ref R rng, string file = __FILE__, size_t line = __LINE__)
 if (isInputRange!R)
 {
     import std.conv: text;
@@ -705,7 +705,7 @@ if (isInputRange!R)
  * Verify that rng is empty.
  * Throws: UnitTestException on failure.
  */
-void shouldBeEmpty(R)(auto ref shared(R) rng, string file = __FILE__, in size_t line = __LINE__)
+void shouldBeEmpty(R)(auto ref shared(R) rng, string file = __FILE__, size_t line = __LINE__)
 if (isInputRange!R)
 {
     import std.conv: text;
@@ -718,7 +718,7 @@ if (isInputRange!R)
  * Verify that aa is empty.
  * Throws: UnitTestException on failure.
  */
-void shouldBeEmpty(T)(auto ref T aa, string file = __FILE__, in size_t line = __LINE__)
+void shouldBeEmpty(T)(auto ref T aa, string file = __FILE__, size_t line = __LINE__)
 if (isAssociativeArray!T)
 {
     //keys is @system
@@ -746,7 +746,7 @@ if (isAssociativeArray!T)
  * Verify that rng is not empty.
  * Throws: UnitTestException on failure.
  */
-void shouldNotBeEmpty(R)(R rng, string file = __FILE__, in size_t line = __LINE__)
+void shouldNotBeEmpty(R)(R rng, string file = __FILE__, size_t line = __LINE__)
 if (isInputRange!R)
 {
     if (rng.empty)
@@ -757,7 +757,7 @@ if (isInputRange!R)
  * Verify that aa is not empty.
  * Throws: UnitTestException on failure.
  */
-void shouldNotBeEmpty(T)(in auto ref T aa, string file = __FILE__, in size_t line = __LINE__)
+void shouldNotBeEmpty(T)(const scope auto ref T aa, string file = __FILE__, size_t line = __LINE__)
 if (isAssociativeArray!T)
 {
     //keys is @system
@@ -785,8 +785,8 @@ if (isAssociativeArray!T)
  * Verify that t is greater than u.
  * Throws: UnitTestException on failure.
  */
-void shouldBeGreaterThan(T, U)(in auto ref T t, in auto ref U u,
-                               string file = __FILE__, in size_t line = __LINE__)
+void shouldBeGreaterThan(T, U)(const scope auto ref T t, const scope auto ref U u,
+                               string file = __FILE__, size_t line = __LINE__)
 {
     import std.conv: text;
     if (t <= u)
@@ -804,8 +804,8 @@ void shouldBeGreaterThan(T, U)(in auto ref T t, in auto ref U u,
  * Verify that t is smaller than u.
  * Throws: UnitTestException on failure.
  */
-void shouldBeSmallerThan(T, U)(in auto ref T t, in auto ref U u,
-                               string file = __FILE__, in size_t line = __LINE__)
+void shouldBeSmallerThan(T, U)(const scope auto ref T t, const scope auto ref U u,
+                               string file = __FILE__, size_t line = __LINE__)
 {
     import std.conv: text;
     if (t >= u)
@@ -824,7 +824,7 @@ void shouldBeSmallerThan(T, U)(in auto ref T t, in auto ref U u,
  * Verify that t and u represent the same set (ordering is not important).
  * Throws: UnitTestException on failure.
  */
-void shouldBeSameSetAs(V, E)(auto ref V value, auto ref E expected, string file = __FILE__, in size_t line = __LINE__)
+void shouldBeSameSetAs(V, E)(auto ref V value, auto ref E expected, string file = __FILE__, size_t line = __LINE__)
 if (isInputRange!V && isInputRange!E && is(typeof(value.front != expected.front) == bool))
 {
     import std.algorithm: sort;
@@ -888,7 +888,7 @@ private bool isSameSet(T, U)(auto ref T t, auto ref U u) {
  * Verify that value and expected do not represent the same set (ordering is not important).
  * Throws: UnitTestException on failure.
  */
-void shouldNotBeSameSetAs(V, E)(auto ref V value, auto ref E expected, string file = __FILE__, in size_t line = __LINE__)
+void shouldNotBeSameSetAs(V, E)(auto ref V value, auto ref E expected, string file = __FILE__, size_t line = __LINE__)
 if (isInputRange!V && isInputRange!E && is(typeof(value.front != expected.front) == bool))
 {
     if (isSameSet(value, expected))
@@ -923,7 +923,7 @@ if (isInputRange!V && isInputRange!E && is(typeof(value.front != expected.front)
 void shouldBeSameJsonAs(in string actual,
                         in string expected,
                         string file = __FILE__,
-                        in size_t line = __LINE__)
+                        size_t line = __LINE__)
     @trusted // not @safe pure due to parseJSON
 {
     import std.json: parseJSON, JSONException;
@@ -959,7 +959,7 @@ auto should(V)(scope auto ref V value){
 
         bool opEquals(U)(auto ref U other,
                          string file = __FILE__,
-                         in size_t line = __LINE__)
+                         size_t line = __LINE__)
         {
             shouldNotEqual(forward!value, other, file, line);
             return true;
@@ -967,13 +967,13 @@ auto should(V)(scope auto ref V value){
 
         void opBinary(string op, R)(R range,
                                     string file = __FILE__,
-                                    in size_t line = __LINE__) const if(op == "in") {
+                                    size_t line = __LINE__) const if(op == "in") {
             shouldNotBeIn(forward!value, range, file, line);
         }
 
         void opBinary(string op, R)(R expected,
                                     string file = __FILE__,
-                                    in size_t line = __LINE__) const
+                                    size_t line = __LINE__) const
             if(op == "~" && isInputRange!R)
         {
             import std.conv: text;
@@ -1013,7 +1013,7 @@ auto should(V)(scope auto ref V value){
 
         bool opEquals(U)(auto ref U other,
                          string file = __FILE__,
-                         in size_t line = __LINE__)
+                         size_t line = __LINE__)
         {
             shouldEqual(forward!value, other, file, line);
             return true;
@@ -1021,7 +1021,7 @@ auto should(V)(scope auto ref V value){
 
         void opBinary(string op, R)(R range,
                                     string file = __FILE__,
-                                    in size_t line = __LINE__) const
+                                    size_t line = __LINE__) const
             if(op == "in")
         {
             shouldBeIn(forward!value, range, file, line);
@@ -1029,7 +1029,7 @@ auto should(V)(scope auto ref V value){
 
         void opBinary(string op, R)(R range,
                                     string file = __FILE__,
-                                    in size_t line = __LINE__) const
+                                    size_t line = __LINE__) const
             if(op == "~" && isInputRange!R)
         {
             shouldBeSameSetAs(forward!value, range, file, line);
@@ -1073,7 +1073,7 @@ void shouldBeBetween(A, L, U)
      auto ref L lowerBound,
      auto ref U upperBound,
      string file = __FILE__,
-     in size_t line = __LINE__)
+     size_t line = __LINE__)
 {
     import std.conv: text;
     if(actual < lowerBound || actual >= upperBound)
