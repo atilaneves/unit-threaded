@@ -163,7 +163,7 @@ Code speaks louder than words:
     4.should.not in [1, 2, 3];
 
     void funcThrows() { throw new Exception("oops"); }
-    funcThrows.should.throw_;
+    funcThrows.shouldThrow;
 
     // or with .be
     1.should.be == 1;
