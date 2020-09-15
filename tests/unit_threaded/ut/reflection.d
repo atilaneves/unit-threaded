@@ -32,6 +32,17 @@ unittest {
     assertEqual(actual, expected);
 }
 
+
+@safe pure unittest {
+    import std.algorithm: sorted = sort;
+
+    const actual = moduleUnitTests!(unit_threaded.ut.modules.issue225).
+        map!(a => a.name).array;
+
+    assertEqual(actual, ["unit_threaded.ut.modules.issue225.oops"]);
+}
+
+
 version(unittest) {
     import unit_threaded.runner.testcase: TestCase;
     private void assertFail(TestCase test, string file = __FILE__, size_t line = __LINE__) {
