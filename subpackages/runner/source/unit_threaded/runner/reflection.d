@@ -206,7 +206,8 @@ private TestData[] moduleUnitTests_(alias module_)() {
             static if(__traits(getAttributes, eLtEstO).length == 1
                 && __traits(compiles, str__ = __traits(getAttributes, eLtEstO)[0])
             ) {
-                enum name = __traits(getAttributes, eLtEstO)[0];
+                enum prefix = fullyQualifiedName!(__traits(parent, eLtEstO)) ~ ".";
+                enum name = prefix ~ __traits(getAttributes, eLtEstO)[0];
                 enum hidden = false;
                 enum shouldFail = false;
                 enum singleThreaded = false;
