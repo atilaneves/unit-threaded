@@ -323,11 +323,73 @@ class BuiltinTestCase: FunctionTestCase {
             super.test();
         catch(AssertError e) {
             import unit_threaded.exception: fail;
-             fail(_stacktrace? e.toString() : e.msg, e.file, e.line);
+            // 3 = BuiltinTestCase + FunctionTestCase + runner reflection
+            fail(_stacktrace? e.toString() : e.localStacktraceToString(3), e.file, e.line);
         }
     }
 }
 
+/**
+ * Generate `toString` text for a `Throwable` that contains just the stack trace
+ * below the current location, plus some additional number of trace lines.
+ *
+ * Used to generate a backtrace that cuts off exactly at a unittest body.
+ */
+private string localStacktraceToString(Throwable throwable, int removeExtraLines) {
+    import std.algorithm: commonPrefix, count;
+    import std.range: dropBack, retro;
+
+    // grab a stack trace inside this function
+    Throwable.TraceInfo localTraceInfo;
+    try throw new Exception("");
+    catch (Exception exc) localTraceInfo = exc.info;
+
+    // convert foreach() overloads to arrays
+    string[] array(Throwable.TraceInfo info) {
+        string[] result;
+        foreach (line; info) result ~= line.idup;
+        return result;
+    }
+
+    const string[] localBacktrace = array(localTraceInfo);
+    const string[] otherBacktrace = array(throwable.info);
+    // cut off shared lines of backtrace (plus some extra)
+    const size_t linesToRemove = otherBacktrace.retro.commonPrefix(localBacktrace.retro).count + removeExtraLines;
+    const string[] uniqueBacktrace = otherBacktrace.dropBack(linesToRemove);
+    // this should probably not be writable. ¯\_(ツ)_/¯
+    throwable.info = new class Throwable.TraceInfo {
+        override int opApply(scope int delegate(ref const(char[])) dg) const {
+            foreach (ref line; uniqueBacktrace)
+                if (int ret = dg(line)) return ret;
+            return 0;
+        }
+        override int opApply(scope int delegate(ref size_t, ref const(char[])) dg) const {
+            foreach (ref i, ref line; uniqueBacktrace)
+                if (int ret = dg(i, line)) return ret;
+            return 0;
+        }
+        override string toString() const { assert(false); }
+    };
+    return throwable.toString();
+}
+
+unittest {
+    import std.string : splitLines;
+    import std.format : format;
+
+    try throw new Exception("");
+    catch (Exception exc) {
+        const output = exc.localStacktraceToString(0);
+        const lines = output.splitLines.length;
+
+        /*
+         * object.Exception@subpackages/runner/source/unit_threaded/runner/testcase.d(368)
+         * ----------------
+         * subpackages/runner/source/unit_threaded/runner/testcase.d:368 void unit_threaded.runner.testcase [...]
+         */
+        assert(lines == 3);
+    }
+}
 
 /**
    A test that is expected to fail some of the time.
