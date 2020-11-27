@@ -182,13 +182,19 @@ struct Sandbox {
         @safe const
     {
         import unit_threaded.exception: UnitTestException;
+        import std.process: ProcessException;
         import std.conv: text;
         import std.array: join;
 
-        const res = executeInSandbox(args);
-        if(res.status != 0)
-           throw new UnitTestException(text("Could not execute `", args.join(" "), "`:\n", res.output),
-                                       file, line);
+        try {
+            const res = executeInSandbox(args);
+            if(res.status != 0)
+               throw new UnitTestException(text("Could not execute `", args.join(" "), "`:\n", res.output),
+                                           file, line);
+        } catch (ProcessException e) {
+            throw new UnitTestException(text("Could not execute `", args.join(" "), "`:\n", e.msg),
+                                        file, line);
+        }
     }
 
     alias shouldExecuteOk = shouldSucceed;
@@ -201,15 +207,18 @@ struct Sandbox {
         @safe const
     {
         import unit_threaded.exception: UnitTestException;
+        import std.process: ProcessException;
         import std.conv: text;
         import std.array: join;
 
-        const res = executeInSandbox(args);
-        if(res.status == 0)
-            throw new UnitTestException(
-                text("`", args.join(" "), "` should have failed but didn't:\n", res.output),
-                file,
-                line);
+        try {
+            const res = executeInSandbox(args);
+            if(res.status == 0)
+                throw new UnitTestException(
+                    text("`", args.join(" "), "` should have failed but didn't:\n", res.output),
+                    file,
+                    line);
+        } catch (ProcessException) {} // Allow failure by ProcessException.
     }
 
 
