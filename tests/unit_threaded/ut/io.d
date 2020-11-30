@@ -408,6 +408,7 @@ unittest {
     import unit_threaded.runner.testcase: TestCase;
     import unit_threaded.should;
     import std.string: splitLines;
+    import std.path: buildPath;
 
     enableDebugOutput(false);
 
@@ -450,7 +451,7 @@ unittest {
     oops();
     writer.output.splitLines.should == [
         "OopsTest:",
-        "    tests/unit_threaded/ut/io.d:432 - oops",
+        "    " ~ buildPath("tests", "unit_threaded", "ut", "io.d") ~ ":433 - oops",
         "",
     ];
 }
