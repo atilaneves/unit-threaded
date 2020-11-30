@@ -91,3 +91,21 @@ version(Windows) {
         }
     }
 }
+
+@safe unittest {
+    with(immutable Sandbox()) {
+        import unit_threaded.should;
+
+        shouldSucceed("definitely_not_an_existing_command_or_executable").shouldThrow;
+        shouldFail("definitely_not_an_existing_command_or_executable");
+
+        writeFile("hello.d", q{import std; void main() {writeln("hello");}});
+        shouldExecuteOk(["dmd", inSandboxPath("hello.d")]);
+        version (Windows)
+            immutable exe = "hello.exe";
+        else
+            immutable exe = "hello";
+        shouldSucceed(inSandboxPath(exe));
+        shouldFail(inSandboxPath(exe)).shouldThrow;
+    }
+}
