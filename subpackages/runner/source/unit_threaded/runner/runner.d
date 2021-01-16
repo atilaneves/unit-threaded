@@ -32,15 +32,21 @@ mixin template runTestsMain(Modules...) if(Modules.length > 0) {
  * a default parameter.
  */
 mixin template runTestsMainHelper(alias rt_moduleDtor = rt_moduleDtor) {
-    void main(string[] args) {
-        import core.stdc.stdlib : exit;
+    int main(string[] args) {
         import unit_threaded.runner.runner: runTests;
 
-        /* work around https://issues.dlang.org/show_bug.cgi?id=19978 */
         const ret = runTests!Modules(args);
-        /* ensure that module destructors run, for instance to write coverage */
-        if (ret == 0) rt_moduleDtor;
-        exit(ret); /* bypass broken runtime shutdown */
+
+        version (Posix) {
+            // Work around https://issues.dlang.org/show_bug.cgi?id=19978 -
+            // skip regular druntime shutdown, just ensure that module
+            // destructors are run (on success), e.g., to write coverage.
+            import core.stdc.stdlib : exit;
+            if (ret == 0) rt_moduleDtor;
+            exit(ret); /* bypass broken runtime shutdown */
+        }
+
+        return ret;
     }
 }
 
