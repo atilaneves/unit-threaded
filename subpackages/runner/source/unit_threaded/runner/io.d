@@ -21,18 +21,52 @@ void writelnUt(T...)(auto ref T args) {
 
 private shared(bool) _debugOutput = false; ///print debug msgs?
 private shared(bool) _forceEscCodes = false; ///use ANSI escape codes anyway?
-package bool _useEscCodes;
-enum _escCodes = ["\033[31;1m", "\033[32;1m", "\033[33;1m", "\033[0;;m"];
+private shared(bool) _useEscCodes;
+enum _escCodes = ["\033[1;31m", "\033[1;32m", "\033[1;33m", "\033[0m"];
 
 
 
-package bool shouldUseEscCodes() {
-    version (Posix) {
-        import std.stdio: stdout;
-        import core.sys.posix.unistd: isatty;
-        return _forceEscCodes || isatty(stdout.fileno()) != 0;
-    } else
-          return false;
+version (Windows) {
+    import core.sys.windows.winbase: GetStdHandle, STD_OUTPUT_HANDLE, INVALID_HANDLE_VALUE;
+    import core.sys.windows.wincon: GetConsoleMode, SetConsoleMode, ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+
+    private __gshared uint originalConsoleMode;
+}
+
+private extern (C) int isatty(int) nothrow; // POSIX, MSVC and DigitalMars C runtime
+
+shared static this() {
+    import std.stdio: stdout;
+
+    _useEscCodes = _forceEscCodes || isatty(stdout.fileno()) != 0;
+
+    // Windows: if _useEscCodes == true, enable ANSI escape codes for the stdout console
+    //          (supported since Win10 v1511)
+    version (Windows) {
+        if (!_useEscCodes)
+            return;
+
+        auto handle = GetStdHandle(STD_OUTPUT_HANDLE);
+        bool success = handle && handle != INVALID_HANDLE_VALUE;
+
+        if (success && !GetConsoleMode(handle, &originalConsoleMode))
+            success = false;
+        if (success && !(originalConsoleMode & ENABLE_VIRTUAL_TERMINAL_PROCESSING)) {
+            if (!SetConsoleMode(handle, originalConsoleMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING))
+                success = false;
+        }
+
+        if (!success)
+            _useEscCodes = false;
+    }
+}
+
+// Windows: restore original console mode on shutdown
+version (Windows) {
+    shared static ~this() {
+        if (_useEscCodes && !(originalConsoleMode & ENABLE_VIRTUAL_TERMINAL_PROCESSING))
+            SetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), originalConsoleMode);
+    }
 }
 
 
