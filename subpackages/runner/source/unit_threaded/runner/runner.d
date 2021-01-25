@@ -17,40 +17,11 @@ import unit_threaded.from;
  * $(D runTests) if a shared library is used instead of an executable.
  */
 mixin template runTestsMain(Modules...) if(Modules.length > 0) {
-    import unit_threaded.runner.runner : runTestsMainHelper;
-
-    mixin runTestsMainHelper!();
-}
-
-/**
- * Runs all tests in passed-in modules. Modules can be symbols or
- * strings but they can't mix and match - either all symbols or all
- * strings. It's recommended to use strings since then the modules don't
- * have to be imported first.
- * This wrapper is necessary to allow us to reference an extern-C
- * symbol that would otherwise be mismangled, by importing it as
- * a default parameter.
- */
-mixin template runTestsMainHelper(alias rt_moduleDtor = rt_moduleDtor) {
     int main(string[] args) {
         import unit_threaded.runner.runner: runTests;
-
-        const ret = runTests!Modules(args);
-
-        version (Posix) {
-            // Work around https://issues.dlang.org/show_bug.cgi?id=19978 -
-            // skip regular druntime shutdown, just ensure that module
-            // destructors are run (on success), e.g., to write coverage.
-            import core.stdc.stdlib : exit;
-            if (ret == 0) rt_moduleDtor;
-            exit(ret); /* bypass broken runtime shutdown */
-        }
-
-        return ret;
+        return runTests!Modules(args);
     }
 }
-
-extern(C) int rt_moduleDtor() @nogc nothrow @system;
 
 /**
  * Runs all tests in passed-in modules. Modules can be symbols or
