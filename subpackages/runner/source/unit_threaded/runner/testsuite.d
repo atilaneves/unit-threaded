@@ -146,7 +146,7 @@ private:
     Duration doRun() {
 
         import std.algorithm: reduce;
-        import std.parallelism: taskPool;
+        import std.parallelism: TaskPool;
 
         auto tests = getTests();
 
@@ -161,7 +161,10 @@ private:
         _stopWatch.start();
 
         if (_options.multiThreaded) {
+            // use a dedicated task pool with non-daemon worker threads
+            auto taskPool = new TaskPool;
             _failures = reduce!((a, b) => a ~ b)(_failures, taskPool.amap!runTest(tests));
+            taskPool.finish(/*blocking=*/false);
         } else {
             foreach (test; tests) {
                 _failures ~= test();
