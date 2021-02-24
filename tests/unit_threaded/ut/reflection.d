@@ -35,6 +35,7 @@ unittest {
 
 @safe pure unittest {
     import std.algorithm: sorted = sort;
+    import unit_threaded.ut.modules.issue225;
 
     const actual = moduleUnitTests!(unit_threaded.ut.modules.issue225).
         map!(a => a.name).array;

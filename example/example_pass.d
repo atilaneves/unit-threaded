@@ -5,6 +5,7 @@ import tests.pass.normal;
 import tests.pass.delayed;
 import tests.pass.attributes;
 import tests.pass.io;
+import tests.pass.property;
 import tests.pass.mock;
 
 int main(string[] args) {
