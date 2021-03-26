@@ -22,6 +22,7 @@ alias TestFunction = void delegate();
  * Attributes of each test.
  */
 struct TestData {
+    string moduleName;
     string name;
     TestFunction testFunction;
     bool hidden;
@@ -194,7 +195,7 @@ private TestData[] moduleUnitTests_(alias module_)() {
     void addMemberUnittests(alias composite)() pure nothrow {
 
         import unit_threaded.runner.attrs;
-        import std.traits: hasUDA;
+        import std.traits: hasUDA, moduleName;
         import std.meta: Filter;
 
         // cheap target for implicit conversion
@@ -208,6 +209,8 @@ private TestData[] moduleUnitTests_(alias module_)() {
             ) {
                 enum prefix = fullyQualifiedName!(__traits(parent, eLtEstO)) ~ ".";
                 enum name = prefix ~ __traits(getAttributes, eLtEstO)[0];
+                // there's only one attribute and it's a string representing the name,
+                // so attribute-based variables are all false.
                 enum hidden = false;
                 enum shouldFail = false;
                 enum singleThreaded = false;
@@ -227,24 +230,27 @@ private TestData[] moduleUnitTests_(alias module_)() {
             enum builtin = true;
             enum suffix = "";
 
-            testData ~= TestData(name,
-                                 () {
-                                     auto setup = getUDAFunction!(composite, Setup);
-                                     auto shutdown = getUDAFunction!(composite, Shutdown);
+            testData ~= TestData(
+                moduleName!composite,
+                name,
+                () {
+                    auto setup = getUDAFunction!(composite, Setup);
+                    auto shutdown = getUDAFunction!(composite, Shutdown);
 
-                                     if(setup) setup();
-                                     scope(exit) if(shutdown) shutdown();
+                    if(setup) setup();
+                    scope(exit) if(shutdown) shutdown();
 
-                                     eLtEstO();
-                                 },
-                                 hidden,
-                                 shouldFail,
-                                 singleThreaded,
-                                 builtin,
-                                 suffix,
-                                 tags,
-                                 exceptionTypeInfo,
-                                 flakyRetries);
+                    eLtEstO();
+                },
+                hidden,
+                shouldFail,
+                singleThreaded,
+                builtin,
+                suffix,
+                tags,
+                exceptionTypeInfo,
+                flakyRetries
+            );
         }
     }
 

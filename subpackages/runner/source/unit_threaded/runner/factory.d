@@ -37,8 +37,6 @@ from!"unit_threaded.runner.testcase".TestCase createTestCase(
     in from!"unit_threaded.runner.reflection".TestData testData)
 {
     import unit_threaded.runner.testcase: TestCase;
-    import std.algorithm: splitter, reduce;
-    import std.array: array;
 
     TestCase createImpl() {
         import unit_threaded.runner.testcase:
@@ -69,9 +67,7 @@ from!"unit_threaded.runner.testcase".TestCase createTestCase(
         // A CompositeTestCase is created for each module with at least
         // one @Serial test and subsequent @Serial tests
         // appended to it
-        const moduleName = testData.name.splitter(".")
-            .array[0 .. $ - 1].
-            reduce!((a, b) => a ~ "." ~ b);
+        const moduleName = testData.moduleName;
 
         // create one if not already there
         if(moduleName !in serialComposites) {
