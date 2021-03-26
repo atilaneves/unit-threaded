@@ -1,0 +1,31 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  test:
+    name: Dub Test
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, windows-2019, macos-10.15]
+        dc: [dmd-2.096.0]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install D compiler
+        uses: dlang-community/setup-dlang@v1.0.5
+        with:
+          compiler: ${{ matrix.dc }}
+
+      - name: "Posix: Run tests"
+        if: runner.os != 'Windows'
+        run: build/ci.sh
+        env:
+          TERM: xterm
+
+      - name: "Windows: Run tests"
+        if: runner.os == 'Windows'
+        run: build\ci.bat
+
+      - uses: codecov/codecov-action@v1
