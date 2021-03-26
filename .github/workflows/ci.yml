@@ -1,0 +1,24 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  test:
+    name: Dub Test
+    strategy:
+      matrix:
+        os: [ubuntu-20.04]
+        dc: [dmd-2.096.0, ldc-1.25.1]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install D compiler
+        uses: dlang-community/setup-dlang@v1.0.5
+        with:
+          compiler: ${{ matrix.dc }}
+
+      - name: Run tests
+        run: build/ci.sh
+
+      - uses: codecov/codecov-action@v1
