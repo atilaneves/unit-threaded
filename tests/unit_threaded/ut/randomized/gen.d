@@ -1,6 +1,13 @@
 module unit_threaded.ut.randomized.gen;
 
+
 import unit_threaded.randomized.gen;
+
+static if (__VERSION__ >= 2096)
+    import std.math: close = isClose;
+else
+    import std.math: close = approxEqual;
+
 
 /*
 Regarding `version(OldWindows)` blocks below: It is unclear what conditions
@@ -24,7 +31,6 @@ November 2020, there is no difference between Windows and Posix.
 @safe unittest {
     // not pure because of floating point flags
     import unit_threaded.asserts: assertEqual;
-    import std.math: approxEqual;
     import std.conv: to;
     import std.random: Random;
 
@@ -33,15 +39,14 @@ November 2020, there is no difference between Windows and Posix.
     assertEqual(gen.gen(rnd), 0);
     assertEqual(gen.gen(rnd), float.epsilon);
     assertEqual(gen.gen(rnd), float.min_normal);
-    assert(approxEqual(gen.gen(rnd), 6.022E23), gen.value.to!string);
-    assert(approxEqual(gen.gen(rnd), 1.57791E23), gen.value.to!string);
+    assert(close(gen.gen(rnd), 6.022E23), gen.value.to!string);
+    assert(close(gen.gen(rnd), 1.57791E23), gen.value.to!string);
 }
 
 
 @safe unittest {
     // not pure because of floating point flags
     import unit_threaded.asserts: assertEqual;
-    import std.math: approxEqual;
     import std.conv: to;
     import std.random: Random;
 
@@ -51,7 +56,7 @@ November 2020, there is no difference between Windows and Posix.
     assertEqual(gen.gen(rnd), float.epsilon);
     assertEqual(gen.gen(rnd), float.min_normal);
     assertEqual(gen.gen(rnd), 5);
-    assert(approxEqual(gen.gen(rnd), 1.31012), gen.value.to!string);
+    assert(close(gen.gen(rnd), 1.31012), gen.value.to!string);
 }
 
 @safe unittest {
