@@ -216,7 +216,7 @@ unittest
    A test that runs other tests.
  */
 class CompositeTestCase: TestCase {
-    void add(TestCase t) { _tests ~= t;}
+    void add(TestCase t) @safe pure { _tests ~= t;}
 
     void opOpAssign(string op : "~")(TestCase t) {
         add(t);
@@ -250,7 +250,7 @@ private:
    A test that should fail
  */
 class ShouldFailTestCase: TestCase {
-    this(TestCase testCase, in TypeInfo exceptionTypeInfo) {
+    this(TestCase testCase, in TypeInfo exceptionTypeInfo) @safe pure {
         this.testCase = testCase;
         this.exceptionTypeInfo = exceptionTypeInfo;
     }
@@ -288,7 +288,7 @@ class FunctionTestCase: TestCase {
 
     import unit_threaded.runner.reflection: TestData, TestFunction;
 
-    this(in TestData data) pure nothrow {
+    this(in TestData data) @safe pure nothrow {
         _name = data.getPath;
         _func = data.testFunction;
     }
@@ -312,7 +312,7 @@ class BuiltinTestCase: FunctionTestCase {
 
     import unit_threaded.runner.reflection: TestData;
 
-    this(in TestData data) pure nothrow {
+    this(in TestData data) @safe pure nothrow {
         super(data);
     }
 
@@ -395,7 +395,8 @@ unittest {
    A test that is expected to fail some of the time.
  */
 class FlakyTestCase: TestCase {
-    this(TestCase testCase, int retries) {
+
+    this(TestCase testCase, int retries) @safe pure {
         this.testCase = testCase;
         this.retries = retries;
     }
