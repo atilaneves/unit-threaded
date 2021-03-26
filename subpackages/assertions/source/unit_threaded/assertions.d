@@ -585,8 +585,12 @@ void shouldApproxEqual(V, E)
                        size_t line = __LINE__)
  if ((isFloatingPoint!V || isFloatingPoint!E) && is(typeof(value == expected) == bool))
 {
-    import std.math: approxEqual;
-    if (!approxEqual(value, expected, maxRelDiff, maxAbsDiff))
+    static if (__VERSION__ >= 2096)
+        import std.math: close = isClose;
+    else
+        import std.math: close = approxEqual;
+
+    if (!close(value, expected, maxRelDiff, maxAbsDiff))
     {
         const msg =
             formatValueInItsOwnLine("Expected approx: ", expected) ~
