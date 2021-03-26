@@ -20,5 +20,7 @@ jobs:
 
       - name: Run tests
         run: build/ci.sh
+        env:
+          TERM: xterm
 
       - uses: codecov/codecov-action@v1
