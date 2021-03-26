@@ -53,7 +53,7 @@ unittest {
 
 
 @("issue242")
-unittest {
+@safe unittest {
     import unit_threaded.asserts;
     import unit_threaded.runner.reflection;
     import unit_threaded.runner.testcase;
@@ -67,6 +67,6 @@ unittest {
     // only one composite test case should be created
     assertEqual(tests.length, 1);
 
-    auto composite = cast(CompositeTestCase) tests[0];
+    auto composite = cast(const CompositeTestCase) tests[0];
     assert(composite !is null);
 }

@@ -16,6 +16,7 @@ private CompositeTestCase[string] serialComposites;
 from!"unit_threaded.runner.testcase".TestCase[] createTestCases(
     in from!"unit_threaded.runner.reflection".TestData[] testData,
     in string[] testsToRun = [])
+    @safe
 {
     import unit_threaded.runner.testcase: TestCase;
     import std.algorithm: sort;
@@ -29,12 +30,13 @@ from!"unit_threaded.runner.testcase".TestCase[] createTestCases(
         if(test !is null) tests[test] = true; //can be null if abtract base class
     }
 
-    return tests.keys.sort!((a, b) => a.getPath < b.getPath).array;
+    return () @trusted { return tests.keys.sort!((a, b) => a.getPath < b.getPath).array; }();
 }
 
 
 from!"unit_threaded.runner.testcase".TestCase createTestCase(
     in from!"unit_threaded.runner.reflection".TestData testData)
+    @safe
 {
     import unit_threaded.runner.testcase: TestCase;
 
@@ -89,6 +91,7 @@ from!"unit_threaded.runner.testcase".TestCase createTestCase(
 
 bool isWantedTest(in from!"unit_threaded.runner.reflection".TestData testData,
                   in string[] testsToRun)
+    @safe pure
 {
 
     import std.algorithm: filter, all, startsWith, canFind;
@@ -111,6 +114,7 @@ bool isWantedTest(in from!"unit_threaded.runner.reflection".TestData testData,
 
 private bool isWantedNonTagTest(in from!"unit_threaded.runner.reflection".TestData testData,
                                 in string[] testsToRun)
+    @safe pure
 {
 
     import std.algorithm: any, startsWith, canFind;
@@ -127,5 +131,5 @@ private bool isWantedNonTagTest(in from!"unit_threaded.runner.reflection".TestDa
                            getPath.startsWith(t) && getPath[t.length .. $].canFind(".");
     }
 
-    return testsToRun.any!(a => matchesExactly(a) || matchesPackage(a));
+    return () @trusted { return testsToRun.any!(a => matchesExactly(a) || matchesPackage(a)); }();
 }

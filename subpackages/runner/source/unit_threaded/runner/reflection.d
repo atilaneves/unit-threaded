@@ -35,7 +35,7 @@ struct TestData {
     int flakyRetries = 0;
 
     /// The test's name
-    string getPath() const pure nothrow {
+    string getPath() @safe const pure nothrow {
         string path = name.dup;
         import std.array: empty;
         if(!suffix.empty) path ~= "." ~ suffix;
