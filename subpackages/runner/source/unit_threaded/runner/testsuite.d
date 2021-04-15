@@ -177,6 +177,13 @@ private:
             }
         }
 
+        version(Windows) {
+            // spawned child processes etc. may have tampered with the console,
+            // try to re-enable the ANSI escape codes for colors
+            import unit_threaded.runner.io: tryEnableEscapeCodes;
+            tryEnableEscapeCodes();
+        }
+
         handleFailures();
 
         _stopWatch.stop();

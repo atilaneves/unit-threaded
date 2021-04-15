@@ -31,6 +31,29 @@ version (Windows) {
     import core.sys.windows.wincon: GetConsoleMode, SetConsoleMode, ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 
     private __gshared uint originalConsoleMode;
+
+    private bool enableEscapeCodes(bool initialize = false) {
+        auto handle = GetStdHandle(STD_OUTPUT_HANDLE);
+        if (!handle || handle == INVALID_HANDLE_VALUE)
+            return false;
+
+        uint mode;
+        if (!GetConsoleMode(handle, &mode))
+            return false;
+
+        if (initialize)
+            originalConsoleMode = mode;
+
+        if (mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING)
+            return true; // already enabled
+
+        return SetConsoleMode(handle, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING) != 0;
+    }
+
+    package void tryEnableEscapeCodes() {
+        if (_useEscCodes)
+            enableEscapeCodes();
+    }
 }
 
 private extern (C) int isatty(int) nothrow; // POSIX, MSVC and DigitalMars C runtime
@@ -42,23 +65,9 @@ shared static this() {
 
     // Windows: if _useEscCodes == true, enable ANSI escape codes for the stdout console
     //          (supported since Win10 v1511)
-    version (Windows) {
-        if (!_useEscCodes)
-            return;
-
-        auto handle = GetStdHandle(STD_OUTPUT_HANDLE);
-        bool success = handle && handle != INVALID_HANDLE_VALUE;
-
-        if (success && !GetConsoleMode(handle, &originalConsoleMode))
-            success = false;
-        if (success && !(originalConsoleMode & ENABLE_VIRTUAL_TERMINAL_PROCESSING)) {
-            if (!SetConsoleMode(handle, originalConsoleMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING))
-                success = false;
-        }
-
-        if (!success)
-            _useEscCodes = false;
-    }
+    version (Windows)
+        if (_useEscCodes)
+            _useEscCodes = enableEscapeCodes(/*initialize=*/true);
 }
 
 // Windows: restore original console mode on shutdown
