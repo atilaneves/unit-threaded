@@ -9,7 +9,6 @@
 module unit_threaded.integration;
 
 version(Windows) {
-    extern(C) int mkdir(char*);
     extern(C) char* mktemp(char* template_);
 
     char* mkdtemp(char* t) {
@@ -30,6 +29,8 @@ version(Windows) {
 
         import core.stdc.string : strstr;
         import core.stdc.stdlib : rand;
+        import std.file: mkdirRecurse;
+        import std.string: fromStringz;
 
         char* where = strstr(t, "YYYYYY");
         assert(where !is null);
@@ -40,7 +41,7 @@ version(Windows) {
         char* result = mktemp(t);
 
         if(result is null) return null;
-        if (mkdir(result)) return null;
+        mkdirRecurse(result.fromStringz);
 
         return result;
     }
