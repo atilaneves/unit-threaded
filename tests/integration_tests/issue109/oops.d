@@ -31,7 +31,7 @@ unittest {
     assertNotThrown(funcThrows.shouldThrow);
 }
 
-@("shouldThrowExactly works with non -throwing expression")
+@("shouldThrowExactly works with non-throwing expression")
 unittest {
     assertThrown((2 + 2).shouldThrowExactly!ChildException);
 }

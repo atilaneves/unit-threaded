@@ -260,8 +260,6 @@ void shouldThrow(T : Throwable = Exception, E)
                 (lazy E expr, string file = __FILE__, size_t line = __LINE__) {
     import std.traits: isSafe, isUnsafe;
 
-    auto threw = false;
-
     static if(isUnsafe!expr)
         void callExpr() @system { expr(); }
     else
@@ -277,9 +275,9 @@ void shouldThrow(T : Throwable = Exception, E)
     }
 
     static if(isSafe!callExpr)
-        threw = () @trusted { return impl; }();
+        const threw = () @trusted { return impl; }();
     else
-        threw = impl;
+        const threw = impl;
 
     assert_(threw, file, line);
 }
@@ -290,7 +288,7 @@ void shouldThrowExactly(T : Throwable = Exception, E)
 {
     import std.traits: isSafe, isUnsafe;
 
-    T throwable = null;
+    TypeInfo typeInfo = null;
 
     static if(isUnsafe!expr)
         void callExpr() @system { expr(); }
@@ -301,7 +299,7 @@ void shouldThrowExactly(T : Throwable = Exception, E)
         try
             callExpr;
         catch(T t) {
-            throwable = t;
+            typeInfo = typeid(t);
         }
     }
 
@@ -310,8 +308,8 @@ void shouldThrowExactly(T : Throwable = Exception, E)
     else
         impl;
 
-    //Object.opEquals is @system and impure
-    const sameType = () @trusted { return throwable !is null && typeid(throwable) == typeid(T); }();
+    // Object.opEquals is @system and impure
+    const sameType = () @trusted { return typeInfo !is null && typeInfo == typeid(T); }();
     assert_(sameType, file, line);
 }
 
@@ -342,13 +340,17 @@ void shouldNotThrow(T: Throwable = Exception, E)
 }
 
 /// Assert that expr throws and the exception message is msg.
-void shouldThrowWithMessage(T : Throwable = Exception, E)(lazy E expr,
-                                                          string msg,
-                                                          string file = __FILE__,
-                                                          size_t line = __LINE__) {
+void shouldThrowWithMessage(T : Throwable = Exception, E)
+                           (lazy E expr,
+                            string msg,
+                            string file = __FILE__,
+                            size_t line = __LINE__)
+    in(msg != "")
+    do
+{
     import std.traits: isSafe, isUnsafe;
 
-    T throwable = null;
+    string thrownMsg;
 
     static if(isUnsafe!expr)
         void callExpr() @system { expr(); }
@@ -359,7 +361,7 @@ void shouldThrowWithMessage(T : Throwable = Exception, E)(lazy E expr,
         try
             callExpr;
         catch(T t) {
-            throwable = t;
+            thrownMsg = t.msg;
         }
     }
 
@@ -368,7 +370,7 @@ void shouldThrowWithMessage(T : Throwable = Exception, E)(lazy E expr,
     else
         impl;
 
-    assert_(throwable !is null && throwable.msg == msg, file, line);
+    assert_(thrownMsg == msg, file, line);
 }
 
 /// Assert that value is approximately equal to expected.
