@@ -99,7 +99,7 @@ version(Windows) {
         shouldSucceed("definitely_not_an_existing_command_or_executable").shouldThrow;
         shouldFail("definitely_not_an_existing_command_or_executable");
 
-        writeFile("hello.d", q{import std; void main() {writeln("hello");}});
+        writeFile("hello.d", q{import std.stdio; void main() {writeln("hello");}});
         shouldExecuteOk(["dmd", inSandboxPath("hello.d")]);
         version (Windows)
             immutable exe = "hello.exe";
