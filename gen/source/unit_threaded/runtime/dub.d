@@ -90,10 +90,14 @@ private auto byOptionalKey(from!"std.json".JSONValue json, in string key, bool d
 //std.json has no conversion to bool
 private bool boolean(from!"std.json".JSONValue json) @trusted {
     import std.exception: enforce;
-    import std.json: JSONException, JSONType;
-    enforce!JSONException(json.type == JSONType.true_ || json.type == JSONType.false_,
+    import std.json: JSONException;
+    static if(__VERSION__ < 2090)
+        import std.json: JSONType = JSON_TYPE;
+    else
+         import std.json: JSONType;
+    enforce!JSONException(json.type == JSONType.TRUE || json.type == JSONType.FALSE,
                           "JSONValue is not a boolean");
-    return json.type == JSONType.true_;
+    return json.type == JSONType.TRUE;
 }
 
 private string getOptional(from!"std.json".JSONValue json, in string key) @trusted {

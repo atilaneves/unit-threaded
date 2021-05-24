@@ -12,7 +12,11 @@ import unit_threaded.asserts;
         return a != a;
     }
 
-    check!antiIdentity.shouldThrow!UnitTestException;
+    static if(__VERSION__ < 2090)
+        () @trusted { check!antiIdentity.shouldThrow!UnitTestException; }();
+    else
+        check!antiIdentity.shouldThrow!UnitTestException;
+
     // gets called twice due to shrinking
     numCalls.shouldEqual(2);
 }
@@ -22,8 +26,14 @@ import unit_threaded.asserts;
     // 2^100 is ~1.26E30, so the chances that no even length array is generated
     // is small enough to disconsider even if it were truly random
     // since Gen!int[] is front-loaded, it'll fail deterministically
-    assertExceptionMsg(check!((int[] a) => a.length % 2 == 1)(42),
-                       "    tests/unit_threaded/ut/property.d:123 - Property failed. Seed: 42. Input: []");
+    static if(__VERSION__ < 2090)
+        () @trusted  {
+            assertExceptionMsg(check!((int[] a) => a.length % 2 == 1)(42),
+                               "    tests/unit_threaded/ut/property.d:123 - Property failed. Seed: 42. Input: []");
+        }();
+    else
+        assertExceptionMsg(check!((int[] a) => a.length % 2 == 1)(42),
+                           "    tests/unit_threaded/ut/property.d:123 - Property failed. Seed: 42. Input: []");
 }
 
 

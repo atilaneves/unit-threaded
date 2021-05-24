@@ -176,47 +176,49 @@ else {
 }
 
 
-@("184.0")
-@safe pure unittest {
+static if(__VERSION__ > 2090) {
+    @("184.0")
+    @safe pure unittest {
 
-    import std.traits;
+        import std.traits;
 
-    auto obviouslySystem = {
-        int* foo = cast(int*) 42;
-        *foo = 42;
-    };
+        auto obviouslySystem = {
+            int* foo = cast(int*) 42;
+            *foo = 42;
+        };
 
-    static assert(!isSafe!(obviouslySystem));
+        static assert(!isSafe!(obviouslySystem));
 
-    void oops()() {
-        shouldThrow(obviouslySystem);
+        void oops()() {
+            shouldThrow(obviouslySystem);
+        }
+
+        // oops;  // uncomment to ever check the compiler error message
+        static assert(!isSafe!(oops!()),
+                      "Passing @system functions to shouldThrow should not be @safe");
     }
 
-    // oops;  // uncomment to ever check the compiler error message
-    static assert(!isSafe!(oops!()),
-                  "Passing @system functions to shouldThrow should not be @safe");
-}
 
+    @("184.1")
+    @safe pure unittest {
 
-@("184.1")
-@safe pure unittest {
+        import std.traits: isUnsafe;
 
-    import std.traits: isUnsafe;
+        auto obviouslySystem = {
+            int* foo = cast(int*) 42;
+            *foo = 42;
+        };
 
-    auto obviouslySystem = {
-        int* foo = cast(int*) 42;
-        *foo = 42;
-    };
+        static assert(isUnsafe!(obviouslySystem));
 
-    static assert(isUnsafe!(obviouslySystem));
+        void oops()() {
+            shouldThrowExactly!Exception(obviouslySystem);
+        }
 
-    void oops()() {
-        shouldThrowExactly!Exception(obviouslySystem);
+        // oops;  // uncomment to ever check the compiler error message
+        static assert(isUnsafe!(oops!()),
+                      "Passing @system functions to shouldThrowExactly should not be @safe");
     }
-
-    // oops;  // uncomment to ever check the compiler error message
-    static assert(isUnsafe!(oops!()),
-                  "Passing @system functions to shouldThrowExactly should not be @safe");
 }
 
 
@@ -268,7 +270,7 @@ else {
 
 @("shouldEqual.enum.text")
 @safe pure unittest {
-    static enum Enum {
+    enum Enum {
         text,
     }
 

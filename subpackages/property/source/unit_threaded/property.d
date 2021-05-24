@@ -170,7 +170,7 @@ private auto shrinkOne(alias F, int index, T)(T values) {
 
 ///
 @("Verify identity property for int[] succeeds")
-@safe unittest {
+@system unittest {
 
     int numCalls;
     bool identity(int[] a) pure {
@@ -188,7 +188,7 @@ private auto shrinkOne(alias F, int index, T)(T values) {
 
 ///
 @("Explicit Gen")
-@safe unittest {
+@system unittest {
     import unit_threaded.randomized.gen;
     import unit_threaded.exception: UnitTestException;
     import std.exception: assertThrown;

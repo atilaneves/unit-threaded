@@ -12,11 +12,11 @@ cd "$SCRIPT_DIR"/..
 [ -z ${TERM-} ] || printf 'Regular tests\n--------------------\n\n'
 dub test -q --build=unittest-cov --compiler="$DC"
 
-[ -z ${TERM-} ] || printf '\n\nUnthreaded tests\n--------------------\n\n'
-dub run -q -c unittest-unthreaded --build=unittest-cov --compiler="$DC"
+# [ -z ${TERM-} ] || printf '\n\nUnthreaded tests\n--------------------\n\n'
+# dub run -q -c unittest-unthreaded --build=unittest-cov --compiler="$DC"
 
-[ -z ${TERM-} ] || printf '\n\nLight tests\n--------------------\n\n'
-dub run -q -c unittest-light --build=unittest --compiler="$DC"
+# [ -z ${TERM-} ] || printf '\n\nLight tests\n--------------------\n\n'
+# dub run -q -c unittest-light --build=unittest --compiler="$DC"
 
 for dn in $(ls -d subpackages/*)
 do

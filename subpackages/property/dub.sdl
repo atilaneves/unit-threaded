@@ -11,5 +11,5 @@ configuration "default" {
 }
 
 configuration "unittest" {
-    dflags "-preview=dip1000"
+    dflags "-dip1000"
 }

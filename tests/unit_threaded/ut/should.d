@@ -305,7 +305,8 @@ unittest
     void bar() @safe { assert(a == 4); }
     static assert(!__traits(compiles, () @safe => foo.shouldThrow!Throwable));
     static assert(__traits(compiles, () => foo.shouldThrow!Throwable));
-    static assert(__traits(compiles, () @safe => bar.shouldThrow!Throwable));
+    static if(__VERSION__ > 2090)
+        static assert(__traits(compiles, () @safe => bar.shouldThrow!Throwable));
     static assert(__traits(compiles, () => bar.shouldThrow!Throwable));
 }
 
@@ -359,34 +360,37 @@ unittest
     assertFail(doesntThrow.shouldThrowExactly!Exception);
 }
 
-@safe pure unittest
-{
-    void throwRangeError()
+static if(__VERSION__ > 2090) {
+    @safe pure unittest
     {
-        ubyte[] bytes;
-        bytes = bytes[1 .. $];
+        void throwRangeError()
+        {
+            ubyte[] bytes;
+            bytes = bytes[1 .. $];
+        }
+
+        import core.exception : RangeError;
+
+        throwRangeError.shouldThrow!RangeError;
     }
-
-    import core.exception : RangeError;
-
-    throwRangeError.shouldThrow!RangeError;
 }
 
-@safe pure unittest {
-    import std.stdio;
+static if(__VERSION__ > 2090) {
+    @safe pure unittest {
+        import std.stdio;
 
-    import core.exception: OutOfMemoryError;
+        import core.exception: OutOfMemoryError;
 
-    class CustomException : Exception {
-        this(string msg = "", string file = __FILE__, in size_t line = __LINE__) { super(msg, file, line); }
+        class CustomException : Exception {
+            this(string msg = "", string file = __FILE__, in size_t line = __LINE__) { super(msg, file, line); }
+        }
+
+        void func() { throw new CustomException("oh noes"); }
+
+        func.shouldThrow!CustomException;
+        assertFail(func.shouldThrow!OutOfMemoryError);
     }
-
-    void func() { throw new CustomException("oh noes"); }
-
-    func.shouldThrow!CustomException;
-    assertFail(func.shouldThrow!OutOfMemoryError);
 }
-
 
 unittest {
     import unit_threaded.asserts;

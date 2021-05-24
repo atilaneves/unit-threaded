@@ -69,7 +69,7 @@ struct RndValueGen(T...)
 }
 
 @("176")
-@safe unittest {
+@system unittest {
     import std.random: Random;
     const seed = 0x1337;
     scope random = Random(seed);

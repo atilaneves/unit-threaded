@@ -457,10 +457,14 @@ private auto threw(T : Throwable, E)(lazy E expr)
         return tuple!("threw", "info")(true, ThrownInfo(typeid(e), e.msg.array.dup.text));
     }
 
-    static if(isUnsafe!expr)
-        void callExpr() @system { expr(); }
-    else
-        void callExpr() @safe   { expr(); }
+    static if(__VERSION__ < 2090) {
+        void callExpr()() { expr(); }
+    } else {
+        static if(isUnsafe!expr)
+            void callExpr() @system { expr(); }
+        else
+            void callExpr() @safe   { expr(); }
+    }
 
     auto impl() {
         try {
@@ -472,10 +476,15 @@ private auto threw(T : Throwable, E)(lazy E expr)
         }
     }
 
-    static if(isSafe!callExpr && isSafe!makeRet)
-        return () @trusted { return impl; }();
-    else
+    static if(__VERSION__ < 2090)
         return impl;
+    else {
+
+        static if(isSafe!callExpr && isSafe!makeRet)
+            return () @trusted { return impl; }();
+        else
+            return impl;
+    }
 }
 
 

@@ -41,7 +41,7 @@
             "importPaths": ["source"],
             "mainSourceFile": "example/example_pass.d",
             "dflags": ["-dip25", "-dip1000", "-dip1008"],
-            "versions": ["testing_unit_threaded"]
+            "versions": ["testing_unit_threaded", "unitUnthreaded"]
         },
         {
             "name": "unittest-unthreaded",
