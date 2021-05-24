@@ -23,7 +23,7 @@ jobs:
 
       - name: "Posix: Run tests"
         if: runner.os != 'Windows'
-        run: build/ut.sh
+        run: dub test
         env:
           TERM: xterm
 
