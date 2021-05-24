@@ -99,8 +99,8 @@ template collectAndRunTests(Modules...) {
 
         static foreach(module_; Modules) {
             static assert(is(typeof(module_) == string));
-            mixin(`static import `, module_, `;`);
-            data ~= mixin(module_, `.testData()`);
+            mixin(`static import ` ~ module_ ~ `;`);
+            data ~= mixin(module_ ~ `.testData()`);
         }
 
         return runTests(args, data);

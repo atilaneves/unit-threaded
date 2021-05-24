@@ -49,9 +49,8 @@ struct RndValueGen(T...)
         $(D values) passing $(D the provided) random number generator
     */
     void genValues() scope
-        in(rnd !is null)
-        do
     {
+        assert(rnd !is null);
         foreach (ref it; this.values)
         {
             it.gen(*this.rnd);
