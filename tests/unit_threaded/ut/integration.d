@@ -100,7 +100,13 @@ version(Windows) {
         shouldFail("definitely_not_an_existing_command_or_executable");
 
         writeFile("hello.d", q{import std; void main() {writeln("hello");}});
-        shouldExecuteOk(["dmd", inSandboxPath("hello.d")]);
+
+        version(LDC) {
+            shouldExecuteOk(["ldc2", inSandboxPath("hello.d")]);
+        } else {
+            shouldExecuteOk(["dmd", inSandboxPath("hello.d")]);
+        }
+        
         version (Windows)
             immutable exe = "hello.exe";
         else

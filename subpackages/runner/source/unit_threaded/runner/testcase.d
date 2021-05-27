@@ -374,20 +374,27 @@ private string localStacktraceToString(Throwable throwable, int removeExtraLines
 }
 
 unittest {
-    import std.string : splitLines;
+    import std.conv : to;
+    import std.string : splitLines, indexOf;
     import std.format : format;
 
     try throw new Exception("");
     catch (Exception exc) {
         const output = exc.localStacktraceToString(0);
-        const lines = output.splitLines.length;
+        const lines = output.splitLines;
 
         /*
          * object.Exception@subpackages/runner/source/unit_threaded/runner/testcase.d(368)
          * ----------------
          * subpackages/runner/source/unit_threaded/runner/testcase.d:368 void unit_threaded.runner.testcase [...]
          */
-        assert(lines == 3);
+        //import std.stdio : writeln;
+        //writeln("Output from local stack trace was:\n"~output);
+
+        assert(lines.length >= 3, "Expected 3 or more lines but got " ~ to!string(lines.length) ~ " :\n" ~ output);
+        assert(lines[0].indexOf("object.Exception@subpackages/runner/source/unit_threaded/runner/testcase.d") != -1);
+	    assert(lines[1].indexOf("------") != -1); // second line is a bunch of dashes
+        assert(lines[2].indexOf("testcase.d") != -1); // the third line differs accross compilers
     }
 }
 
