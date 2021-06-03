@@ -1,7 +1,8 @@
 unit-threaded
 =============
 
-| [![Build Status](https://travis-ci.org/atilaneves/unit-threaded.png?branch=master)](https://travis-ci.org/atilaneves/unit-threaded) |  [![Build Status](https://ci.appveyor.com/api/projects/status/github/atilaneves/unit-threaded?branch=master&svg=true)](https://ci.appveyor.com/project/atilaneves/unit-threaded) | [![Coverage](https://codecov.io/gh/atilaneves/unit-threaded/branch/master/graph/badge.svg)](https://codecov.io/gh/atilaneves/unit-threaded) |
+[![Build Status](https://github.com/atilaneves/unit-threaded/workflows/CI/badge.svg)](https://github.com/atilaneves/unit-threaded/actions)
+[![Coverage](https://codecov.io/gh/atilaneves/unit-threaded/branch/master/graph/badge.svg)](https://codecov.io/gh/atilaneves/unit-threaded)
 
 [My DConf2016 Lightning talk demonstrating unit-threaded](https://www.youtube.com/watch?v=vNPb4Mg6F6Y#t=6m50s).
 
