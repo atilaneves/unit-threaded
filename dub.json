@@ -33,7 +33,7 @@
 
         {
             "name": "library",
-            "dflags": ["-preview=dip25", "-preview=dip1000"],
+            "dflags": ["-preview=dip25", "-preview=dip1000"]
         },
 
         { "name": "nodips" },
@@ -45,7 +45,7 @@
             "sourcePaths": ["source", "gen/source", "tests/unit_threaded", "tests/examples/pass"],
             "importPaths": ["source"],
             "mainSourceFile": "example/example_pass.d",
-            "dflags": ["-preview=dip25", "-preview=dip1000", "-preview=dip1008", "-cov=ctfe"],
+            "dflags": ["-preview=dip25", "-preview=dip1000", "-preview=dip1008"],
             "versions": ["testing_unit_threaded"]
         },
         {
