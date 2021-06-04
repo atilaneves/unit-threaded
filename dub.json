@@ -6,6 +6,10 @@
     "copyright": "Copyright © 2013, Atila Neves",
     "license": "BSD 3-clause",
     "targetType": "library",
+    "toolchainRequirements": {
+        "frontend": ">=2.089",
+        "gdc": "no"
+    },
     "-ddoxFilterArgs": [
         "--unittest-examples",
         "--min-protection=Protected"
