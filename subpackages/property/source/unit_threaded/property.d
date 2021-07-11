@@ -34,19 +34,10 @@ void check(alias F, int numFuncCalls = 100)
     static assert(is(ReturnType!F == bool),
                   text("check only accepts functions that return bool, not ", ReturnType!F.stringof));
 
-    scope random = Random(seed);
-
-    // See https://github.com/atilaneves/unit-threaded/issues/187 for why
-    auto createGenerator(ref Random random) {
-        return RndValueGen!(Parameters!F)(&random);
-    }
-
-    // It might be that some projects don't use dip1000 and so
-    // createGenerator isn't safe
-    static if(isSafe!createGenerator)
-        scope gen = createGenerator(random);
-    else
-        scope gen = () @trusted { return createGenerator(random); }();
+    // `Random` could be put on the stack, but only with -dip1000:
+    // https://github.com/atilaneves/unit-threaded/issues/187
+    // With -dip1000, https://issues.dlang.org/show_bug.cgi?id=20150 manifested here
+    auto gen = RndValueGen!(Parameters!F)(new Random(seed));
 
     auto input(Flag!"shrink" shrink = Yes.shrink) {
 
