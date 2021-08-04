@@ -47,7 +47,7 @@ void shouldBeFalse(E)(lazy E condition, string file = __FILE__, size_t line = __
  * Verify that two values are the same.
  * Throws: UnitTestException on failure
  */
-void shouldEqual(V, E)(scope auto ref V value, scope auto ref E expected, string file = __FILE__, size_t line = __LINE__)
+void shouldEqual(V, E)(auto ref V value, auto ref E expected, string file = __FILE__, size_t line = __LINE__)
 {
     if (!isEqual(value, expected))
     {
@@ -167,7 +167,7 @@ static assert(!isLikeAssociativeArray!(string[string], int));
  * Verify that the value is in the container.
  * Throws: UnitTestException on failure
 */
-void shouldBeIn(T, U)(const scope auto ref T value, const scope auto ref U container, string file = __FILE__, size_t line = __LINE__)
+void shouldBeIn(T, U)(const auto ref T value, const auto ref U container, string file = __FILE__, size_t line = __LINE__)
     if (isLikeAssociativeArray!(U, T))
 {
     import std.conv: to;
@@ -197,7 +197,7 @@ void shouldBeIn(T, U)(const scope auto ref T value, const scope auto ref U conta
  * Verify that the value is in the container.
  * Throws: UnitTestException on failure
  */
-void shouldBeIn(T, U)(const scope auto ref T value, U container, string file = __FILE__, size_t line = __LINE__)
+void shouldBeIn(T, U)(const auto ref T value, U container, string file = __FILE__, size_t line = __LINE__)
     if (!isLikeAssociativeArray!(U, T) && isInputRange!U)
 {
     import std.algorithm: find;
@@ -222,7 +222,7 @@ void shouldBeIn(T, U)(const scope auto ref T value, U container, string file = _
  * Verify that the value is not in the container.
  * Throws: UnitTestException on failure
  */
-void shouldNotBeIn(T, U)(const scope auto ref T value, const scope auto ref U container,
+void shouldNotBeIn(T, U)(const auto ref T value, const auto ref U container,
                          string file = __FILE__, size_t line = __LINE__)
     if (isLikeAssociativeArray!(U, T))
 {
@@ -480,7 +480,7 @@ private auto threw(T : Throwable, E)(lazy E expr)
 
 
 // Formats output in different lines
-private string[] formatValueInItsOwnLine(T)(in string prefix, scope auto ref T value) {
+private string[] formatValueInItsOwnLine(T)(scope string prefix, auto ref T value) {
 
     import std.conv: to;
     import std.traits: isSomeString;
@@ -498,12 +498,12 @@ private string[] formatValueInItsOwnLine(T)(in string prefix, scope auto ref T v
 }
 
 // helper function for non-copyable types
-string convertToString(T)(scope auto ref T value) {  // std.conv.to sometimes is @system
+string convertToString(T)(auto ref T value) {  // std.conv.to sometimes is @system
     import std.conv: text, to;
     import std.traits: isFloatingPoint, isAssociativeArray;
     import std.format: format;
 
-    static string text_(scope ref const(T) value) {
+    static string text_(ref const(T) value) {
         static if(isAssociativeArray!T)
             return (scope ref const(T) value) @trusted { return value.text; }(value);
         else static if(__traits(compiles, value.text))
@@ -523,7 +523,7 @@ string convertToString(T)(scope auto ref T value) {  // std.conv.to sometimes is
 }
 
 
-private string[] formatRange(T)(in string prefix, scope auto ref T value) {
+private string[] formatRange(T)(scope string prefix, auto ref T value) {
     import std.conv: text;
     import std.range: ElementType;
     import std.algorithm: map, reduce, max;
@@ -697,7 +697,7 @@ bool isEqual(V, E)(scope V value, scope E expected)
  * Verify that rng is empty.
  * Throws: UnitTestException on failure.
  */
-void shouldBeEmpty(R)(const scope auto ref R rng, string file = __FILE__, size_t line = __LINE__)
+void shouldBeEmpty(R)(const auto ref R rng, string file = __FILE__, size_t line = __LINE__)
 if (isInputRange!R)
 {
     import std.conv: text;
