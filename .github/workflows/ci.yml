@@ -12,20 +12,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-20.04, windows-2019, macos-10.15]
         dc:
-          - dmd-latest
-          - ldc-latest
-          - dmd-2.095.1
-          - dmd-2.094.2
-          - dmd-2.093.1
-          #- dmd-2.092.1 # there are linker errors on Windows for dmd 2.090 - 2.092
-          #- dmd-2.091.1
-          #- dmd-2.090.1
-          - dmd-2.089.1 # builds fail for D versions below 2.089
-          - ldc-1.25.1 # eq to dmd v2.095.1
-          - ldc-1.24.0 # eq to dmd v2.094.1
-          - ldc-1.23.0 # eq to dmd v2.093.1
+          - dmd-2.097.1
+          - ldc-1.27.0
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -45,7 +35,7 @@ jobs:
       - name: "Windows: Run tests"
         if: runner.os == 'Windows'
         run: build\ci.bat
-  
+
   coverage:
     name: Code coverage
     runs-on: ubuntu-latest
