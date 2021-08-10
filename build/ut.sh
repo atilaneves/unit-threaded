@@ -18,8 +18,8 @@ dub run -q -c unittest-unthreaded --build=unittest-cov --compiler="$DC"
 [ -z ${TERM-} ] || printf '\n\nLight tests\n--------------------\n\n'
 dub run -q -c unittest-light --build=unittest --compiler="$DC"
 
-# for dn in $(ls -d subpackages/*)
-# do
-#     [ -z ${TERM-} ] || printf '\n\n'$dn' tests\n--------------------\n\n'
-#     dub test -q --compiler="$DC" --root="$dn"
-# done
+for dn in $(ls -d subpackages/*)
+do
+    [ -z ${TERM-} ] || printf '\n\n'$dn' tests\n--------------------\n\n'
+    dub test -q --compiler="$DC" --root="$dn"
+done

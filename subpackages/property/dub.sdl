@@ -3,8 +3,8 @@ description "Property-based testing facilities"
 authors "Atila Neves"
 license "BSD 3-clause"
 targetType "library"
-dependency "unit-threaded:from" version="*"
-dependency "unit-threaded:exception" version="*"
+dependency "unit-threaded:from" path="../.."
+dependency "unit-threaded:exception" path="../.."
 
 configuration "default" {
 
