@@ -377,8 +377,11 @@ void shouldThrowWithMessage(T : Throwable = Exception, E)
 void shouldApproxEqual(V, E)
                       (in V value, in E expected, double maxRelDiff = 1e-2, double maxAbsDiff = 1e-5, string file = __FILE__, size_t line = __LINE__)
 {
-    import std.math: approxEqual;
-    assert_(approxEqual(value, expected, maxRelDiff, maxAbsDiff), file, line);
+    static if (__VERSION__ >= 2096)
+        import std.math: close = isClose;
+    else
+        import std.math: close = approxEqual;
+    assert_(close(value, expected, maxRelDiff, maxAbsDiff), file, line);
 }
 
 /// assert that rng is empty.
