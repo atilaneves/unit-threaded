@@ -114,7 +114,7 @@ Options getGenUtOptions(string[] args) {
 
 from!"std.file".DirEntry[] findModuleEntries(in Options options) {
 
-    import std.algorithm: splitter, canFind, map, startsWith, filter;
+    import std.algorithm: splitter, canFind, map, startsWith, endsWith, filter;
     import std.array: array, empty;
     import std.file: DirEntry, isDir, dirEntries, SpanMode;
     import std.path: dirSeparator, buildNormalizedPath;
@@ -134,7 +134,7 @@ from!"std.file".DirEntry[] findModuleEntries(in Options options) {
         auto entries = dirEntries(dir, "*.d", SpanMode.depth);
         auto normalised = entries.map!(a => buildNormalizedPath(a.name));
 
-        bool isHiddenDir(string p) { return p.startsWith("."); }
+        bool isHiddenDir(string p) { return p.startsWith(".") && !(p.length <= 2 && p.endsWith(".")); }
         bool anyHiddenDir(string p) { return p.splitter(dirSeparator).canFind!isHiddenDir; }
 
         modules ~= normalised.
