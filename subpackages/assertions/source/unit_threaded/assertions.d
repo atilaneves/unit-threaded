@@ -78,8 +78,8 @@ void shouldEqual(V, E)(auto ref V value, auto ref E expected, string file = __FI
  * Throws: UnitTestException on failure
  */
 void shouldNotEqual(V, E)
-                   (scope auto ref V value,
-                    scope auto ref E expected,
+                   (auto ref V value,
+                    auto ref E expected,
                     string file = __FILE__,
                     size_t line = __LINE__)
 {

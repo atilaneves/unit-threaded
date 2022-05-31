@@ -295,3 +295,18 @@ else {
     lhs.should == rhs;
     rhs.should == lhs;
 }
+
+
+version(unitThreadedLight) {}
+else {
+    @("263")
+        @safe pure unittest {
+        static final class Test {
+            this() @safe {}
+            override string toString() @safe pure const { return ""; }
+            override bool opEquals(scope Object o) @safe const scope pure { return 0; }
+        }
+
+        (new Test).shouldNotEqual(new Test);
+    }
+}
