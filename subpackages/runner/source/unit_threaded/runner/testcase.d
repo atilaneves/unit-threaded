@@ -41,13 +41,7 @@ class TestCase {
      * Returns: array of failures (child classes may have more than 1)
      */
     string[] opCall() {
-        static if(__VERSION__ >= 2077)
-            import std.datetime.stopwatch: StopWatch, AutoStart;
-        else
-            import std.datetime: StopWatch, AutoStart;
-
         currentTest = this;
-        auto sw = StopWatch(AutoStart.yes);
         doTest();
         flushOutput();
         return _failed ? [getPath()] : [];
