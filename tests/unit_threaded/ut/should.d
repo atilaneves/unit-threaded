@@ -669,3 +669,19 @@ unittest {
                        `    tests/unit_threaded/ut/should.d:123 - Expected: [1, 2, 4]` ~ "\n" ~
                        `    tests/unit_threaded/ut/should.d:123 -      Got: [1, 2, 3]`);
 }
+
+
+@safe pure unittest {
+    static struct Wrapper {
+        string[] value;
+        this(inout(string)[] values) inout @safe @nogc pure nothrow {
+            this.value = values;
+        }
+    }
+
+    Wrapper(["foo", "bar"]).value.should == ["foo", "bar"];
+}
+
+@safe pure unittest {
+    [[1]].should == [[1]];
+}
