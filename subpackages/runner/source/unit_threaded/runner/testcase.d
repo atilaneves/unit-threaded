@@ -108,11 +108,13 @@ private:
     }
 
     final bool check(E)(lazy E expression) {
-        import unit_threaded.exception: UnitTestException;
+        import unit_threaded.exception: UnitTestError, UnitTestException;
         try {
             expression();
         } catch(UnitTestException ex) {
             fail(ex.toString());
+        } catch(UnitTestError err) {
+            fail(err.toString());
         } catch(Throwable ex) {
             fail("\n    " ~ ex.toString() ~ "\n");
         }

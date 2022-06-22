@@ -16,7 +16,17 @@ void fail(const string[] lines, const string file, size_t line) @safe pure
 /**
  * An exception to signal that a test case has failed.
  */
-class UnitTestException : Exception
+public class UnitTestException : Exception
+{
+    mixin UnitTestFailureImpl;
+}
+
+public class UnitTestError : Error
+{
+    mixin UnitTestFailureImpl;
+}
+
+private template UnitTestFailureImpl()
 {
     this(const string msg, string file = __FILE__,
          size_t line = __LINE__, Throwable next = null) @safe pure nothrow
@@ -28,7 +38,14 @@ class UnitTestException : Exception
          size_t line = __LINE__, Throwable next = null) @safe pure nothrow
     {
         import std.string: join;
-        super(msgLines.join("\n"), next, file.dup, line);
+        static if (is(typeof(this) : Exception))
+        {
+            super(msgLines.join("\n"), next, file.dup, line);
+        }
+        else
+        {
+            super(msgLines.join("\n"), file.dup, line, next);
+        }
         this.msgLines = msgLines.dup;
     }
 
