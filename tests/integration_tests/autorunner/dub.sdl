@@ -1,0 +1,10 @@
+name "autorunner_test"
+
+configuration "default" {
+}
+
+configuration "unittest" {
+    dependency "unit-threaded:autorunner" path="../../../"
+    sourcePaths "source" "test"
+    importPaths "source" "test"
+}
