@@ -30,7 +30,8 @@
         "./subpackages/runner",
         "./subpackages/mocks",
         "./subpackages/integration",
-        "./subpackages/property"
+        "./subpackages/property",
+        "./subpackages/autorunner"
     ],
     "configurations": [
 

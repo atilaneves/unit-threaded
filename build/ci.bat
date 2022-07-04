@@ -36,7 +36,10 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 popd
 
 for /D %%D in ("subpackages\*") do (
-    echo %%D
-    dub test --root=%%D
-    if !errorlevel! neq 0 exit /b !errorlevel!
+    REM the autorunner subpackage cannot be tested itself; see tests/integration_tests/autorunner
+    if not "%%D" == "subpackages\autorunner" (
+        echo %%D
+        dub test --root=%%D
+        if !errorlevel! neq 0 exit /b !errorlevel!
+    )
 )

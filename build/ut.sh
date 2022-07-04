@@ -20,6 +20,9 @@ dub run -q -c unittest-light --build=unittest --compiler="$DC"
 
 for dn in $(ls -d subpackages/*)
 do
-    [ -z ${TERM-} ] || printf '\n\n'$dn' tests\n--------------------\n\n'
-    dub test -q --compiler="$DC" --root="$dn"
+    # the autorunner subpackage cannot be tested itself; see tests/integration_tests/autorunner
+    if [[ "$dn" != "subpackages/autorunner" ]]; then
+        [ -z ${TERM-} ] || printf '\n\n'$dn' tests\n--------------------\n\n'
+        dub test -q --compiler="$DC" --root="$dn"
+    fi
 done

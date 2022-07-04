@@ -53,3 +53,15 @@ if [[ $prop_light_status -eq 0 ]]; then
 else
     [ -z ${TERM-} ] || printf "\\nDisregard the stack trace for property-light, it's supposed to fail\\n"
 fi
+
+
+cd "$SCRIPT_DIR"/autorunner
+[ -z ${TERM-} ] || echo autorunner
+dub test --compiler="$DC"
+# make sure the testrunner supports -l and contains both unittests
+for unittest_name in "modA.Unittest A" "modB.Unittest B"; do
+    if ! { ./autorunner_test-test-unittest -l | grep -q "$unittest_name"; } then
+        [ -z ${TERM-} ] || echo "ERROR: '$unittest_name' missing"
+        exit 1
+    fi
+done
