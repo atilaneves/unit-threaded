@@ -21,9 +21,7 @@ void writelnUt(T...)(auto ref T args) {
 
 private shared(bool) _debugOutput = false; ///print debug msgs?
 private shared(bool) _forceEscCodes = false; ///use ANSI escape codes anyway?
-private shared(bool) _useEscCodes;
-enum _escCodes = ["\033[1;31m", "\033[1;32m", "\033[1;33m", "\033[0m"];
-
+package(unit_threaded) shared(bool) _useEscCodes;
 
 
 version (Windows) {
@@ -99,29 +97,43 @@ package void forceEscCodes() nothrow {
 
 interface Output {
     void send(in string output) @safe;
-    void flush() @safe;
+    void flush(bool success) @safe;
 }
 
-private enum Colour {
+private enum Effect {
     red,
     green,
     yellow,
-    cancel,
+    intense,
+    defaultColour,
+    defaultIntensity,
 }
 
-private string colour(alias C)(in string msg) {
-    return escCode(C) ~ msg ~ escCode(Colour.cancel);
+private string wrapEffect(Effect effect)(in string msg) {
+    static if (effect == Effect.intense)
+        return escCode(effect) ~ msg ~ escCode(Effect.defaultIntensity);
+    else
+        return escCode(effect) ~ msg ~ escCode(Effect.defaultColour);
 }
 
-private alias green = colour!(Colour.green);
-private alias red = colour!(Colour.red);
-private alias yellow = colour!(Colour.yellow);
+package(unit_threaded) alias green = wrapEffect!(Effect.green);
+package(unit_threaded) alias red = wrapEffect!(Effect.red);
+package(unit_threaded) alias yellow = wrapEffect!(Effect.yellow);
+package(unit_threaded) alias intense = wrapEffect!(Effect.intense);
 
 /**
  * Send escape code to the console
  */
-private string escCode(in Colour code) @safe {
-    return _useEscCodes ? _escCodes[code] : "";
+private string escCode(in Effect effect) @safe {
+    if (!_useEscCodes) return "";
+    final switch (effect) {
+        case Effect.red: return "\033[31m";
+        case Effect.green: return "\033[32m";
+        case Effect.yellow: return "\033[33m";
+        case Effect.intense: return "\033[1m";
+        case Effect.defaultColour: return "\033[39m";
+        case Effect.defaultIntensity: return "\033[22m";
+    }
 }
 
 
@@ -146,7 +158,7 @@ void writeln(T...)(Output output, auto ref T args) {
  */
 void writelnGreen(T...)(Output output, auto ref T args) {
     import std.conv: text;
-    output.send(green(text(args) ~ "\n"));
+    output.send(text(args).green.intense ~ "\n");
 }
 
 /**
@@ -163,7 +175,7 @@ void writelnRed(T...)(Output output, auto ref T args) {
  */
 void writeRed(T...)(Output output, auto ref T args) {
     import std.conv: text;
-    output.send(red(text(args)));
+    output.send(text(args).red.intense);
 }
 
 /**
@@ -172,7 +184,7 @@ void writeRed(T...)(Output output, auto ref T args) {
  */
 void writeYellow(T...)(Output output, auto ref T args) {
     import std.conv: text;
-    output.send(yellow(text(args)));
+    output.send(text(args).yellow.intense);
 }
 
 /**
@@ -203,7 +215,7 @@ class WriterThread: Output {
         }
     }
 
-    override void flush() @safe {
+    override void flush(bool success) @safe {
         version(unitUnthreaded) {}
         else {
             import std.concurrency: send, thisTid;
@@ -266,7 +278,11 @@ void threadWriter(alias OUT, alias ERR)(from!"std.concurrency".Tid tid)
     }
 
     void actuallyPrint(in string msg) {
-        if(msg.length) saveStdout.write(msg);
+        if(msg.length) {
+            saveStdout.write(msg);
+            // ensure partial lines are already printed.
+            saveStdout.flush();
+        }
     }
 
     // the first thread to send output becomes the current

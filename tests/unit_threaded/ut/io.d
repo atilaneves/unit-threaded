@@ -16,7 +16,7 @@ unittest {
             this.output ~= output;
         }
 
-        override void flush() {}
+        override void flush(bool failed) {}
     }
 
     class PrintTest: TestCase {
@@ -59,7 +59,7 @@ unittest {
             this.output ~= output;
         }
 
-        override void flush() {}
+        override void flush(bool failed) {}
     }
 
     class PrintTest: TestCase {
@@ -419,7 +419,7 @@ unittest {
             this.output ~= output;
         }
 
-        override void flush() {}
+        override void flush(bool failed) {}
     }
 
     class OkTest: TestCase {

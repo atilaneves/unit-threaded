@@ -21,7 +21,8 @@
         ":runner": "*",
         ":mocks": "*",
         ":integration": "*",
-        ":property": "*"
+        ":property": "*",
+        ":behave": "*"
     },
     "subPackages": [
         "./subpackages/from",
@@ -31,7 +32,8 @@
         "./subpackages/mocks",
         "./subpackages/integration",
         "./subpackages/property",
-        "./subpackages/autorunner"
+        "./subpackages/autorunner",
+        "./subpackages/behave"
     ],
     "configurations": [
 

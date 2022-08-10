@@ -58,7 +58,7 @@ class TestCase {
     bool shouldFail() @safe @nogc pure nothrow { return false; }
 
 
-package:
+package(unit_threaded):
 
     static TestCase currentTest;
     Output _output;
@@ -141,7 +141,7 @@ private:
     }
 
     final void flushOutput() {
-        getWriter.flush;
+        getWriter.flush(!_failed);
     }
 }
 
