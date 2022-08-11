@@ -53,11 +53,8 @@ unittest {
         writer.output.splitLines.map!escapeAnsi.shouldEqual([
             "BehaveTest:",
             "",
-            "(tab)Given the given step      # behave.d:23(clearLine)",
             "(tab)Given the given step      # behave.d:23",
-            "(tab)When the when step        # behave.d:24(clearLine)",
             "(tab)When the when step        # behave.d:24",
-            "(tab)Then the then step        # behave.d:25(clearLine)",
             "    tests/unit_threaded/ut/behave.d:26 - Enforcement failed",
             "",
             "(tab)Then the then step        # behave.d:25",

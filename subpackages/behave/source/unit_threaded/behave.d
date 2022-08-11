@@ -99,8 +99,11 @@ package:
         _behaveLine = "\t" ~ mode.intense ~ " " ~ output;
         _longestLine = max(_longestLine, _behaveLine.visibleLength);
         _location = location;
-        _next.send(fullLine!noColor);
-        _partialLine = true;
+        if (_useEscCodes) {
+            // otherwise, we won't be able to erase it later
+            _next.send(fullLine!noColor);
+            _partialLine = true;
+        }
     }
 
 private:
@@ -115,6 +118,7 @@ private:
 
     void removePartial() @safe {
         if (_partialLine) {
+            assert(_useEscCodes);
             // delete current line, carriage return.
             _next.send("\033[2K\r");
             _partialLine = false;
