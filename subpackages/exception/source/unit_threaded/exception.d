@@ -53,16 +53,16 @@ private template UnitTestFailureImpl()
     {
         import std.algorithm: map;
         import std.array: join;
-        return () @trusted { return msgLines.map!(a => getOutputPrefix(file, line) ~ a).join("\n"); }();
+        return msgLines.map!(a => getOutputPrefix(file, line) ~ a).join("\n");
     }
 
 private:
 
     const string[] msgLines;
 
-    string getOutputPrefix(in string file, in size_t line) @safe const pure
+    string getOutputPrefix(in string file, in size_t line) @safe const pure scope
     {
-        import std.conv: to;
-        return "    " ~ file ~ ":" ~ line.to!string ~ " - ";
+        import std.conv: text;
+        return text("    ", file, ":", line, " - ");
     }
 }
