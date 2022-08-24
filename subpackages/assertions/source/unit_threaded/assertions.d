@@ -954,8 +954,8 @@ void shouldBeSameJsonAs(in string actual,
 }
 
 
-
-auto should(V)(auto ref V value) {
+// TODO: all the @trusted annotations are for dmd 2.099.1, since 2.100.1 they're not needed
+auto should(V)(return scope auto ref V value) {
 
     enum isRef = __traits(isRef, value);
 
@@ -971,15 +971,15 @@ auto should(V)(auto ref V value) {
             V* _value;
 
         // template because of auto ref
-        this(U)(auto ref U value) if(is(U == V)) {
+        this(U)(return scope auto ref U value) scope if(is(U == V)) {
             import std.algorithm.mutation : move;
 
             static if(!haveValue)
-                _value = &value;
+                () @trusted { _value = &value; }();
             else static if(isObject!V || isCopyable!V)
                 _value = value;
             else
-                move(value, _value);
+                () @trusted { move(value, _value); }();
         }
 
         ref V value() {
@@ -1055,6 +1055,13 @@ auto should(V)(auto ref V value) {
 
         private Wrapper _wrapper;
 
+        this(return scope Wrapper wrapper) scope {
+            import std.algorithm.mutation : move;
+            () @trusted {
+                move(wrapper, _wrapper);
+            }();
+        }
+
         bool opEquals(U)(auto ref U other,
                          string file = __FILE__,
                          size_t line = __LINE__)
@@ -1091,7 +1098,7 @@ auto should(V)(auto ref V value) {
         }
     }
 
-    return Should(Wrapper(value));
+    return () @trusted { return Should(Wrapper(value)); }();
 }
 
 @safe pure unittest {
