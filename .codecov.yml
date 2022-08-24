@@ -16,3 +16,4 @@ comment: false
 
 ignore:
   - "tests"
+  - "gen"
