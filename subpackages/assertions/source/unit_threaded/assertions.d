@@ -955,29 +955,67 @@ void shouldBeSameJsonAs(in string actual,
 
 
 
-auto should(V)(scope auto ref V value){
+auto should(V)(auto ref V value) {
 
-    import std.functional: forward;
+    enum isRef = __traits(isRef, value);
 
-    struct ShouldNot {
+    // this struct abstracts access to the value due to not every
+    // type being copyable
+    static struct Wrapper {
+        import std.traits: isCopyable;
+        private enum haveValue = isCopyable!V || isObject!V || !isRef;
+
+        static if(haveValue)
+            V _value;
+        else
+            V* _value;
+
+        // template because of auto ref
+        this(U)(auto ref U value) if(is(U == V)) {
+            import std.algorithm.mutation : move;
+
+            static if(!haveValue)
+                _value = &value;
+            else static if(isObject!V || isCopyable!V)
+                _value = value;
+            else
+                move(value, _value);
+        }
+
+        ref V value() {
+            static if(haveValue)
+                return _value;
+            else
+                return *_value;
+        }
+    }
+
+    static struct ShouldNot {
+
+        private Wrapper _wrapper;
+
+        this(ref Wrapper wrapper) {
+            import std.algorithm.mutation : move;
+            move(wrapper, _wrapper);
+        }
 
         bool opEquals(U)(auto ref U other,
                          string file = __FILE__,
                          size_t line = __LINE__)
         {
-            shouldNotEqual(forward!value, other, file, line);
+            shouldNotEqual(_wrapper.value, other, file, line);
             return true;
         }
 
         void opBinary(string op, R)(R range,
                                     string file = __FILE__,
-                                    size_t line = __LINE__) const if(op == "in") {
-            shouldNotBeIn(forward!value, range, file, line);
+                                    size_t line = __LINE__) if(op == "in") {
+            shouldNotBeIn(_wrapper.value, range, file, line);
         }
 
         void opBinary(string op, R)(R expected,
                                     string file = __FILE__,
-                                    size_t line = __LINE__) const
+                                    size_t line = __LINE__)
             if(op == "~" && isInputRange!R)
         {
             import std.conv: text;
@@ -985,12 +1023,12 @@ auto should(V)(scope auto ref V value){
             bool failed;
 
             try
-                shouldBeSameSetAs(forward!value, expected);
+                shouldBeSameSetAs(_wrapper.value, expected);
             catch(UnitTestException)
                 failed = true;
 
             if(!failed)
-                fail(text(value, " should not be the same set as ", expected),
+                fail(text(_wrapper.value, " should not be the same set as ", expected),
                      file, line);
         }
 
@@ -1003,58 +1041,69 @@ auto should(V)(scope auto ref V value){
             bool failed;
 
             try
-                shouldApproxEqual(forward!value, expected);
+                shouldApproxEqual(_wrapper.value, expected);
             catch(UnitTestException)
                 failed = true;
 
             if(!failed)
-                fail(text(value, " should not be approximately equal to ", expected),
+                fail(text(_wrapper.value, " should not be approximately equal to ", expected),
                      file, line);
         }
     }
 
-    struct Should {
+    static struct Should {
+
+        private Wrapper _wrapper;
 
         bool opEquals(U)(auto ref U other,
                          string file = __FILE__,
                          size_t line = __LINE__)
         {
-            shouldEqual(forward!value, other, file, line);
+            shouldEqual(_wrapper.value, other, file, line);
             return true;
         }
 
         void opBinary(string op, R)(R range,
                                     string file = __FILE__,
-                                    size_t line = __LINE__) const
+                                    size_t line = __LINE__)
             if(op == "in")
         {
-            shouldBeIn(forward!value, range, file, line);
+            shouldBeIn(_wrapper.value, range, file, line);
         }
 
         void opBinary(string op, R)(R range,
                                     string file = __FILE__,
-                                    size_t line = __LINE__) const
+                                    size_t line = __LINE__)
             if(op == "~" && isInputRange!R)
         {
-            shouldBeSameSetAs(forward!value, range, file, line);
+            shouldBeSameSetAs(_wrapper.value, range, file, line);
         }
 
         void opBinary(string op, E)
                      (in E expected, string file = __FILE__, size_t line = __LINE__)
             if (isFloatingPoint!E)
         {
-            shouldApproxEqual(forward!value, expected, 1e-2, 1e-5, file, line);
+            shouldApproxEqual(_wrapper.value, expected, 1e-2, 1e-5, file, line);
         }
 
         auto not() {
-            return ShouldNot();
+            return ShouldNot(_wrapper);
         }
     }
 
-    return Should();
+    return Should(Wrapper(value));
 }
 
+@safe pure unittest {
+    1.should == 1;
+    2.should == 2;
+    try {
+        1.should == 2;
+        assert(0);
+    } catch(Exception _) {
 
+    }
+}
 
 T be(T)(T sh) {
     return sh;

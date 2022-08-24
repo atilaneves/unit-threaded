@@ -685,3 +685,14 @@ unittest {
 @safe pure unittest {
     [[1]].should == [[1]];
 }
+
+@safe pure unittest {
+    static struct Ints {
+        @disable this(this);
+        int[] ints;
+        ~this() {}
+    }
+    auto i = Ints([42]);
+    i.should == i;
+    Ints([42]).should == Ints([42]);
+}
