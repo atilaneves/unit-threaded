@@ -531,7 +531,7 @@ unittest {
 
     class C {
         int foo;
-        override string toString() @safe pure nothrow const { return null; }
+        override string toString() @safe pure nothrow scope const { return null; }
     }
 
     C c = null;
