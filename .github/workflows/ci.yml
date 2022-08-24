@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    name: Dub Test
+    name: Test
     strategy:
       fail-fast: false
       matrix:
@@ -16,6 +16,7 @@ jobs:
         dc:
           - dmd-2.100.0
           - dmd-2.099.1
+          - ldc-1.30.0
           - ldc-1.29.0
 
     runs-on: ${{ matrix.os }}
@@ -37,21 +38,4 @@ jobs:
         if: runner.os == 'Windows'
         run: build\ci.bat
 
-  coverage:
-    name: Code coverage
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Install ${{ matrix.dc }}
-        uses: dlang-community/setup-dlang@v1.1.1
-        with:
-          compiler: ${{ matrix.dc }}
-
-      - name: "Posix: Run tests"
-        if: runner.os != 'Windows'
-        run: build/ci.sh
-        env:
-          TERM: xterm
-
-      - uses: codecov/codecov-action@v2
+      - uses: codecov/codecov-action@v3
