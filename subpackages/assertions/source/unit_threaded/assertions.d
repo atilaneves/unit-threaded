@@ -1055,11 +1055,9 @@ auto should(V)(return scope auto ref V value) {
 
         private Wrapper _wrapper;
 
-        this(return scope Wrapper wrapper) scope {
+        this(return scope Wrapper wrapper) scope @trusted {
             import std.algorithm.mutation : move;
-            () @trusted {
-                move(wrapper, _wrapper);
-            }();
+            _wrapper = move(wrapper);
         }
 
         bool opEquals(U)(auto ref U other,
