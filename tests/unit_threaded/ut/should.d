@@ -696,3 +696,42 @@ unittest {
     i.should == i;
     Ints([42]).should == Ints([42]);
 }
+
+@safe pure unittest {
+    struct Blub {
+        enum Kind {
+            integer,
+            string,
+        }
+
+        Kind kind;
+        // normally we'd use a union but meh about storage here
+        private int _integer;
+        private string _string;
+
+        @disable this();
+
+        this(int i) @safe @nogc pure nothrow {
+            kind = Kind.integer;
+            _integer = i;
+        }
+
+        this(string s) @safe @nogc pure nothrow {
+            kind = Kind.string;
+            _string = s;
+        }
+
+        int asInteger() @safe @nogc pure const {
+            if(kind != Kind.integer) throw new Exception("not an int");
+            return _integer;
+        }
+
+        string asString() @safe @nogc pure const {
+            if(kind != Kind.string) throw new Exception("not a string");
+            return _string;
+        }
+    }
+
+    Blub(1).should == Blub(1);
+    Blub(1).should.not == Blub(2);
+}
