@@ -310,3 +310,13 @@ else {
         (new Test).shouldNotEqual(new Test);
     }
 }
+
+@("280.0")
+@safe pure unittest {
+    static class Socket {
+        void close() nothrow scope @trusted {
+
+        }
+    }
+    auto m = mock!Socket;
+}

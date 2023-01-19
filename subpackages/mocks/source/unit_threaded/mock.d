@@ -143,6 +143,7 @@ private string functionAttributesString(alias F)() {
     // if(attrs & FunctionAttribute.immutable_) parts ~= "immutable";
     if(attrs & FunctionAttribute.shared_) parts ~= "shared";
     if(attrs & FunctionAttribute.property) parts ~= "@property";
+    if(attrs & FunctionAttribute.scope_) parts ~= "scope";
 
     return parts.join(" ");
 }
