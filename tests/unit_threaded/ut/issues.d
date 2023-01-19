@@ -311,16 +311,19 @@ else {
     }
 }
 
-@("280.0")
-@safe pure unittest {
-    static class FakeSocket {
-        void close() @nogc nothrow scope @trusted {
+static if(__VERSION__ > 2101L) {
+    @("280")
+        @safe pure unittest {
+        static class FakeSocket {
+            void close() @nogc nothrow scope @trusted {
 
+            }
+
+            long send(scope const(void)[]) @safe {
+                return 42;
+            }
         }
 
-        long send(scope const(void)[]) @safe {
-            return 42;
-        }
+        auto m = mock!FakeSocket;
     }
-    auto m = mock!FakeSocket;
 }
