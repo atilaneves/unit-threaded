@@ -314,7 +314,7 @@ else {
 @("280.0")
 @safe pure unittest {
     static class FakeSocket {
-        void close() nothrow scope @trusted {
+        void close() @nogc nothrow scope @trusted {
 
         }
 

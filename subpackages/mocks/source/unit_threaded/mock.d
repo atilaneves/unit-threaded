@@ -72,8 +72,8 @@ string implMixinStr(T)() {
                         static if(functionAttributes!overload & FunctionAttribute.nothrow_)
                             lines ~= "try {";
 
-                        lines ~= tryIndent ~ `    calledFuncs ~= "` ~ memberName ~ `";`;
-                        lines ~= tryIndent ~ `    calledValues ~= tuple` ~
+                        lines ~= tryIndent ~ `    debug calledFuncs ~= "` ~ memberName ~ `";`;
+                        lines ~= tryIndent ~ `    debug calledValues ~= tuple` ~
                             argNamesParens(arity!overload) ~ `.text;`;
 
                         static if(functionAttributes!overload & FunctionAttribute.nothrow_)
