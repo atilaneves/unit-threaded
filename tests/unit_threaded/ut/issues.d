@@ -313,10 +313,14 @@ else {
 
 @("280.0")
 @safe pure unittest {
-    static class Socket {
+    static class FakeSocket {
         void close() nothrow scope @trusted {
 
         }
+
+        long send(scope const(void)[]) @safe {
+            return 42;
+        }
     }
-    auto m = mock!Socket;
+    auto m = mock!FakeSocket;
 }
