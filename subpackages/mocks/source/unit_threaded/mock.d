@@ -66,14 +66,14 @@ string implMixinStr(T)() {
                         }
 
                         lines ~= `override ` ~ overloadName ~ "_returnType " ~ memberName ~
-                            typeAndArgsParens!(Parameters!overload)(overloadName) ~ " " ~
+                            typeAndArgsParens!(overload)(overloadName) ~ " " ~
                             functionAttributesString!overload ~ ` {`;
 
                         static if(functionAttributes!overload & FunctionAttribute.nothrow_)
                             lines ~= "try {";
 
-                        lines ~= tryIndent ~ `    calledFuncs ~= "` ~ memberName ~ `";`;
-                        lines ~= tryIndent ~ `    calledValues ~= tuple` ~
+                        lines ~= tryIndent ~ `    debug calledFuncs ~= "` ~ memberName ~ `";`;
+                        lines ~= tryIndent ~ `    debug calledValues ~= tuple` ~
                             argNamesParens(arity!overload) ~ `.text;`;
 
                         static if(functionAttributes!overload & FunctionAttribute.nothrow_)
@@ -107,17 +107,22 @@ private string argNames(int N) @safe pure {
     return iota(N).map!(a => "arg" ~ a.text).join(", ");
 }
 
-private string typeAndArgsParens(T...)(string prefix) {
-    import std.array;
-    import std.conv;
+private string typeAndArgsParens(alias F)(string prefix) {
+    import std.array: join, replace;
+    import std.conv: text;
     import std.format : format;
+    import std.traits: Parameters, ParameterStorageClassTuple;
 
     if(!__ctfe) return null;
 
     string[] parts;
 
-    foreach(i, t; T)
-        parts ~= "%s_parameters[%s] arg%s".format(prefix, i, i);
+    static foreach(i; 0 .. Parameters!F.length) {{
+        enum maybeStorageClass = ParameterStorageClassTuple!F[i].text.replace("_", "");
+        enum storageClass = maybeStorageClass == "none" ? "" : maybeStorageClass ~ " ";
+        parts ~= storageClass ~ `%s_parameters[%s] arg%s`.format(prefix, i, i);
+    }}
+
     return "(" ~ parts.join(", ") ~ ")";
 }
 
@@ -143,6 +148,7 @@ private string functionAttributesString(alias F)() {
     // if(attrs & FunctionAttribute.immutable_) parts ~= "immutable";
     if(attrs & FunctionAttribute.shared_) parts ~= "shared";
     if(attrs & FunctionAttribute.property) parts ~= "@property";
+    if(attrs & FunctionAttribute.scope_) parts ~= "scope";
 
     return parts.join(" ");
 }
@@ -216,6 +222,7 @@ struct Mock(T) {
         import std.conv: text;
         import std.traits: Parameters, ReturnType;
         import std.typecons: tuple;
+        import std.array: replace;
 
         //pragma(msg, "\nimplMixinStr for ", T, "\n\n", implMixinStr!T, "\n\n");
         mixin(implMixinStr!T);
