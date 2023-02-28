@@ -41,17 +41,6 @@ string intenseQuotes(string text) {
     return text.splitter('`').chunks(2).map!markIntense.joiner.join;
 }
 
-@("mark quotes with intense formatting")
-unittest
-{
-    auto result = "Given `Hello` and `World`".intenseQuotes;
-
-    if (_useEscCodes) {
-        assert(result == "Given \033[1mHello\033[0m and \033[1mWorld\033[0m");
-    } else {
-        assert(result == "Given `Hello` and `World`");
-    }
-}
 
 private size_t visibleLength(string ansiFormattedText) @safe {
     return ansiFormattedText

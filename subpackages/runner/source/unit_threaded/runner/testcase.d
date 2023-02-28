@@ -337,8 +337,10 @@ private string localStacktraceToString(Throwable throwable, int removeExtraLines
 
     // grab a stack trace inside this function
     Throwable.TraceInfo localTraceInfo;
-    try throw new Exception("");
-    catch (Exception exc) localTraceInfo = exc.info;
+    try
+        throw new Exception("");
+    catch (Exception exc)
+        localTraceInfo = exc.info;
 
     // convert foreach() overloads to arrays
     string[] array(Throwable.TraceInfo info) {
@@ -352,20 +354,6 @@ private string localStacktraceToString(Throwable throwable, int removeExtraLines
     // cut off shared lines of backtrace (plus some extra)
     const size_t linesToRemove = otherBacktrace.retro.commonPrefix(localBacktrace.retro).count + removeExtraLines;
     const string[] uniqueBacktrace = otherBacktrace.dropBack(linesToRemove);
-    // this should probably not be writable. ¯\_(ツ)_/¯
-    throwable.info = new class Throwable.TraceInfo {
-        override int opApply(scope int delegate(ref const(char[])) dg) const {
-            foreach (ref line; uniqueBacktrace)
-                if (int ret = dg(line)) return ret;
-            return 0;
-        }
-        override int opApply(scope int delegate(ref size_t, ref const(char[])) dg) const {
-            foreach (ref i, ref line; uniqueBacktrace)
-                if (int ret = dg(i, line)) return ret;
-            return 0;
-        }
-        override string toString() const { assert(false); }
-    };
     return throwable.toString();
 }
 
@@ -374,7 +362,8 @@ unittest {
     import std.string : splitLines, indexOf;
     import std.format : format;
 
-    try throw new Exception("");
+    try
+        throw new Exception("");
     catch (Exception exc) {
         const output = exc.localStacktraceToString(0);
         const lines = output.splitLines;
@@ -392,7 +381,7 @@ unittest {
 
         assert(lines.length >= 3, "Expected 3 or more lines but got " ~ to!string(lines.length) ~ " :\n" ~ output);
         assert(lines[0].indexOf("object.Exception@") != -1, "Line 1 of stack trace should show exception type. Was: "~lines[0]);
-	    assert(lines[1].indexOf("------") != -1); // second line is a bunch of dashes
+        assert(lines[1].indexOf("------") != -1); // second line is a bunch of dashes
         //assert(lines[2].indexOf("testcase.d") != -1); // the third line differs accross compilers and not reliable for testing
     }
 }
