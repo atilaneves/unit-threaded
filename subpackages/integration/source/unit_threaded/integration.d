@@ -166,11 +166,11 @@ struct Sandbox {
         needle.shouldBeIn(readText(inSandboxPath(fileName)), file, line);
     }
 
-    string sandboxPath() @safe @nogc pure nothrow const {
-        return testPath;
+    string sandboxPath() @safe pure scope nothrow const {
+        return testPath.dup;
     }
 
-    string inSandboxPath(in string fileName) @safe pure nothrow const {
+    string inSandboxPath(in string fileName) @safe pure scope nothrow const {
         import std.path: buildPath;
         return buildPath(sandboxPath, fileName);
     }
@@ -180,7 +180,7 @@ struct Sandbox {
      */
     void shouldSucceed(string file = __FILE__, size_t line = __LINE__)
                       (in string[] args...)
-        @safe const
+        @safe const scope
     {
         import unit_threaded.exception: UnitTestException;
         import std.process: ProcessException;
@@ -205,7 +205,7 @@ struct Sandbox {
      */
     void shouldFail(string file = __FILE__, size_t line = __LINE__)
                    (in string[] args...)
-        @safe const
+        @safe const scope
     {
         import unit_threaded.exception: UnitTestException;
         import std.process: ProcessException;
@@ -225,7 +225,7 @@ struct Sandbox {
 
 private:
 
-    auto executeInSandbox(in string[] args) @safe const {
+    auto executeInSandbox(in string[] args) @safe const scope {
         import std.process: execute, Config;
         import std.algorithm: startsWith;
         import std.array: replace;
