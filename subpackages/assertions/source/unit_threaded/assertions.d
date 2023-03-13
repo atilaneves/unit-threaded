@@ -1144,3 +1144,32 @@ void shouldBeBetween(A, L, U)
     if(actual < lowerBound || actual >= upperBound)
         fail(text(actual, " is not between ", lowerBound, " and ", upperBound), file, line);
 }
+
+
+auto shouldApprox(double got,
+                  double maxRelDiff = 1e-2,
+                  double maxAbsDiff = 1e-5)
+{
+    static struct ShouldApprox {
+        double got;
+        double maxRelDiff;
+        double maxAbsDiff;
+
+        bool opEquals(double expected,
+                      string file = __FILE__,
+                      size_t line = __LINE__)
+            @safe pure scope const
+        {
+            shouldApproxEqual(got, expected, maxRelDiff, maxAbsDiff, file, line);
+            return true;
+        }
+
+    }
+
+    return ShouldApprox(got, maxRelDiff, maxAbsDiff);
+}
+
+///
+@safe pure unittest {
+    1.0.shouldApprox(1e-2, 1e-5) == 1.0001;
+}
