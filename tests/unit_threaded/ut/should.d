@@ -405,11 +405,14 @@ unittest {
     assert(!isEqual(1.0, 1.0001));
 }
 
-
 @safe unittest {
     1.0.shouldApproxEqual(1.0001);
     1.0.shouldApproxEqual(1.0001, 1e-2, 1e-5);
     assertFail(2.0.shouldApproxEqual(1.0));
+}
+
+@safe pure unittest {
+    1.0.shouldApprox(1e-2, 1e-5) == 1.0001;
 }
 
 @safe pure unittest {

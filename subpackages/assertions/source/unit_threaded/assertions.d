@@ -512,8 +512,12 @@ string convertToString(T)(auto ref T value) {  // std.conv.to sometimes is @syst
             return value.to!string;
     }
 
-    static if(isFloatingPoint!T)
-        return format!"%.6f"(value);
+    static if(isFloatingPoint!T) {
+        if(value < 1e-6 || value > 1_000_000)
+            return format!"%.6e"(value);
+        else
+            return format!"%.6f"(value);
+    }
     else static if(__traits(compiles, text_(value)))
         return text_(value);
     else static if(__traits(compiles, value.toString))
@@ -594,7 +598,10 @@ void shouldApproxEqual(V, E)
     {
         const msg =
             formatValueInItsOwnLine("Expected approx: ", expected) ~
-            formatValueInItsOwnLine("     Got       : ", value);
+            formatValueInItsOwnLine("     Got       : ", value) ~
+            formatValueInItsOwnLine("     maxRelDiff: ", maxRelDiff) ~
+            formatValueInItsOwnLine("     maxAbsDiff: ", maxAbsDiff)
+            ;
         throw new UnitTestException(msg, file, line);
     }
 }
@@ -1136,4 +1143,33 @@ void shouldBeBetween(A, L, U)
     import std.conv: text;
     if(actual < lowerBound || actual >= upperBound)
         fail(text(actual, " is not between ", lowerBound, " and ", upperBound), file, line);
+}
+
+
+auto shouldApprox(double got,
+                  double maxRelDiff = 1e-2,
+                  double maxAbsDiff = 1e-5)
+{
+    static struct ShouldApprox {
+        double got;
+        double maxRelDiff;
+        double maxAbsDiff;
+
+        bool opEquals(double expected,
+                      string file = __FILE__,
+                      size_t line = __LINE__)
+            @safe pure scope const
+        {
+            shouldApproxEqual(got, expected, maxRelDiff, maxAbsDiff, file, line);
+            return true;
+        }
+
+    }
+
+    return ShouldApprox(got, maxRelDiff, maxAbsDiff);
+}
+
+///
+@safe pure unittest {
+    1.0.shouldApprox(1e-2, 1e-5) == 1.0001;
 }
