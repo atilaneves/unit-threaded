@@ -512,8 +512,12 @@ string convertToString(T)(auto ref T value) {  // std.conv.to sometimes is @syst
             return value.to!string;
     }
 
-    static if(isFloatingPoint!T)
-        return format!"%.6f"(value);
+    static if(isFloatingPoint!T) {
+        if(value < 1e-6 || value > 1_000_000)
+            return format!"%.6e"(value);
+        else
+            return format!"%.6f"(value);
+    }
     else static if(__traits(compiles, text_(value)))
         return text_(value);
     else static if(__traits(compiles, value.toString))
@@ -594,7 +598,10 @@ void shouldApproxEqual(V, E)
     {
         const msg =
             formatValueInItsOwnLine("Expected approx: ", expected) ~
-            formatValueInItsOwnLine("     Got       : ", value);
+            formatValueInItsOwnLine("     Got       : ", value) ~
+            formatValueInItsOwnLine("     maxRelDiff: ", maxRelDiff) ~
+            formatValueInItsOwnLine("     maxAbsDiff: ", maxAbsDiff)
+            ;
         throw new UnitTestException(msg, file, line);
     }
 }
