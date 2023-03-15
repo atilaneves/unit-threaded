@@ -93,7 +93,6 @@ version(unittest) {
     assertEqual(createTestCases(testData, ["unit_threaded.ut.modules.tags.testMake", "@ninja"]).length, 0);
 }
 
-
 @("module setup and shutdown")
 unittest {
     import unit_threaded.runner.testcase;
@@ -111,6 +110,15 @@ unittest {
     assertFail(tests[1]);
     assertEqual(gNumBefore, 2);
     assertEqual(gNumAfter, 2);
+}
+
+@("module with overloads")
+unittest {
+    import unit_threaded.runner.factory;
+    import unit_threaded.runner.testcase;
+
+    const testData = allTestData!"unit_threaded.ut.modules.module_with_overload";
+    auto tests = createTestCases(testData);
 }
 
 @("issue 33") unittest {
