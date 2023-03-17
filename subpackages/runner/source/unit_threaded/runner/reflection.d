@@ -173,15 +173,22 @@ private TestData[] moduleUnitTests_(alias module_)() {
     }
 
     void function() getUDAFunction(alias composite, alias uda)() pure nothrow {
+        import std.meta : AliasSeq;
         import std.traits: isSomeFunction, hasUDA;
 
         void function()[] ret;
         foreach(memberStr; __traits(allMembers, composite)) {
             static if(__traits(compiles, Identity!(__traits(getMember, composite, memberStr)))) {
-                alias member = Identity!(__traits(getMember, composite, memberStr));
-                static if(__traits(compiles, &member)) {
-                    static if(isSomeFunction!member && hasUDA!(member, uda)) {
-                        ret ~= &member;
+                static if (__traits(getOverloads, composite, memberStr).length > 0) {
+                    alias members = AliasSeq!(__traits(getOverloads, composite, memberStr));
+                } else {
+                    alias members = AliasSeq!(__traits(getMember, composite, memberStr));
+                }
+                static foreach (member; members) {
+                    static if(__traits(compiles, &member)) {
+                        static if(isSomeFunction!member && hasUDA!(member, uda)) {
+                            ret ~= &member;
+                        }
                     }
                 }
             }
