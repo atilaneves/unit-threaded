@@ -179,12 +179,9 @@ private TestData[] moduleUnitTests_(alias module_)() {
         void function()[] ret;
         foreach(memberStr; __traits(allMembers, composite)) {
             static if(__traits(compiles, Identity!(__traits(getMember, composite, memberStr)))) {
-                static if (__traits(getOverloads, composite, memberStr).length > 0) {
-                    alias members = AliasSeq!(__traits(getOverloads, composite, memberStr));
-                } else {
-                    alias members = AliasSeq!(__traits(getMember, composite, memberStr));
-                }
-                static foreach (member; members) {
+                // Disable UDA search on overloads entirely pending https://issues.dlang.org/show_bug.cgi?id=23855
+                static if (__traits(getOverloads, composite, memberStr).length <= 1) {
+                    alias member = __traits(getMember, composite, memberStr);
                     static if(__traits(compiles, &member)) {
                         static if(isSomeFunction!member && hasUDA!(member, uda)) {
                             ret ~= &member;
