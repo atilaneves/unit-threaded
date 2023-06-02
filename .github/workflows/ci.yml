@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, windows-2019, macos-10.15]
+        os: [ubuntu-20.04, windows-2019, macos-11]
         dc:
           - dmd-2.102.1
           - dmd-2.099.1
@@ -21,10 +21,10 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install ${{ matrix.dc }}
-        uses: dlang-community/setup-dlang@v1.1.1
+        uses: dlang-community/setup-dlang@v1.3.0
         with:
           compiler: ${{ matrix.dc }}
 
