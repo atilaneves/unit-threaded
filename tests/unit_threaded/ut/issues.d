@@ -340,3 +340,14 @@ else {
         );
     }
 }
+
+@("292")
+@safe pure unittest {
+      static struct Rng {
+        int front() { return 0; }
+        bool empty() { return true; }
+        void popFront() {}
+    }
+
+    Rng().shouldBeEmpty();
+}
