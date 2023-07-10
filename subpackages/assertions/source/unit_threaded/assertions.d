@@ -704,6 +704,14 @@ bool isEqual(V, E)(scope V value, scope E expected)
  * Verify that rng is empty.
  * Throws: UnitTestException on failure.
  */
+void shouldBeEmpty(R)(auto ref R rng, string file = __FILE__, size_t line = __LINE__)
+if (isInputRange!R)
+{
+    import std.conv: text;
+    if (!rng.empty)
+        fail(text("Range not empty: ", rng), file, line);
+}
+
 void shouldBeEmpty(R)(const auto ref R rng, string file = __FILE__, size_t line = __LINE__)
 if (isInputRange!R)
 {
