@@ -173,7 +173,6 @@ private void handleCmdLineOptions(in from!"unit_threaded.runner.options".Options
 {
 
     import unit_threaded.runner.io: enableDebugOutput, forceEscCodes;
-    import unit_threaded.runner.testcase: enableStackTrace;
     import std.algorithm: map;
 
     if (options.list) {
@@ -190,9 +189,6 @@ private void handleCmdLineOptions(in from!"unit_threaded.runner.options".Options
 
     if (options.forceEscCodes)
         forceEscCodes();
-
-    if (options.stackTraces)
-        enableStackTrace();
 }
 
 

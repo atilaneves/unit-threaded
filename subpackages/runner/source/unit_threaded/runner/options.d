@@ -14,7 +14,6 @@ struct Options {
     bool forceEscCodes;
     bool random;
     uint seed;
-    bool stackTraces;
     bool showChrono;
     bool quiet;
 }
@@ -35,7 +34,6 @@ auto getOptions(string[] args) {
     bool forceEscCodes;
     bool random;
     uint seed = unpredictableSeed;
-    bool stackTraces;
     bool showChrono;
     bool quiet;
 
@@ -47,7 +45,6 @@ auto getOptions(string[] args) {
                "list|l", "List available tests", &list,
                "random|r", "Run tests in random order (in one thread)", &random,
                "seed", "Set the seed for the random order execution", &seed,
-               "trace|t", "enable stack traces", &stackTraces,
                "chrono|c", "Print execution time per test", &showChrono,
                "q|quiet", "Only print information about failing tests", &quiet,
         );
@@ -67,5 +64,5 @@ auto getOptions(string[] args) {
 
     immutable exit =  help || list;
     return Options(!single, args[1..$], debugOutput, list, exit, forceEscCodes,
-                   random, seed, stackTraces, showChrono, quiet);
+                   random, seed, showChrono, quiet);
 }

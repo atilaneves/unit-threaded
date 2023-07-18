@@ -4,24 +4,6 @@
 module unit_threaded.runner.testcase;
 
 
-private shared(bool) _stacktrace = false;
-
-private void setStackTrace(bool value) @trusted nothrow @nogc {
-    synchronized {
-        _stacktrace = value;
-    }
-}
-
-/// Let AssertError(s) propagate and thus dump a stacktrace.
-public void enableStackTrace() @safe nothrow @nogc {
-    setStackTrace(true);
-}
-
-/// (Default behavior) Catch AssertError(s) and thus allow all tests to be ran.
-public void disableStackTrace() @safe nothrow @nogc {
-    setStackTrace(false);
-}
-
 /**
  * Class from which other test cases derive
  */
@@ -319,72 +301,11 @@ class BuiltinTestCase: FunctionTestCase {
             super.test();
         catch(AssertError e) {
             import unit_threaded.exception: fail;
-            // 3 = BuiltinTestCase + FunctionTestCase + runner reflection
-            fail(_stacktrace? e.toString() : e.localStacktraceToString(3), e.file, e.line);
+            fail(e.toString(), e.file, e.line);
         }
     }
 }
 
-/**
- * Generate `toString` text for a `Throwable` that contains just the stack trace
- * below the current location, plus some additional number of trace lines.
- *
- * Used to generate a backtrace that cuts off exactly at a unittest body.
- */
-private string localStacktraceToString(Throwable throwable, int removeExtraLines) {
-    import std.algorithm: commonPrefix, count;
-    import std.range: dropBack, retro;
-
-    // grab a stack trace inside this function
-    Throwable.TraceInfo localTraceInfo;
-    try
-        throw new Exception("");
-    catch (Exception exc)
-        localTraceInfo = exc.info;
-
-    // convert foreach() overloads to arrays
-    string[] array(Throwable.TraceInfo info) {
-        string[] result;
-        foreach (line; info) result ~= line.idup;
-        return result;
-    }
-
-    const string[] localBacktrace = array(localTraceInfo);
-    const string[] otherBacktrace = array(throwable.info);
-    // cut off shared lines of backtrace (plus some extra)
-    const size_t linesToRemove = otherBacktrace.retro.commonPrefix(localBacktrace.retro).count + removeExtraLines;
-    const string[] uniqueBacktrace = otherBacktrace.dropBack(linesToRemove);
-    return throwable.toString();
-}
-
-unittest {
-    import std.conv : to;
-    import std.string : splitLines, indexOf;
-    import std.format : format;
-
-    try
-        throw new Exception("");
-    catch (Exception exc) {
-        const output = exc.localStacktraceToString(0);
-        const lines = output.splitLines;
-
-        /*
-         * The text of a stacktrace can differ between compilers and also paths differ between Unix and Windows.
-         * Example exception test from dmd on unix:
-         *
-         * object.Exception@subpackages/runner/source/unit_threaded/runner/testcase.d(368)
-         * ----------------
-         * subpackages/runner/source/unit_threaded/runner/testcase.d:368 void unit_threaded.runner.testcase [...]
-         */
-        import std.stdio : writeln;
-        writeln("Output from local stack trace was " ~ to!string(lines.length) ~ " lines:\n"~output~"\n");
-
-        assert(lines.length >= 3, "Expected 3 or more lines but got " ~ to!string(lines.length) ~ " :\n" ~ output);
-        assert(lines[0].indexOf("object.Exception@") != -1, "Line 1 of stack trace should show exception type. Was: "~lines[0]);
-        assert(lines[1].indexOf("------") != -1); // second line is a bunch of dashes
-        //assert(lines[2].indexOf("testcase.d") != -1); // the third line differs accross compilers and not reliable for testing
-    }
-}
 
 /**
    A test that is expected to fail some of the time.
