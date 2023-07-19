@@ -35,7 +35,7 @@ private void assertFail(E)(lazy E expression, in string file = __FILE__, in size
     shouldNotEqual(1.0, 1.0001);
 }
 
-@safe pure unittest {
+@safe unittest {
     import unit_threaded.asserts;
 
     assertExceptionMsg(3.shouldEqual(5),
@@ -160,13 +160,13 @@ private void assertFail(E)(lazy E expression, in string file = __FILE__, in size
     assertFail("foo".shouldBeIn(["bar"]));
 }
 
-@safe pure unittest {
+@safe unittest {
     assertExceptionMsg("foo".shouldBeIn(["quux": "toto"]),
                        `    tests/unit_threaded/ut/should.d:123 - Value "foo"` ~ "\n" ~
                        `    tests/unit_threaded/ut/should.d:123 - not in ["quux":"toto"]`);
 }
 
-@safe pure unittest {
+@safe unittest {
     assertExceptionMsg("foo".shouldBeIn("quux"),
                        `    tests/unit_threaded/ut/should.d:123 - Value "foo"` ~ "\n" ~
                        `    tests/unit_threaded/ut/should.d:123 - not in "quux"`);
@@ -187,13 +187,13 @@ private void assertFail(E)(lazy E expression, in string file = __FILE__, in size
     assertFail(5.shouldNotBeIn(AA(5)));
 }
 
-@safe pure unittest {
+@safe unittest {
     assertExceptionMsg("quux".shouldNotBeIn(["quux": "toto"]),
                        `    tests/unit_threaded/ut/should.d:123 - Value "quux"` ~ "\n" ~
                        `    tests/unit_threaded/ut/should.d:123 - is in ["quux":"toto"]`);
 }
 
-@safe pure unittest {
+@safe unittest {
     assertExceptionMsg("foo".shouldNotBeIn("foobar"),
                        `    tests/unit_threaded/ut/should.d:123 - Value "foo"` ~ "\n" ~
                        `    tests/unit_threaded/ut/should.d:123 - is in "foobar"`);
@@ -201,13 +201,13 @@ private void assertFail(E)(lazy E expression, in string file = __FILE__, in size
 }
 
 
-@safe pure unittest {
+@safe unittest {
     assertExceptionMsg((1 == 2).shouldThrow,
                        `    tests/unit_threaded/ut/should.d:123 - Expression did not throw`);
 }
 
 
-@safe pure unittest {
+@safe unittest {
     static void oops() { throw new Exception("oops"); }
     assertExceptionMsg(oops.shouldThrow!UnitTestException,
                        `    tests/unit_threaded/ut/should.d:123 - Expression threw object.Exception instead of the expected UnitTestException:`
@@ -578,7 +578,7 @@ unittest {
 
 
 @("should ==")
-@safe pure unittest {
+@safe unittest {
     1.should == 1;
     2.should == 2;
     assertFail(1.should == 2);
@@ -588,7 +588,7 @@ unittest {
 }
 
 @("should.be ==")
-@safe pure unittest {
+@safe unittest {
     1.should.be == 1;
     2.should.be == 2;
     assertFail(1.should.be == 2);
@@ -625,7 +625,7 @@ unittest {
 }
 
 @("should ~ for range")
-@safe pure unittest {
+@safe unittest {
     [1, 2, 3].should ~ [3, 2, 1];
     assertFail([1, 2, 3].should ~ [1, 2, 2]);
 
@@ -650,7 +650,7 @@ unittest {
 
 
 @("shouldBeBetween")
-@safe pure unittest {
+@safe unittest {
     import std.datetime: seconds;
 
     5.shouldBeBetween(4, 6);
@@ -665,7 +665,7 @@ unittest {
 
 
 @("shouldBeSameSetAs")
-@safe pure unittest {
+@safe unittest {
     [1, 2, 3].shouldBeSameSetAs([2, 3, 1]);
     [1, 2, 3].shouldBeSameSetAs([3, 2, 1]);
     assertExceptionMsg([1, 2, 3].shouldBeSameSetAs([2, 1, 4]),

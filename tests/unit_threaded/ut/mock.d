@@ -6,7 +6,7 @@ import unit_threaded.asserts;
 
 
 @("mock interface verify fails")
-@safe pure unittest {
+@safe unittest {
     import unit_threaded.asserts;
 
     interface Foo {
@@ -38,7 +38,7 @@ import unit_threaded.asserts;
 }
 
 @("mock interface negative test")
-@safe pure unittest {
+@safe unittest {
     import unit_threaded.should;
 
     interface Foo {
@@ -95,7 +95,7 @@ private class Class {
 
 
 @("mock struct negative")
-@safe pure unittest {
+@safe unittest {
     import unit_threaded.asserts;
 
     auto m = mockStruct;
@@ -105,7 +105,7 @@ private class Class {
 }
 
 @("mock struct values negative")
-@safe pure unittest {
+@safe unittest {
     import unit_threaded.asserts;
 
     void fun(T)(T t) {
@@ -172,7 +172,7 @@ private class FooException: Exception {
 
 
 @("throwStruct return value type")
-@safe pure unittest {
+@safe unittest {
     import unit_threaded.asserts;
     import unit_threaded.exception: UnitTestException;
     auto m = throwStruct!(UnitTestException, int);
@@ -184,7 +184,7 @@ private class FooException: Exception {
 }
 
 @("issue 68")
-@safe pure unittest {
+@safe unittest {
     import unit_threaded.should;
 
     int fun(Class f) {
