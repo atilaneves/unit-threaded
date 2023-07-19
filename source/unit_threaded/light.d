@@ -399,7 +399,7 @@ void shouldBeEmpty(R)(const scope auto ref R rng, string file = __FILE__, size_t
 }
 
 /// assert that rng is empty.
-void shouldBeEmpty(R)(scope auto ref R rng, string file = __FILE__, size_t line = __LINE__) {
+void shouldBeEmpty(R)(scope auto ref R rng, string file = __FILE__, size_t line = __LINE__) if(!is(R == const)) {
     import std.range: isInputRange;
     import std.traits: isAssociativeArray;
     import std.array;

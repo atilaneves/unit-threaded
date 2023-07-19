@@ -351,3 +351,9 @@ else {
 
     Rng().shouldBeEmpty();
 }
+
+@("298")
+@safe pure unittest {
+    const(int[]) arr;
+    arr.shouldBeEmpty;
+}
