@@ -354,6 +354,20 @@ private string localStacktraceToString(Throwable throwable, int removeExtraLines
     // cut off shared lines of backtrace (plus some extra)
     const size_t linesToRemove = otherBacktrace.retro.commonPrefix(localBacktrace.retro).count + removeExtraLines;
     const string[] uniqueBacktrace = otherBacktrace.dropBack(linesToRemove);
+    // this should probably not be writable. ¯\_(ツ)_/¯
+    throwable.info = new class Throwable.TraceInfo {
+        override int opApply(scope int delegate(ref const(char[])) dg) const {
+            foreach (ref line; uniqueBacktrace)
+                if (int ret = dg(line)) return ret;
+            return 0;
+        }
+        override int opApply(scope int delegate(ref size_t, ref const(char[])) dg) const {
+            foreach (ref i, ref line; uniqueBacktrace)
+                if (int ret = dg(i, line)) return ret;
+            return 0;
+        }
+        override string toString() const { assert(false); }
+    };
     return throwable.toString();
 }
 
