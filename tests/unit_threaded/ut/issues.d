@@ -331,7 +331,7 @@ static if(__VERSION__ > 2101L) {
 version(unitThreadedLight) {}
 else {
     @("284")
-        @safe pure unittest {
+        @safe unittest {
         assertExceptionMsg((1e-7).shouldApproxEqual(0, 1e-8, 1e-8),
                            "    tests/unit_threaded/ut/issues.d:123 - Expected approx: 0\n" ~
                            "    tests/unit_threaded/ut/issues.d:123 -      Got       : 1.000000e-07\n" ~
