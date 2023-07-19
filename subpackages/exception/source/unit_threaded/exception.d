@@ -162,7 +162,11 @@ private string localStacktraceToString(Throwable throwable, Throwable.TraceInfo 
         }
         override string toString() const { assert(false); }
     };
-    return throwable.toString();
+    string result = throwable.toString();
+    // Important! As of 2.102, throwable.info is malloc allocated in Phobos.
+    // To avoid a free() call in the dtor later, we must reset it to null here.
+    throwable.info = null;
+    return result;
 }
 
 unittest {
