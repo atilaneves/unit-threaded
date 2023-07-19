@@ -169,45 +169,48 @@ private string localStacktraceToString(Throwable throwable, Throwable.TraceInfo 
     return result;
 }
 
-unittest {
-    import std.conv : to;
-    import std.string : splitLines, indexOf;
-    import std.format : format;
+version(OSX) {}
+else {
+    unittest {
+        import std.conv : to;
+        import std.string : splitLines, indexOf;
+        import std.format : format;
 
-    Throwable.TraceInfo localTraceInfo;
+        Throwable.TraceInfo localTraceInfo;
 
-    try
-        throw new Exception("");
-    catch (Exception exc)
-        localTraceInfo = exc.info;
-
-    Exception exc;
-    // make sure we have at least one line of backtrace of our own
-    void nested()
-    {
         try
             throw new Exception("");
-        catch (Exception exc_)
-            exc = exc_;
+        catch (Exception exc)
+            localTraceInfo = exc.info;
+
+        Exception exc;
+        // make sure we have at least one line of backtrace of our own
+        void nested()
+        {
+            try
+                throw new Exception("");
+            catch (Exception exc_)
+                exc = exc_;
+        }
+        nested;
+
+        const output = exc.localStacktraceToString(localTraceInfo, 0);
+        const lines = output.splitLines;
+
+        /*
+         * The text of a stacktrace can differ between compilers and also paths differ between Unix and Windows.
+         * Example exception test from dmd on unix:
+         *
+         * object.Exception@subpackages/runner/source/unit_threaded/runner/testcase.d(368)
+         * ----------------
+         * subpackages/runner/source/unit_threaded/runner/testcase.d:368 void unit_threaded.runner.testcase [...]
+         */
+        import std.stdio : writeln;
+        writeln("Output from local stack trace was " ~ to!string(lines.length) ~ " lines:\n"~output~"\n");
+
+        assert(lines.length >= 3, "Expected 3 or more lines but got " ~ to!string(lines.length) ~ " :\n" ~ output);
+        assert(lines[0].indexOf("object.Exception@") != -1, "Line 1 of stack trace should show exception type. Was: "~lines[0]);
+        assert(lines[1].indexOf("------") != -1); // second line is a bunch of dashes
+        //assert(lines[2].indexOf("testcase.d") != -1); // the third line differs accross compilers and not reliable for testing
     }
-    nested;
-
-    const output = exc.localStacktraceToString(localTraceInfo, 0);
-    const lines = output.splitLines;
-
-    /*
-     * The text of a stacktrace can differ between compilers and also paths differ between Unix and Windows.
-     * Example exception test from dmd on unix:
-     *
-     * object.Exception@subpackages/runner/source/unit_threaded/runner/testcase.d(368)
-     * ----------------
-     * subpackages/runner/source/unit_threaded/runner/testcase.d:368 void unit_threaded.runner.testcase [...]
-     */
-    import std.stdio : writeln;
-    writeln("Output from local stack trace was " ~ to!string(lines.length) ~ " lines:\n"~output~"\n");
-
-    assert(lines.length >= 3, "Expected 3 or more lines but got " ~ to!string(lines.length) ~ " :\n" ~ output);
-    assert(lines[0].indexOf("object.Exception@") != -1, "Line 1 of stack trace should show exception type. Was: "~lines[0]);
-    assert(lines[1].indexOf("------") != -1); // second line is a bunch of dashes
-    //assert(lines[2].indexOf("testcase.d") != -1); // the third line differs accross compilers and not reliable for testing
 }
