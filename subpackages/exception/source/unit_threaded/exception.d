@@ -148,7 +148,9 @@ private string localStacktraceToString(Throwable throwable, Throwable.TraceInfo 
     // cut off shared lines of backtrace (plus some extra)
     const size_t linesToRemove = otherBacktrace.retro.commonPrefix(localBacktrace.retro).count + removeExtraLines;
     const string[] uniqueBacktrace = otherBacktrace.dropBack(linesToRemove);
-    // this should probably not be writable. ¯\_(ツ)_/¯
+    // temporarily replace the TraceInfo for toString(); yes, hacky ¯\_(ツ)_/¯
+    auto originalTraceInfo = throwable.info;
+    scope(exit) throwable.info = originalTraceInfo; // crucial for druntime v2.102+
     throwable.info = new class Throwable.TraceInfo {
         override int opApply(scope int delegate(ref const(char[])) dg) const {
             foreach (ref line; uniqueBacktrace)
@@ -162,11 +164,7 @@ private string localStacktraceToString(Throwable throwable, Throwable.TraceInfo 
         }
         override string toString() const { assert(false); }
     };
-    string result = throwable.toString();
-    // Important! As of 2.102, throwable.info is malloc allocated in Phobos.
-    // To avoid a free() call in the dtor later, we must reset it to null here.
-    throwable.info = null;
-    return result;
+    return throwable.toString();
 }
 
 version(OSX) {}
@@ -176,12 +174,12 @@ else {
         import std.string : splitLines, indexOf;
         import std.format : format;
 
-        Throwable.TraceInfo localTraceInfo;
+        Exception localException;
 
         try
             throw new Exception("");
         catch (Exception exc)
-            localTraceInfo = exc.info;
+            localException = exc;
 
         Exception exc;
         // make sure we have at least one line of backtrace of our own
@@ -194,7 +192,7 @@ else {
         }
         nested;
 
-        const output = exc.localStacktraceToString(localTraceInfo, 0);
+        const output = exc.localStacktraceToString(localException.info, 0);
         const lines = output.splitLines;
 
         /*

@@ -326,14 +326,14 @@ class BuiltinTestCase: FunctionTestCase {
             else
             {
                 // grab a stack trace inside this function
-                Throwable.TraceInfo localTraceInfo;
+                Exception localException;
                 try
                     throw new Exception("");
                 catch (Exception exc)
-                    localTraceInfo = exc.info;
+                    localException = exc;
 
                 // 3 = BuiltinTestCase + FunctionTestCase + runner reflection
-                fail(e, localTraceInfo, 3);
+                fail(e, localException.info, 3);
             }
         }
     }
