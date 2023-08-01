@@ -6,7 +6,7 @@ module unit_threaded.runner.options;
 
 ///
 struct Options {
-    bool multiThreaded;
+    uint numThreads;
     string[] testsToRun;
     bool debugOutput;
     bool list;
@@ -29,6 +29,7 @@ auto getOptions(string[] args) {
     import std.getopt: getopt, defaultGetoptPrinter;
 
     bool single;
+    uint numThreads;
     bool debugOutput;
     bool help;
     bool list;
@@ -42,6 +43,7 @@ auto getOptions(string[] args) {
     auto helpInfo =
         getopt(args,
                "single|s", "Run in one thread", &single,
+               "jobs|j", "Number of parallel test threads. Defaults to the number of logical CPU cores.", &numThreads,
                "debug|d", "Print debug output", &debugOutput,
                "esccodes|e", "force ANSI escape codes even for !isatty", &forceEscCodes,
                "list|l", "List available tests", &list,
@@ -65,7 +67,10 @@ auto getOptions(string[] args) {
     version(unitUnthreaded)
         single = true;
 
+    if (single)
+        numThreads = 1; // let -s override -j
+
     immutable exit =  help || list;
-    return Options(!single, args[1..$], debugOutput, list, exit, forceEscCodes,
+    return Options(numThreads, args[1..$], debugOutput, list, exit, forceEscCodes,
                    random, seed, stackTraces, showChrono, quiet);
 }

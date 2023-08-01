@@ -40,7 +40,7 @@ version(unitThreadedLight) {
             if(singleThreaded)
                 foreach(module_; modules)
                     runModuleTests(module_);
-             else
+            else
                 foreach(module_; modules.parallel)
                     runModuleTests(module_);
 
