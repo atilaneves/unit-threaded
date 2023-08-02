@@ -121,12 +121,12 @@ int runTests(string[] args,
              in from!"unit_threaded.runner.reflection".TestData[] testData)
     nothrow
 {
-    import unit_threaded.runner.options: Options, getOptions;
+    import unit_threaded.runner.options: Options;
 
     Options options;
 
     try
-        options = getOptions(args);
+        options = Options(args);
     catch(Exception e) {
         handleException(e);
         return 1;
