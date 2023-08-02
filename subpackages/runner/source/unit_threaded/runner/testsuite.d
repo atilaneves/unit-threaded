@@ -168,7 +168,7 @@ private:
 
         if (_options.multiThreaded) {
             // use a dedicated task pool with non-daemon worker threads
-            auto taskPool = new TaskPool;
+            auto taskPool = new TaskPool(_options.numJobs);
             _failures = reduce!((a, b) => a ~ b)(_failures, taskPool.amap!runTest(tests));
             taskPool.finish(/*blocking=*/false);
         } else {

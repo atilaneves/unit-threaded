@@ -17,6 +17,7 @@ struct Options {
     bool stackTraces;
     bool showChrono;
     bool quiet;
+    size_t numJobs;
 }
 
 /**
@@ -27,6 +28,7 @@ auto getOptions(string[] args) {
     import std.stdio: writeln;
     import std.random: unpredictableSeed;
     import std.getopt: getopt, defaultGetoptPrinter;
+    import std.parallelism: totalCPUs;
 
     bool single;
     bool debugOutput;
@@ -38,6 +40,7 @@ auto getOptions(string[] args) {
     bool stackTraces;
     bool showChrono;
     bool quiet;
+    size_t numJobs = totalCPUs - 1;
 
     auto helpInfo =
         getopt(args,
@@ -50,6 +53,7 @@ auto getOptions(string[] args) {
                "trace|t", "enable stack traces", &stackTraces,
                "chrono|c", "Print execution time per test", &showChrono,
                "q|quiet", "Only print information about failing tests", &quiet,
+               "j|jobs", "Number of threads to use", &numJobs,
         );
 
     if(helpInfo.helpWanted) {
@@ -67,5 +71,5 @@ auto getOptions(string[] args) {
 
     immutable exit =  help || list;
     return Options(!single, args[1..$], debugOutput, list, exit, forceEscCodes,
-                   random, seed, stackTraces, showChrono, quiet);
+                   random, seed, stackTraces, showChrono, quiet, numJobs);
 }
