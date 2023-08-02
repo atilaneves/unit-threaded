@@ -6,7 +6,7 @@ module unit_threaded.runner.options;
 
 ///
 struct Options {
-    uint numThreads;
+    size_t numThreads;
     string[] testsToRun;
     bool debugOutput;
     bool list;
@@ -27,9 +27,10 @@ auto getOptions(string[] args) {
     import std.stdio: writeln;
     import std.random: unpredictableSeed;
     import std.getopt: getopt, defaultGetoptPrinter;
+    import std.parallelism: totalCPUs;
 
     bool single;
-    uint numThreads;
+    size_t numThreads = totalCPUs - 1;
     bool debugOutput;
     bool help;
     bool list;

@@ -166,12 +166,9 @@ private:
 
         _stopWatch.start();
 
-        const numThreads = _options.numThreads;
-        if (numThreads != 1) {
+        if (_options.numThreads != 1) {
             // use a dedicated task pool with non-daemon worker threads
-            auto taskPool = numThreads == 0
-                ? new TaskPool()                // use all logical CPU cores
-                : new TaskPool(numThreads - 1); // main thread is used too
+            auto taskPool = new TaskPool(_options.numThreads);
             _failures = reduce!((a, b) => a ~ b)(_failures, taskPool.amap!runTest(tests));
             taskPool.finish(/*blocking=*/false);
         } else {
