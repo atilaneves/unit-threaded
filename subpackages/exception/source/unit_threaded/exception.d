@@ -19,22 +19,22 @@ module unit_threaded.exception;
 import std.sumtype;
 import std.typecons;
 
-void fail(const string output, const string file, size_t line) @safe pure
+noreturn fail(const string output, const string file, size_t line) @safe pure
 {
     throw new UnitTestException([output], file, line);
 }
 
-void fail(const string[] lines, const string file, size_t line) @safe pure
+noreturn fail(const string[] lines, const string file, size_t line) @safe pure
 {
     throw new UnitTestException(lines, file, line);
 }
 
-package void fail(Throwable throwable) @safe pure
+package noreturn fail(Throwable throwable) @safe pure
 {
     throw new UnitTestException(throwable);
 }
 
-package void fail(Throwable throwable, Throwable.TraceInfo traceInfo, int removeExtraLines) @safe pure
+package noreturn fail(Throwable throwable, Throwable.TraceInfo traceInfo, int removeExtraLines) @safe pure
 {
     throw new UnitTestException(throwable, traceInfo, removeExtraLines);
 }

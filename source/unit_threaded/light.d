@@ -499,8 +499,9 @@ private void assert_(bool value, string message, string file, size_t line) @safe
         throw new Exception(message, file, line);
 }
 
-void fail(string output, string file, size_t line) @safe pure {
+noreturn fail(string output, string file, size_t line) @safe pure {
     assert_(false, output, file, line);
+    assert(0);
 }
 
 
