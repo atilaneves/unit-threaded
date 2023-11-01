@@ -363,7 +363,7 @@ Integration tests and a sandbox environment
 
 If you want to write tests that read from and write to the file system,
 you can use the `Sandbox` struct from
-[`unit_threaded.integration`](source/unit_threaded/integration) like so:
+[`unit_threaded.integration`](subpackages/integration) like so:
 
 ```d
 with(immutable Sandbox()) {
@@ -389,7 +389,7 @@ they must be run from the top-level directory of the repository.
 The built-in D unittest blocks are included automatically, as seen in
 the output of both example programs
 (`example.tests.pass_tests.unittest` and its homologue in
-[`example_fail`](example/example_fail)). A name will be automatically
+[`example_fail`](example/example_fail.d)). A name will be automatically
 generated for them. The user can specify a name by decorating them
 with a string UDA or the included `@Name` UDA.
 
