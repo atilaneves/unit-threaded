@@ -166,9 +166,9 @@ private:
 
         _stopWatch.start();
 
-        if (_options.numThreads != 1) {
+        if (_options.numThreads > 1) {
             // use a dedicated task pool with non-daemon worker threads
-            auto taskPool = new TaskPool(_options.numThreads);
+            auto taskPool = new TaskPool(_options.numThreads - 1); // main thread is used too
             _failures = reduce!((a, b) => a ~ b)(_failures, taskPool.amap!runTest(tests));
             taskPool.finish(/*blocking=*/false);
         } else {
