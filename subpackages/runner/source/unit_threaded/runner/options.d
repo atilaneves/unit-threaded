@@ -45,6 +45,8 @@ struct Options {
             defaultGetoptPrinter("Usage: <progname> <options> <tests>...", helpInfo.options);
         }
 
+        testsToRun = args[1 .. $];
+
         if(random) {
             if(!single) writeln("-r implies -s, running in a single thread\n");
             single = true;
