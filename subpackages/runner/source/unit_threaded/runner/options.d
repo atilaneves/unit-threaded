@@ -57,7 +57,7 @@ struct Options {
             numThreads = 1; // let -s override -j
 
         if (numThreads == 0)
-            numThreads = totalCPUs - 1;
+            numThreads = totalCPUs;
 
         exit =  help || list;
     }
