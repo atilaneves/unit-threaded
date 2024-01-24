@@ -14,11 +14,17 @@ import dub_test_root : allModules;
 // replace the runtime's unit-tester
 shared static this() {
     import core.runtime : Runtime, UnitTestResult;
+    import std.algorithm : filter, startsWith;
+    import std.array : array;
     import unit_threaded.runner.runner : runTests;
     import unit_threaded.runner.reflection : allTestData;
 
     Runtime.extendedModuleUnitTester = function() {
-        const r = runTests(Runtime.args, allTestData!allModules);
+        // The --DRT-* (druntime) options are filtered out automatically for D main().
+        // Replicate that to allow using them for the test runner executable.
+        auto args = Runtime.args.filter!(a => !a.startsWith("--DRT-")).array;
+
+        const r = runTests(args, allTestData!allModules);
 
         const numExecuted = 1;
         const numPassed = (r == 0) ? 1 : 0; // determines process exit code
