@@ -21,7 +21,7 @@ void writelnUt(T...)(auto ref T args) {
 
 private shared(bool) _debugOutput = false; ///print debug msgs?
 private shared(bool) _forceEscCodes = false; ///use ANSI escape codes anyway?
-package(unit_threaded) shared(bool) _useEscCodes;
+package(unit_threaded) immutable bool _useEscCodes;
 
 
 version (Windows) {
