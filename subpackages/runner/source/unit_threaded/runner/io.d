@@ -259,8 +259,6 @@ void threadWriter(alias OUT, alias ERR)(from!"std.concurrency".Tid tid)
 {
     import std.concurrency: receive, send, OwnerTerminated, Tid;
 
-    auto done = false;
-
     auto saveStdout = OUT;
     auto saveStderr = ERR;
 
@@ -305,7 +303,7 @@ void threadWriter(alias OUT, alias ERR)(from!"std.concurrency".Tid tid)
 
     Tid currentTid;
 
-    while (!done) {
+    for(auto done = false; !done; ) {
         receive(
             (string msg, Tid originTid) {
 
