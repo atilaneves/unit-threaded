@@ -113,12 +113,35 @@ unittest {
     import unit_threaded.should;
 
     enableDebugOutput(false);
+    disableStderr(false);
     resetFakeFiles;
 
     auto tid = spawn(&threadWriter!(gOut, gErr), thisTid);
     tid.send(ThreadWait());
     receiveOnly!ThreadStarted;
 
+    // stdoutshould have been redirected but not stderr
+    gOut.shouldEqual(shared FakeFile(nullFileName, "w"));
+    gErr.shouldEqual(shared FakeFile("err", "mode"));
+
+    tid.send(ThreadFinish());
+    receiveOnly!ThreadEnded;
+}
+
+unittest {
+    import std.concurrency: spawn, thisTid, send, receiveOnly;
+    import unit_threaded.should;
+
+    enableDebugOutput(false);
+    disableStderr(true);
+    scope(exit) disableStderr(false);
+    resetFakeFiles;
+
+    auto tid = spawn(&threadWriter!(gOut, gErr), thisTid);
+    tid.send(ThreadWait());
+    receiveOnly!ThreadStarted;
+
+    // stdout/stderr should have been redirected
     gOut.shouldEqual(shared FakeFile(nullFileName, "w"));
     gErr.shouldEqual(shared FakeFile(nullFileName, "w"));
 
@@ -131,6 +154,7 @@ unittest {
     import unit_threaded.should;
 
     enableDebugOutput(true);
+    disableStderr(false);
     scope(exit) enableDebugOutput(false);
     resetFakeFiles;
 
@@ -138,6 +162,8 @@ unittest {
     tid.send(ThreadWait());
     receiveOnly!ThreadStarted;
 
+    // since debug output is enabled we don't expect stdout/stderr to
+    // be redirected.
     gOut.shouldEqual(shared FakeFile("out", "mode"));
     gErr.shouldEqual(shared FakeFile("err", "mode"));
 
@@ -259,8 +285,8 @@ unittest {
 
     receiveOnly!bool; //wait for spawned thread to do its thing
 
-    // from now on, we've send "foo\n" but not flushed
-    // and the other tid has send "bar\n" and flushed
+    // from now on, we've sent "foo\n" but not flushed
+    // and the other tid has sent "bar\n" and flushed
 
     writerTid.send(Flush(), thisTid);
 
@@ -298,8 +324,8 @@ unittest {
 
     receiveOnly!bool; //wait for spawned thread to do its thing
 
-    // from now on, we've send "foo\n" but not flushed
-    // and the other tid has send "bar\n", flushed, then "baz\n"
+    // from now on, we've sent "foo\n" but not flushed
+    // and the other tid has sent "bar\n", flushed, then "baz\n"
 
     writerTid.send(Flush(), thisTid);
 
@@ -451,7 +477,7 @@ unittest {
     oops();
     writer.output.splitLines.should == [
         "OopsTest:",
-        "    " ~ buildPath("tests", "unit_threaded", "ut", "io.d") ~ ":433 - oops",
+        "    " ~ buildPath("tests", "unit_threaded", "ut", "io.d") ~ ":459 - oops",
         "",
     ];
 }
