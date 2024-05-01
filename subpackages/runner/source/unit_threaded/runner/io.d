@@ -20,6 +20,7 @@ void writelnUt(T...)(auto ref T args) {
 
 
 private shared(bool) _debugOutput = false; ///print debug msgs?
+private shared(bool) _silenceStderr = false; ///print debug msgs?
 private shared(bool) _forceEscCodes = false; ///use ANSI escape codes anyway?
 package(unit_threaded) immutable bool _useEscCodes;
 
@@ -86,6 +87,18 @@ void enableDebugOutput(bool value = true) nothrow {
 package bool isDebugOutputEnabled() nothrow @trusted {
     synchronized {
         return _debugOutput;
+    }
+}
+
+package bool isStderrSilenced() @safe nothrow {
+    synchronized {
+        return _silenceStderr;
+    }
+}
+
+void disableStderr(bool value = true) @safe nothrow {
+    synchronized {
+        _silenceStderr = value;
     }
 }
 
@@ -272,7 +285,8 @@ void threadWriter(alias OUT, alias ERR)(from!"std.concurrency".Tid tid)
 
     if (!isDebugOutputEnabled()) {
         OUT = typeof(OUT)(nullFileName, "w");
-        ERR = typeof(ERR)(nullFileName, "w");
+        if(isStderrSilenced)
+            ERR = typeof(ERR)(nullFileName, "w");
     }
 
     void actuallyPrint(in string msg) {

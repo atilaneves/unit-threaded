@@ -113,6 +113,28 @@ unittest {
     import unit_threaded.should;
 
     enableDebugOutput(false);
+    disableStderr(false);
+    resetFakeFiles;
+
+    auto tid = spawn(&threadWriter!(gOut, gErr), thisTid);
+    tid.send(ThreadWait());
+    receiveOnly!ThreadStarted;
+
+    // stdoutshould have been redirected but not stderr
+    gOut.shouldEqual(shared FakeFile(nullFileName, "w"));
+    gErr.shouldEqual(shared FakeFile("err", "mode"));
+
+    tid.send(ThreadFinish());
+    receiveOnly!ThreadEnded;
+}
+
+unittest {
+    import std.concurrency: spawn, thisTid, send, receiveOnly;
+    import unit_threaded.should;
+
+    enableDebugOutput(false);
+    disableStderr(true);
+    scope(exit) disableStderr(false);
     resetFakeFiles;
 
     auto tid = spawn(&threadWriter!(gOut, gErr), thisTid);
@@ -132,6 +154,7 @@ unittest {
     import unit_threaded.should;
 
     enableDebugOutput(true);
+    disableStderr(false);
     scope(exit) enableDebugOutput(false);
     resetFakeFiles;
 
@@ -454,7 +477,7 @@ unittest {
     oops();
     writer.output.splitLines.should == [
         "OopsTest:",
-        "    " ~ buildPath("tests", "unit_threaded", "ut", "io.d") ~ ":433 - oops",
+        "    " ~ buildPath("tests", "unit_threaded", "ut", "io.d") ~ ":459 - oops",
         "",
     ];
 }
