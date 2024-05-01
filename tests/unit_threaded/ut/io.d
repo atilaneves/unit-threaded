@@ -119,6 +119,7 @@ unittest {
     tid.send(ThreadWait());
     receiveOnly!ThreadStarted;
 
+    // stdout/stderr should have been redirected
     gOut.shouldEqual(shared FakeFile(nullFileName, "w"));
     gErr.shouldEqual(shared FakeFile(nullFileName, "w"));
 
@@ -138,6 +139,8 @@ unittest {
     tid.send(ThreadWait());
     receiveOnly!ThreadStarted;
 
+    // since debug output is enabled we don't expect stdout/stderr to
+    // be redirected.
     gOut.shouldEqual(shared FakeFile("out", "mode"));
     gErr.shouldEqual(shared FakeFile("err", "mode"));
 
@@ -259,8 +262,8 @@ unittest {
 
     receiveOnly!bool; //wait for spawned thread to do its thing
 
-    // from now on, we've send "foo\n" but not flushed
-    // and the other tid has send "bar\n" and flushed
+    // from now on, we've sent "foo\n" but not flushed
+    // and the other tid has sent "bar\n" and flushed
 
     writerTid.send(Flush(), thisTid);
 
@@ -298,8 +301,8 @@ unittest {
 
     receiveOnly!bool; //wait for spawned thread to do its thing
 
-    // from now on, we've send "foo\n" but not flushed
-    // and the other tid has send "bar\n", flushed, then "baz\n"
+    // from now on, we've sent "foo\n" but not flushed
+    // and the other tid has sent "bar\n", flushed, then "baz\n"
 
     writerTid.send(Flush(), thisTid);
 
