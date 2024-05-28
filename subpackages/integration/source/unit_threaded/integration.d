@@ -8,48 +8,9 @@
 
 module unit_threaded.integration;
 
-version(Windows) {
-    extern(C) char* mktemp(char* template_);
 
-    char* mkdtemp(char* t) {
-        version(unitUnthreaded)
-            return mkdtempImpl(t);
-        else {
-            synchronized {
-                return mkdtempImpl(t);
-            }
-        }
-    }
-
-    char* mkdtempImpl(char* t) {
-        // mktemp can actually only return up to 26 unique names per
-        // the documentation at MSDN. To hack around this, I am just
-        // putting in some random letters at some YYYYYY defined below
-        // to make conflicts less likely.
-
-        import core.stdc.string : strstr;
-        import core.stdc.stdlib : rand;
-        import std.file: mkdirRecurse;
-        import std.string: fromStringz;
-
-        char* where = strstr(t, "YYYYYY");
-        assert(where !is null);
-        while(*where == 'Y') {
-                *where++ = rand() % 26 + 'A';
-        }
-
-        char* result = mktemp(t);
-
-        if(result is null) return null;
-        mkdirRecurse(result.fromStringz);
-
-        return result;
-    }
-
-} else {
+version(Posix)
     extern(C) char* mkdtemp(char* template_);
-}
-
 
 shared static this() {
     import std.file: exists, rmdirRecurse;
@@ -253,20 +214,43 @@ private:
     }
 
     static string makeTempDir() {
+        return uniqueDirName(sandboxesPath);
+    }
+}
+
+
+version(Windows) {
+    string uniqueDirName(in string sandboxesPath) @safe {
+
+        import std.path: buildPath, absolutePath;
+        import std.process: thisThreadID;
+        import std.conv: text;
+        import std.format: format;
+        import std.file: mkdirRecurse, exists;
+
+        static int counter;
+
+        auto ret = buildPath(sandboxesPath, thisThreadID.text, format!"ut%06d"(counter++));
+        import std.file: exists;
+        assert(!ret.exists);
+        mkdirRecurse(ret);
+
+        return ret.absolutePath;
+    }
+} else {
+    string uniqueDirName(in string sandboxesPath) @safe {
         import std.algorithm: copy;
         import std.exception: enforce;
         import std.conv: to;
         import std.string: fromStringz;
+        import std.path: buildPath, absolutePath;
         import core.stdc.string: strerror;
         import core.stdc.errno: errno;
 
         char[2048] template_;
-        // the YYYYYY is to give some randomness on systems
-        // where it is necessary to have more than 26 items
-        // harmless elsewhere; the name is random stuff anyway
-        copy(buildPath(sandboxesPath, "YYYYYYXXXXXX") ~ '\0', template_[]);
+        copy(buildPath(sandboxesPath, "utXXXXXX") ~ '\0', template_[]);
 
-        auto path = () @trusted { return mkdtemp(&template_[0]).to!string; }();
+        auto path = () @trusted { return mkdtemp(&template_[0]).fromStringz.idup; }();
 
         enforce(path != "",
                 "\n" ~
