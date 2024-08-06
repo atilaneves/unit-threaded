@@ -1,8 +1,6 @@
 name: CI
 
 on:
-  schedule:
-    - cron: '30 7 1 * *'
   push:
   pull_request:
 
@@ -12,19 +10,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, windows-2019, macos-11]
+        os:
+          - ubuntu-24.04
+          - windows-2022
+          - macos-12
         dc:
-          - dmd-2.104.0
+          - dmd-2.109.1
           - dmd-2.099.1
-          - ldc-1.32.2
+          - ldc-1.39.0
           - ldc-1.29.0
 
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install ${{ matrix.dc }}
-        uses: dlang-community/setup-dlang@v1.3.0
+        uses: dlang-community/setup-dlang@v2
         with:
           compiler: ${{ matrix.dc }}
 
@@ -38,4 +39,4 @@ jobs:
         if: runner.os == 'Windows'
         run: build\ci.bat
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
