@@ -271,14 +271,7 @@ private TestData[] moduleUnitTests_(alias module_)() {
 
         foreach(member; __traits(allMembers, composite)) {
 
-            // isPrivate can't be used here. I don't know why.
-            static if(__traits(compiles, __traits(getProtection, __traits(getMember, module_, member))))
-                enum notPrivate = __traits(getProtection, __traits(getMember, module_, member)) != "private";
-            else
-                enum notPrivate = false;
-
             static if (
-                notPrivate &&
                 // If visibility of the member is deprecated, the next line still returns true
                 // and yet spills deprecation warning. If deprecation is turned into error,
                 // all works as intended.
