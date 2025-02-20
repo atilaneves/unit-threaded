@@ -373,6 +373,7 @@ else {
 
         const testData = allTestData!testModule;
         auto tests = createTestCases(testData);
+        tests.length.should == 2;
 
         auto external = tests.find!(a => a.getPath.canFind("L4")).front;
         // opCall returns an array of failures
@@ -381,5 +382,35 @@ else {
         auto internal = tests.find!(a => a.getPath.canFind("L9")).front;
         // opCall returns an array of internalures
         internal().length.should == 0;
+    }
+}
+
+version(unitThreadedLight) {}
+else {
+
+    @("317")
+    @system unittest {
+
+        import unit_threaded.runner.factory: createTestCases;
+        import std.algorithm: find, canFind;
+        import std.array: front;
+
+        enum testModule = "unit_threaded.ut.modules.issue317";
+
+        const testData = allTestData!testModule;
+        auto tests = createTestCases(testData);
+        tests.length.should == 3;
+
+        auto external = tests.find!(a => a.getPath.canFind("L4")).front;
+        // opCall returns an array of failures
+        external().length.should == 0;
+
+        auto internal = tests.find!(a => a.getPath.canFind("L7")).front;
+        // opCall returns an array of internalures
+        internal().length.should == 0;
+
+        auto nested = tests.find!(a => a.getPath.canFind("L10")).front;
+        // opCall returns an array of internalures
+        nested().length.should == 0;
     }
 }
