@@ -13,11 +13,11 @@ jobs:
         os:
           - ubuntu-24.04
           - windows-2022
-          - macos-12
+          #- macos-12
         dc:
           - dmd-2.109.1
           - dmd-2.099.1
-          - ldc-1.39.0
+          - ldc-1.40.0
           - ldc-1.29.0
 
     runs-on: ${{ matrix.os }}
@@ -39,4 +39,4 @@ jobs:
         if: runner.os == 'Windows'
         run: build\ci.bat
 
-      - uses: codecov/codecov-action@v4
+      - uses: codecov/codecov-action@v5.1.2
