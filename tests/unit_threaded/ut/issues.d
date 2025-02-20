@@ -357,3 +357,29 @@ else {
     const(int[]) arr;
     arr.shouldBeEmpty;
 }
+
+
+version(unitThreadedLight) {}
+else {
+
+    @("316")
+    @system unittest {
+
+        import unit_threaded.runner.factory: createTestCases;
+        import std.algorithm: find, canFind;
+        import std.array: front;
+
+        enum testModule = "unit_threaded.ut.modules.issue316";
+
+        const testData = allTestData!testModule;
+        auto tests = createTestCases(testData);
+
+        auto external = tests.find!(a => a.getPath.canFind("L4")).front;
+        // opCall returns an array of failures
+        external().length.should == 0;
+
+        auto internal = tests.find!(a => a.getPath.canFind("L9")).front;
+        // opCall returns an array of internalures
+        internal().length.should == 0;
+    }
+}
