@@ -263,6 +263,8 @@ private TestData[] moduleUnitTests_(alias module_)() {
 
     void addUnitTestsRecursively(alias composite)() pure nothrow {
 
+        import std.traits: moduleName;
+
         if (composite.mangleof in visitedMembers)
             return;
 
@@ -272,17 +274,21 @@ private TestData[] moduleUnitTests_(alias module_)() {
         foreach(member; __traits(allMembers, composite)) {
 
             static if (
-                // If visibility of the member is deprecated, the next line still returns true
-                // and yet spills deprecation warning. If deprecation is turned into error,
-                // all works as intended.
+                // If visibility of the member is deprecated, the next
+                // line still returns true and yet spills deprecation
+                // warning. If deprecation is turned into error, all
+                // works as intended.
                 __traits(compiles, __traits(getMember, composite, member)) &&
                 __traits(compiles, __traits(allMembers, __traits(getMember, composite, member))) &&
-                __traits(compiles, recurse!(__traits(getMember, composite, member)))
+                __traits(compiles, recurse!(__traits(getMember, composite, member))) &&
+                moduleName!composite == moduleName!(__traits(getMember, composite, member))
+
             ) {
                 recurse!(__traits(getMember, composite, member));
             }
         }
     }
+
 
     void recurse(child)() pure nothrow {
         static if (is(child == class) || is(child == struct) || is(child == union)) {
@@ -291,6 +297,7 @@ private TestData[] moduleUnitTests_(alias module_)() {
     }
 
     addUnitTestsRecursively!module_();
+
     return testData;
 }
 
