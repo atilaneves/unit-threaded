@@ -425,8 +425,6 @@ else {
         import std.algorithm: find, canFind;
         import std.array: front;
 
-        enum testModule = "unit_threaded.ut.modules.issue321_helper";
-
         const testData = allTestData!(
             "unit_threaded.ut.modules.issue321",
             "unit_threaded.ut.modules.issue321_helper",
@@ -435,5 +433,20 @@ else {
         // there's only one unittest, and the bug was that it was
         // being picked up twice due to an alias.
         tests.length.should == 1;
+    }
+}
+
+
+version(unitThreadedLight) {}
+else {
+    @("moduleName")
+    @system unittest {
+
+        import unit_threaded.runner.factory: createTestCases;
+        import std.algorithm: find, canFind;
+        import std.array: front;
+
+        // the test is that this actually compiles
+        const testData = allTestData!("unit_threaded.ut.modules.module_name");
     }
 }
