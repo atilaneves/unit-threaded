@@ -263,8 +263,6 @@ private TestData[] moduleUnitTests_(alias module_)() {
 
     void addUnitTestsRecursively(alias composite)() pure nothrow {
 
-        import std.traits: moduleName;
-
         if (composite.mangleof in visitedMembers)
             return;
 
@@ -281,9 +279,9 @@ private TestData[] moduleUnitTests_(alias module_)() {
                 __traits(compiles, __traits(getMember, composite, member)) &&
                 __traits(compiles, __traits(allMembers, __traits(getMember, composite, member))) &&
                 __traits(compiles, recurse!(__traits(getMember, composite, member))) &&
-                moduleName!composite == moduleName!(__traits(getMember, composite, member))
-
-            ) {
+                __traits(isSame, composite, __traits(parent, __traits(getMember, composite, member)))
+            )
+            {
                 recurse!(__traits(getMember, composite, member));
             }
         }
