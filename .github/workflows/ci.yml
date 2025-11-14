@@ -20,6 +20,10 @@ jobs:
           - ldc-1.41.0
           - ldc-1.29.0
 
+        exclude:
+          - dc: dmd-2.099.1
+            os: macos-14
+
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
