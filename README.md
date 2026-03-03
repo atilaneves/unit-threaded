@@ -237,9 +237,27 @@ the "bar" tag.
 
 The `@Setup` and `@Shutdown` UDAs can be attached to a
 free function in a module. If they are, they will be run before/after
-each `unittest` block in a composite (usually a module). This feature
-currently only works for `unittest` blocks, not free functions.
-Classes could override `setup` and `shutdown` already.
+each `unittest` block in a composite. 
+A composite is usually a module, but you can use a dummy struct to only apply
+`@Setup` and `@Shutdown` functionality to a subset of tests:
+
+```d
+struct Namespace {
+    @Setup void setup() { writelnUt("Setup should run exactly twice"); }
+    @("With setup1")
+    unittest {
+    }
+    @("With setup2")
+    unittest {
+    }
+}
+@("No Setup")
+unittest {
+}
+
+```
+Note: `@Setup` and `@Shutdown` only apply to the current scope. If you write
+more `unittest` inside structs, it won't apply to them.
 
 Property-based testing
 ----------------------
@@ -349,8 +367,8 @@ Command-line Parameters
 To run in single-threaded mode, use `-s`.
 
 There is support for debug prints in the tests with the `-d` switch.
-TestCases and test functions can print debug output with the
-function `writelnUt` available [here](source/unit_threaded/io.d).
+Tests can print debug output with the function `writelnUt` available
+[here](source/unit_threaded/io.d).
 
 Tests can be run in random order instead of in threads.  To do so, use
 the `-r` option.  A seed will be printed so that the same run can be
@@ -400,17 +418,11 @@ with the modules containing the tests as compile-time arguments (as
 strings).
 
 There is no need to register tests. The registration is implicit
-and happens with:
-
-* D's `unittest`` blocks
-* Functions with a camelCase name beginning with `test` (e.g. `testFoo()`)
-* Classes that derive from `TestCase` and override `test()`
+and happens for each `unittest` block.
 
 The modules to be reflected on must be specified when calling
 `runTests` or `runTestsMain`, but that's usually done as shown in the dub configuration
-above. Private functions are skipped. `TestCase` also has support for
-`setup()` and `shutdown()`, child classes need only override the
-appropriate functions(s).
+above.
 
 Tests can be hidden with the `@HiddenTest` attribute. This means
 that particular test doesn't get run by default but can still be run
