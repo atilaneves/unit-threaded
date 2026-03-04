@@ -43,7 +43,7 @@ project, you can use a `unittest` configuration as exemplified in this
             "targetType": "executable",
             "preBuildCommands": ["$DUB run --compiler=$$DC unit-threaded -c gen_ut_main -- -f bin/ut.d -d $DUB"],
             "mainSourceFile": "bin/ut.d",
-            "excludedSourceFiles": ["src/main.d"],
+            "excludedSourceFiles": ["source/app.d"],
             "dependencies": {
                 "unit-threaded": "*"
             }
@@ -61,7 +61,7 @@ configuration "executable" {
 configuration "unittest" {
     dependency "unit-threaded" version="*"
     mainSourceFile "bin/ut.d"
-    excludedSourceFiles "src/main.d"
+    excludedSourceFiles "source/app.d"
     targetType "executable"
     preBuildCommands "$DUB run --compiler=$$DC unit-threaded -c gen_ut_main -- -f bin/ut.d -d $DUB"
 }
