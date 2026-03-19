@@ -3,4 +3,4 @@ description "Automatically runs all tests of all modules of the dub root project
 authors "Atila Neves"
 license "BSD 3-clause"
 targetType "sourceLibrary"
-dependency "unit-threaded:runner" path="../.."
+dependency "runner" path="../runner"
