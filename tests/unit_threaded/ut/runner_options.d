@@ -32,3 +32,21 @@ unittest {
     assert(options.numThreads == 1);
     assert(options.random);
 }
+
+@("-r sets a random seed")
+unittest {
+    const options = Options(["ut", "-r"]);
+    assert(options.seed != 0);
+}
+
+@("-r respects an explicit seed")
+unittest {
+    const options = Options(["ut", "-r", "--seed", "123"]);
+    assert(options.seed == 123);
+}
+
+@("-r respects an explicit zero seed")
+unittest {
+    const options = Options(["ut", "-r", "--seed", "0"]);
+    assert(options.seed == 0);
+}

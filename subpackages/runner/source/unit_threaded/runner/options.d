@@ -25,6 +25,7 @@ struct Options {
 
         bool single;
         bool help;
+        immutable seedSet = args.hasSeedArg;
 
         auto helpInfo =
             getopt(args,
@@ -50,6 +51,8 @@ struct Options {
         if(random) {
             if(!single) writeln("-r implies -s, running in a single thread\n");
             single = true;
+            if(!seedSet)
+                seed = randomSeed;
         }
 
         version(unitUnthreaded)
@@ -63,4 +66,25 @@ struct Options {
 
         exit =  help || list;
     }
+}
+
+private bool hasSeedArg(scope const string[] args) @safe pure {
+    import std.algorithm: startsWith;
+
+    foreach(arg; args)
+        if(arg == "--seed" || arg.startsWith("--seed="))
+            return true;
+
+    return false;
+}
+
+private uint randomSeed() @safe {
+    import std.random: unpredictableSeed;
+
+    uint seed;
+    do
+        seed = unpredictableSeed;
+    while(seed == 0);
+
+    return seed;
 }
