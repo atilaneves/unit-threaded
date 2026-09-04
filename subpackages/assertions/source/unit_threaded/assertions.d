@@ -1011,7 +1011,7 @@ auto should(V)(return scope auto ref V value) {
 
         this(ref Wrapper wrapper) {
             import std.algorithm.mutation : move;
-            move(wrapper, _wrapper);
+            _wrapper = move(wrapper);
         }
 
         bool opEquals(U)(auto ref U other,
