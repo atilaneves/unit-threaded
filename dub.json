@@ -7,7 +7,7 @@
     "license": "BSD 3-clause",
     "targetType": "library",
     "toolchainRequirements": {
-        "frontend": ">=2.089",
+        "frontend": ">=2.089"
     },
     "-ddoxFilterArgs": [
         "--unittest-examples",

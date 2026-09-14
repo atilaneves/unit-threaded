@@ -155,7 +155,9 @@ auto toDirEntry(string a) {
 string removePackage(string name) {
     import std.algorithm: endsWith;
     import std.array: replace;
-    enum toRemove = "/package.d";
+    import std.path : dirSeparator;
+    
+    enum toRemove = dirSeparator~"package.d";
     return name.endsWith(toRemove)
         ? name.replace(toRemove, "")
         : name;
@@ -168,11 +170,14 @@ string[] dubFilesToAbsPaths(in string fileName, in string[] files) {
     import std.path: buildNormalizedPath;
 
     // dub list of files, don't bother reading the filesystem since
-    // dub has done it already
+    // dub has done it already.
+    // Normalize fileName so the filter is separator-agnostic: dub describe
+    // emits native-separator paths but the -f CLI arg may use forward slashes.
+    const normalizedFileName = buildNormalizedPath(fileName);
     return files
-        .filter!(a => a != fileName)
-        .map!(a => removePackage(a))
         .map!(a => buildNormalizedPath(a))
+        .filter!(a => a != normalizedFileName)
+        .map!(a => removePackage(a))
         .array;
 }
 
@@ -220,6 +225,16 @@ string writeUtMainFile(Options options) {
     return writeUtMainFile(options, findModuleNames(options));
 }
 
+string defaultUtMainPath(in string tempDirectory, in string workingDirectory) {
+    import std.path: buildPath, isDirSeparator, rootName;
+
+    size_t start = rootName(workingDirectory).length;
+    while(start < workingDirectory.length && isDirSeparator(workingDirectory[start]))
+        ++start;
+
+    return buildPath(tempDirectory, workingDirectory[start..$], "ut.d");
+}
+
 private string writeUtMainFile(Options options, in string[] modules) {
     import std.path: buildPath, dName = dirName;
     import std.stdio: writeln, File;
@@ -229,7 +244,7 @@ private string writeUtMainFile(Options options, in string[] modules) {
     import std.format : format;
 
     if (!options.fileName) {
-        options.fileName = buildPath(tempDir, getcwd[1..$], "ut.d");
+        options.fileName = defaultUtMainPath(tempDir, getcwd);
     }
 
     if(!haveToUpdate(options, modules)) {
