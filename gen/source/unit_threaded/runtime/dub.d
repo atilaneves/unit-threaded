@@ -118,6 +118,7 @@ DubInfo getDubInfo(in bool verbose, in string dubBinary) {
     import std.range: empty;
     import std.stdio: writeln;
     import std.exception: enforce;
+    import std.parallelism: task;
     import std.process: environment, pipeProcess, Redirect, wait;
     import std.array: join, appender;
 
@@ -132,10 +133,14 @@ DubInfo getDubInfo(in bool verbose, in string dubBinary) {
     string stdoutStr;
     string stderrStr;
     enum chunkSize = 4096;
-    pipes.stdout.byChunk(chunkSize).joiner
-        .map!"cast(immutable char)a".copy(appender(&stdoutStr));
+    auto stdoutTask = task({
+        pipes.stdout.byChunk(chunkSize).joiner
+            .map!"cast(immutable char)a".copy(appender(&stdoutStr));
+    });
+    stdoutTask.executeInNewThread();
     pipes.stderr.byChunk(chunkSize).joiner
         .map!"cast(immutable char)a".copy(appender(&stderrStr));
+    stdoutTask.yieldForce();
     auto status = wait(pipes.pid);
     auto allOutput = "stdout:\n" ~ stdoutStr ~ "\nstderr:\n" ~ stderrStr;
 
