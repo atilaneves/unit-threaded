@@ -1,0 +1,5 @@
+name "issue334"
+targetType "executable"
+dependency "unit-threaded" path="../../.."
+sourcePaths "source" "../../../gen/source"
+importPaths "source" "../../../gen/source"
