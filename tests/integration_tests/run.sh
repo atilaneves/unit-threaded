@@ -20,6 +20,10 @@ cd "$SCRIPT_DIR"/runTestsMain
 [ -z ${TERM-} ] || echo runTestsMain
 dub run -q --build=unittest-cov --compiler="$DC"
 
+cd "$SCRIPT_DIR"/issue334
+[ -z ${TERM-} ] || echo issue334
+dub run -q --build=unittest-cov --compiler="$DC"
+
 
 
 cd "$SCRIPT_DIR"/issue121

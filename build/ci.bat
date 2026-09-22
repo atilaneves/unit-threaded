@@ -35,6 +35,12 @@ dub run --build=unittest
 if %errorlevel% neq 0 exit /b %errorlevel%
 popd
 
+echo Issue 334
+pushd tests\integration_tests\issue334
+dub run --build=unittest
+if %errorlevel% neq 0 exit /b %errorlevel%
+popd
+
 for /D %%D in ("subpackages\*") do (
     REM the autorunner subpackage cannot be tested itself; see tests/integration_tests/autorunner
     if not "%%D" == "subpackages\autorunner" (
