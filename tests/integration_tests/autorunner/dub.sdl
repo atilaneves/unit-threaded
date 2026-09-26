@@ -4,7 +4,7 @@ configuration "default" {
 }
 
 configuration "unittest" {
-    dependency "unit-threaded:autorunner" path="../../../"
+    dependency "autorunner" path="../../../subpackages/autorunner"
     sourcePaths "source" "test"
     importPaths "source" "test"
 }
