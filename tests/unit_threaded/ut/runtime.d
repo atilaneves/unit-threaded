@@ -28,12 +28,22 @@ unittest {
     version(Windows) {
         defaultUtMainPath(`C:\Temp`, `D:\projects\unit-threaded`).shouldEqual(buildPath(
             `C:\Temp`,
+            "D%3A",
             "projects",
             "unit-threaded",
             "ut.d",
         ));
+        defaultUtMainPath(`C:\Temp`, `C:\projects\unit-threaded`).shouldEqual(buildPath(
+            `C:\Temp`,
+            "C%3A",
+            "projects",
+            "unit-threaded",
+            "ut.d",
+        ));
+        (defaultUtMainPath(`C:\Temp`, `C:\projects\unit-threaded`) !=
+            defaultUtMainPath(`C:\Temp`, `D:\projects\unit-threaded`)).shouldEqual(true);
         defaultUtMainPath(`C:\Temp`, `\\server\share\unit-threaded`).shouldEqual(
-            buildPath(`C:\Temp`, "unit-threaded", "ut.d"));
+            buildPath(`C:\Temp`, "%5C%5Cserver%5Cshare", "unit-threaded", "ut.d"));
     } else {
         defaultUtMainPath("/tmp", "/projects/unit-threaded").shouldEqual(
             buildPath("/tmp", "projects", "unit-threaded", "ut.d"));

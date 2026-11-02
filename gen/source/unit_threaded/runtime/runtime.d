@@ -227,11 +227,23 @@ string writeUtMainFile(Options options) {
 
 string defaultUtMainPath(in string tempDirectory, in string workingDirectory) {
     import std.path: buildPath, isDirSeparator, rootName;
+    import std.array: replace;
 
-    size_t start = rootName(workingDirectory).length;
+    const root = rootName(workingDirectory);
+    string rootForComponent = root;
+    while(rootForComponent.length && isDirSeparator(rootForComponent[$ - 1]))
+        rootForComponent = rootForComponent[0 .. $ - 1];
+    const rootComponent = rootForComponent
+        .replace("%", "%25")
+        .replace("\\", "%5C")
+        .replace("/", "%2F")
+        .replace(":", "%3A");
+    size_t start = root.length;
     while(start < workingDirectory.length && isDirSeparator(workingDirectory[start]))
         ++start;
 
+    if(rootComponent.length)
+        return buildPath(tempDirectory, rootComponent, workingDirectory[start..$], "ut.d");
     return buildPath(tempDirectory, workingDirectory[start..$], "ut.d");
 }
 

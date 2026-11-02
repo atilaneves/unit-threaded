@@ -6,6 +6,7 @@ import unit_threaded.runner.io;
 unittest {
     import std.algorithm: map;
     import std.exception: enforce;
+    import std.path: buildPath;
     import std.string: splitLines;
     import unit_threaded.runner.testcase: TestCase;
     import unit_threaded.should;
@@ -39,25 +40,27 @@ unittest {
         writer.output.splitLines.map!escapeAnsi.shouldEqual([
             "BehaveTest:",
             "",
-            "(tab)(intense)Given(normal) the given step      # behave.d:23(clearLine)",
-            "(green)(tab)(intense)Given(normal) the given step(default)      # behave.d:23",
-            "(tab)(intense)When(normal) the when step        # behave.d:24(clearLine)",
-            "(green)(tab)(intense)When(normal) the when step(default)        # behave.d:24",
-            "(tab)(intense)Then(normal) the then step        # behave.d:25(clearLine)",
-            "    tests/unit_threaded/ut/behave.d:26 - Enforcement failed",
+            "(tab)(intense)Given(normal) the given step      # behave.d:24(clearLine)",
+            "(green)(tab)(intense)Given(normal) the given step(default)      # behave.d:24",
+            "(tab)(intense)When(normal) the when step        # behave.d:25(clearLine)",
+            "(green)(tab)(intense)When(normal) the when step(default)        # behave.d:25",
+            "(tab)(intense)Then(normal) the then step        # behave.d:26(clearLine)",
+            "    " ~ buildPath("tests", "unit_threaded", "ut", "behave.d") ~
+                ":27 - Enforcement failed",
             "",
-            "(red)(tab)(intense)Then(normal) the then step(default)        # behave.d:25",
+            "(red)(tab)(intense)Then(normal) the then step(default)        # behave.d:26",
             "",
         ]);
     } else {
         writer.output.splitLines.map!escapeAnsi.shouldEqual([
             "BehaveTest:",
             "",
-            "(tab)Given the given step      # behave.d:23",
-            "(tab)When the when step        # behave.d:24",
-            "    tests/unit_threaded/ut/behave.d:26 - Enforcement failed",
+            "(tab)Given the given step      # behave.d:24",
+            "(tab)When the when step        # behave.d:25",
+            "    " ~ buildPath("tests", "unit_threaded", "ut", "behave.d") ~
+                ":27 - Enforcement failed",
             "",
-            "(tab)Then the then step        # behave.d:25",
+            "(tab)Then the then step        # behave.d:26",
             "",
         ]);
     }
